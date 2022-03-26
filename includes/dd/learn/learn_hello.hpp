@@ -109,14 +109,29 @@ namespace dd::learn {
     }
 
     void DrawTriangle() {
+        /* Clear last frame */
         (pfn_glClearColor)(0.2f, 0.3f, 0.3f, 1.0f);
         (pfn_glClear)(GL_COLOR_BUFFER_BIT);
+
+        /* Bind texture resources */
         (pfn_glActiveTexture)(GL_TEXTURE0);
         texture0.BindTexture();
         (pfn_glActiveTexture)(GL_TEXTURE1);
         texture1.BindTexture();
+
+        /* Bind shader resources */
         shader.BindShader();
+
+        /* Create rotation */
+        dd::util::math::Matrix34f transform = dd::util::math::IdentityMatrix34<float>;
+        dd::util::math::RotateLocalZ(std::addressof(transform), dd::util::math::TRadians<float, 90.0f>);
+
+        shader.SetUniformMatrix("uTransform", transform.m_arr);
+
+        /* Bind vertex array objects */
         (pfn_glBindVertexArray)(vao_index);
+
+        /* Draw */
         (pfn_glDrawElements)(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     }
 

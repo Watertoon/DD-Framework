@@ -22,8 +22,10 @@ layout (location = 2) in vec2 aTexCoord;
 out vec3 ovColor;
 out vec2 ovTexCoord;
 
+uniform mat4x3 uTransform;
+
 void main() {
-    gl_Position = vec4(aPosition, 1.0f);
+    gl_Position = vec4(uTransform * vec4(aPosition, 1.0), 1.0);
     ovColor = aColor;
     ovTexCoord = aTexCoord;
 }

@@ -19,3 +19,13 @@
 #include <dd/util/util_typedefs.h>
 #include <dd/util/util_defines.h>
 #include <dd/util/util_member.hpp>
+
+#include <dd/util/math/util_constants.hpp>
+#include <dd/util/math/util_int128.sse4.hpp>
+#include <dd/util/math/util_float128.sse4.hpp>
+#include <dd/util/math/util_vector2.hpp>
+#include <dd/util/math/util_vector3.hpp>
+#include <dd/util/math/util_vector4.hpp>
+#include <dd/util/math/util_matrix33.hpp>
+#include <dd/util/math/util_matrix34.hpp>
+#include <dd/util/math/util_matrix44.hpp>

@@ -55,7 +55,18 @@ namespace dd::ogl {
                     (pfn_glCompileShader)(v_shader_index);
                     success = 0;
                     (pfn_glGetShaderiv)(v_shader_index, GL_COMPILE_STATUS, std::addressof(success));
-                    DD_ASSERT(success == true);
+                    if (success != true) {
+                        DD_ASSERT(false);
+                        
+                        int log_length = 0;
+                        (pfn_glGetShaderiv)(v_shader_index, GL_INFO_LOG_LENGTH, std::addressof(log_length));
+                        (pfn_glGetShaderiv)(v_shader_index, GL_INFO_LOG_LENGTH, std::addressof(log_length));
+                        char *log_buffer = new char[log_length + 1];
+                        (pfn_glGetShaderInfoLog)(v_shader_index, log_length + 1, nullptr, log_buffer);
+                        std::cout << log_buffer << std::endl;
+                        delete[] log_buffer;
+                    }
+                    
     
                     /* Add to Program */
                     (pfn_glAttachShader)(m_program_index, v_shader_index);
@@ -161,6 +172,33 @@ namespace dd::ogl {
                         }
                     }
                 }
+                return;
+            }
+
+            template<typename T> requires std::is_floating_point<dd::util::element_type<T>>::value
+            void SetUniformMatrix(const char *name, const T& mat) {
+                if constexpr (sizeof(dd::util::element_type<T>) == sizeof(float)) {
+                    if constexpr (sizeof(T) == (sizeof(float) * 4)) {
+                        (pfn_glProgramUniformMatrix2fv)(m_program_index, (pfn_glGetUniformLocation)(m_program_index, name), 1, true, mat);
+                    } else if constexpr (sizeof(T) == (sizeof(float) * 9)) {
+                        (pfn_glProgramUniformMatrix3fv)(m_program_index, (pfn_glGetUniformLocation)(m_program_index, name), 1, true, mat);
+                    } else if constexpr (sizeof(T) == (sizeof(float) * 12)) {
+                        (pfn_glProgramUniformMatrix4x3fv)(m_program_index, (pfn_glGetUniformLocation)(m_program_index, name), 1, true, mat);
+                    } else if constexpr (sizeof(T) == (sizeof(float) * 16)) {
+                        (pfn_glProgramUniformMatrix4fv)(m_program_index, (pfn_glGetUniformLocation)(m_program_index, name), 1, true, mat);
+                    }
+                } else if constexpr (sizeof(dd::util::element_type<T>) == sizeof(double)) {
+                    if constexpr (sizeof(T) == (sizeof(double) * 4)) {
+                        (pfn_glProgramUniformMatrix2dv)(m_program_index, (pfn_glGetUniformLocation)(m_program_index, name), 1, true, mat);
+                    } else if constexpr (sizeof(T) == (sizeof(double) * 9)) {
+                        (pfn_glProgramUniformMatrix3dv)(m_program_index, (pfn_glGetUniformLocation)(m_program_index, name), 1, true, mat);
+                    } else if constexpr (sizeof(T) == (sizeof(double) * 12)) {
+                        (pfn_glProgramUniformMatrix4x3dv)(m_program_index, (pfn_glGetUniformLocation)(m_program_index, name), 1, true, mat);
+                    } else if constexpr (sizeof(T) == (sizeof(double) * 16)) {
+                        (pfn_glProgramUniformMatrix4dv)(m_program_index, (pfn_glGetUniformLocation)(m_program_index, name), 1, true, mat);
+                    }
+                }
+                return;
             }
 
             constexpr u32 GetNativeHandle() const { return m_program_index; }
