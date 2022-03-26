@@ -4,18 +4,28 @@ long unsigned int WindowThreadMain(void *arg) {
     /* Initialize Window and OpenGL context */
     dd::ogl::GLContextWindow gl_window;
     ::SetEvent(reinterpret_cast<Handle>(arg));
-    ::ShowWindow(gl_window.GetWindowHandle(), SW_SHOW);
 
     /* Setup OpenGL */
     dd::learn::SetupTriangle();
 
     /* Perform message loop */
     MSG msg = {};
-    while(::GetMessage(std::addressof(msg), nullptr, 0, 0) != 0){
+    while(::GetMessage(std::addressof(msg), nullptr, 0, 0) != 0) {
+        /* Begin frame */
+        dd::util::BeginFrame();
+
+        /* Draw */
         dd::learn::DrawTriangle();
+
+        /* Perform our window functions */
         ::TranslateMessage(std::addressof(msg));
         ::DispatchMessage(std::addressof(msg));
+
+        /* Swap our window buffer */
         gl_window.SwapBuffers();
+
+        /* Wait until next frame */
+        dd::util::WaitUntilNextFrame();
     }
 
     /* Clean up */
@@ -25,6 +35,9 @@ long unsigned int WindowThreadMain(void *arg) {
 }
 
 int main() {
+    /* Initialize System Time */
+    dd::util::InitializeTime();
+
     /* Create OGL Window Thread and wait for initialization */
     Handle ogl_event = ::CreateEvent(nullptr, true, false, nullptr);
     DD_ASSERT(ogl_event != nullptr);

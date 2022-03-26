@@ -190,6 +190,14 @@ namespace dd::ogl {
                 const char *extensions = (pfn_wglGetExtensionsStringARB)(m_hdc);
                 this->ParseExtensions(extensions);
                 this->CheckExtensions();
+                
+                ::ShowWindow(m_hwnd, SW_SHOW);
+
+                /* Enable VSync */
+                (pfn_wglSwapIntervalEXT)(1);
+
+                /* Set frame frequency */
+                dd::util::SetFrameFrequency(m_hdc);
             }
 
             ~GLContextWindow() {
@@ -233,7 +241,10 @@ namespace dd::ogl {
                 } else if (message == WM_PAINT) {
                     return 0;
                 } else if (message == WM_SIZE) {
+                    dd::util::SetFrameFrequency(::GetDC(window_handle));
                     (pfn_glViewport)(0, 0, LOWORD(l_param), HIWORD(l_param));
+                } else if (message == WM_DISPLAYCHANGE) {
+                    dd::util::SetFrameFrequency(::GetDC(window_handle));
                 }
 
                 return ::DefWindowProc(window_handle, message, w_param, l_param);
