@@ -37,6 +37,7 @@ namespace dd::learn {
         ogl::Shader shader;
         ogl::Texture texture0;
         ogl::Texture texture1;
+        dd::util::math::Matrix34f transform = dd::util::math::IdentityMatrix34<float>;
     }
 
     void SetupTriangle() {
@@ -123,9 +124,9 @@ namespace dd::learn {
         shader.BindShader();
 
         /* Create rotation */
-        dd::util::math::Matrix34f transform = dd::util::math::IdentityMatrix34<float>;
-        dd::util::math::RotateLocalZ(std::addressof(transform), dd::util::math::TRadians<float, 90.0f>);
-
+        const double delta = dd::util::GetDeltaTime();
+        dd::util::math::RotateLocalZ(std::addressof(transform), dd::util::math::TRadians<float, 2.5f> * delta);
+        std::cout << delta << std::endl;
         shader.SetUniformMatrix("uTransform", transform.m_arr);
 
         /* Bind vertex array objects */

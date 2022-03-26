@@ -11,7 +11,10 @@ long unsigned int WindowThreadMain(void *arg) {
     /* Perform message loop */
     MSG msg = {};
     while(::GetMessage(std::addressof(msg), nullptr, 0, 0) != 0) {
-        /* Begin frame */
+        /* Swap our window buffer */
+        gl_window.SwapBuffers();
+        
+        /* Next frame */
         dd::util::BeginFrame();
 
         /* Draw */
@@ -21,8 +24,6 @@ long unsigned int WindowThreadMain(void *arg) {
         ::TranslateMessage(std::addressof(msg));
         ::DispatchMessage(std::addressof(msg));
 
-        /* Swap our window buffer */
-        gl_window.SwapBuffers();
 
         /* Wait until next frame */
         dd::util::WaitUntilNextFrame();

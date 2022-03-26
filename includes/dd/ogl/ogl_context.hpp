@@ -68,9 +68,6 @@ namespace dd::ogl {
 
             void CheckExtensions() {
                 /*...*/
-                for (u32 i = 0; i < m_extension_count; ++i) {
-                    std::cout << m_extension_buffer[i] << std::endl;
-                }
             }
         public:
             explicit GLContextWindow() {
@@ -243,7 +240,7 @@ namespace dd::ogl {
                 } else if (message == WM_SIZE) {
                     dd::util::SetFrameFrequency(::GetDC(window_handle));
                     (pfn_glViewport)(0, 0, LOWORD(l_param), HIWORD(l_param));
-                } else if (message == WM_DISPLAYCHANGE) {
+                } else if (message == WM_DISPLAYCHANGE || message == WM_MOVE) {
                     dd::util::SetFrameFrequency(::GetDC(window_handle));
                 }
 
