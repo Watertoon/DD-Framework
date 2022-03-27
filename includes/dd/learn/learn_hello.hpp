@@ -127,6 +127,17 @@ namespace dd::learn {
         const double delta = dd::util::GetDeltaTime();
         dd::util::math::RotateLocalZ(std::addressof(transform), dd::util::math::TRadians<float, 2.5f> * delta);
         std::cout << delta << std::endl;
+        /* Scale */
+        //transform.m_arr2d[0][0] = 0.3;
+        //transform.m_arr2d[1][1] = -0.3;
+        /* Translation */
+        transform.m_arr2d[0][3] = 0.5;
+        transform.m_arr2d[1][3] = -0.5;
+        
+        std::cout << transform.m_arr2d[0][0] << " " << transform.m_arr2d[0][1] << " " << transform.m_arr2d[0][2] << " " << transform.m_arr2d[0][3] << " " << std::endl;
+        std::cout << transform.m_arr2d[1][0] << " " << transform.m_arr2d[1][1] << " " << transform.m_arr2d[1][2] << " " << transform.m_arr2d[1][3] << " " << std::endl;
+        std::cout << transform.m_arr2d[2][0] << " " << transform.m_arr2d[2][1] << " " << transform.m_arr2d[2][2] << " " << transform.m_arr2d[2][3] << " " << std::endl;
+        
         shader.SetUniformMatrix("uTransform", transform.m_arr);
 
         /* Bind vertex array objects */

@@ -24,7 +24,6 @@ long unsigned int WindowThreadMain(void *arg) {
         ::TranslateMessage(std::addressof(msg));
         ::DispatchMessage(std::addressof(msg));
 
-
         /* Wait until next frame */
         dd::util::WaitUntilNextFrame();
     }

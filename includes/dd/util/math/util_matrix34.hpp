@@ -115,16 +115,16 @@ namespace dd::util::math {
     }
 
     constexpr void RotateLocalZ(Matrix34f *out_rot_matrix, const float theta) {
-        const float sin = SampleSin(theta * FloatSample);
-        const float cos = SampleCos(theta * FloatSample);
+        const float sin = std::sin(theta);
+        const float cos = std::cos(theta);
         const float m11 = out_rot_matrix->m_arr2d[0][0];
         const float m21 = out_rot_matrix->m_arr2d[1][0];
         const float m31 = out_rot_matrix->m_arr2d[2][0];
-        out_rot_matrix->m_arr2d[0][0] = (m11 * cos) + (out_rot_matrix->m_arr2d[0][1] * sin);
+        out_rot_matrix->m_arr2d[0][0] = (m11 * cos)                           + (out_rot_matrix->m_arr2d[0][1] * sin);
         out_rot_matrix->m_arr2d[0][1] = (out_rot_matrix->m_arr2d[0][1] * cos) - (m11 * sin);
-        out_rot_matrix->m_arr2d[1][0] = (m21 * cos) + (out_rot_matrix->m_arr2d[1][1] * sin);
+        out_rot_matrix->m_arr2d[1][0] = (m21 * cos)                           + (out_rot_matrix->m_arr2d[1][1] * sin);
         out_rot_matrix->m_arr2d[1][1] = (out_rot_matrix->m_arr2d[1][1] * cos) - (m21 * sin);
-        out_rot_matrix->m_arr2d[2][0] = (m31 * cos) + (out_rot_matrix->m_arr2d[2][1] * sin);
+        out_rot_matrix->m_arr2d[2][0] = (m31 * cos)                           + (out_rot_matrix->m_arr2d[2][1] * sin);
         out_rot_matrix->m_arr2d[2][1] = (out_rot_matrix->m_arr2d[2][1] * cos) - (m31 * sin);
     }
 }

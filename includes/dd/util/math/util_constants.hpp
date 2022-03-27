@@ -79,11 +79,18 @@ namespace dd::util::math {
 
         for(int i = 0; i < 255; ++i) {
             const int index = i * 4;
-            const double n = ((360.0f * FloatPi / FloatDegree180) / 256) * (i + 1.0f);
-            const double cos_value = std::cos(n);
-            const double sin_value = std::sin(n);
-            const double cos_diff =  cos_value - values[index];
-            const double sin_diff =  sin_value - values[index + 1];
+            const long double n = ((360.0 * 3.14159265358979 / 180.0) / 256.0) * (static_cast<long double>(i) + 1.00);
+            long double cos_value = std::cos(n);
+            long double sin_value = std::sin(n);
+            long double cos_diff =  cos_value - values[index];
+            long double sin_diff =  sin_value - values[index + 1];
+            
+            if (-FloatUlp < cos_value && cos_value < FloatUlp) {
+                cos_value = 0;
+            }
+            if (-FloatUlp < sin_value && sin_value < FloatUlp) {
+                sin_value = 0;
+            }
 
             values[index + 2] = cos_diff;
             values[index + 3] = sin_diff;

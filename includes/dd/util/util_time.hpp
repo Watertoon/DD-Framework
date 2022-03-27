@@ -57,22 +57,17 @@ namespace dd::util {
         last_frame_time = GetSystemTick();
         delta_time = static_cast<double>(last_frame_time - last_last_frame) / static_cast<double>(target_frame_frequency);
     }
-    
+
     s64 GetMillisecondsFromTick(s64 tick) {
         return ((tick % system_frequency) * dd::util::math::TPow<s64, 10, 3> / system_frequency) + ((tick / system_frequency) * dd::util::math::TPow<s64, 10, 3>);
     }
     static_assert(dd::util::math::TPow<s64, 10, 3> == 1000);
 
-    s64 GetNanosecondsFromTick(s64 tick) {
-        return ((tick % system_frequency) * dd::util::math::TPow<s64, 10, 9> / system_frequency) + ((tick / system_frequency) * dd::util::math::TPow<s64, 10, 9>);
-    }
-    static_assert(dd::util::math::TPow<s64, 10, 9> == 1000000000);
-    
     void WaitUntilNextFrame() {
         const s32 sleep_time = static_cast<s32>(GetMillisecondsFromTick(target_frame_frequency / (GetSystemTick() - last_frame_time)));
         ::Sleep(sleep_time);
     }
-    
+
     double GetDeltaTime() {
         return delta_time;
     }
