@@ -34,6 +34,7 @@ namespace dd::util::math {
             constexpr Matrix34RowMajorType() : m_arr{} { /*...*/ }
             constexpr Matrix34RowMajorType(const m34t& vec) : m_row1(vec[0], vec[1], vec[2], vec[3]), m_row2(vec[4], vec[5], vec[6], vec[7]), m_row3(vec[8], vec[9], vec[10], vec[11]) {/*...*/}
             constexpr Matrix34RowMajorType(const Vector4Type<T>& row1, const Vector4Type<T>& row2, const Vector4Type<T>& row3) : m_row1(row1), m_row2(row2), m_row3(row3) {/*...*/}
+            constexpr Matrix34RowMajorType(T m11, T m12, T m13, T m14, T m21, T m22, T m23, T m24, T m31, T m32, T m33, T m34) : m_row1(m11, m12, m13, m14), m_row2(m21, m22, m23, m24), m_row3(m31, m32, m33, m34) {/*...*/}
 
             constexpr Matrix34RowMajorType(const Matrix34RowMajorType& rhs) : m_row1(rhs.m_row1), m_row2(rhs.m_row2), m_row3(rhs.m_row3) {/*...*/}
 
@@ -86,9 +87,9 @@ namespace dd::util::math {
         return true;
     }
 
-    constexpr void RotateLocalX(Matrix34f *out_rot_matrix, const float theta) {
-        const float sin = SampleSin(theta * FloatSample);
-        const float cos = SampleCos(theta * FloatSample);
+    __attribute__((noinline)) void RotateLocalX(Matrix34f *out_rot_matrix, const float theta) {
+        const float sin = std::sin(theta);
+        const float cos = std::cos(theta);
         const float m12 = out_rot_matrix->m_arr2d[0][1];
         const float m22 = out_rot_matrix->m_arr2d[1][1];
         const float m32 = out_rot_matrix->m_arr2d[2][1];
@@ -100,9 +101,9 @@ namespace dd::util::math {
         out_rot_matrix->m_arr2d[2][2] = (out_rot_matrix->m_arr2d[2][2] * cos) - (m32 * sin);
     }
 
-    constexpr void RotateLocalY(Matrix34f *out_rot_matrix, const float theta) {
-        const float sin = SampleSin(theta * FloatSample);
-        const float cos = SampleCos(theta * FloatSample);
+    __attribute__((noinline)) void RotateLocalY(Matrix34f *out_rot_matrix, const float theta) {
+        const float sin = std::sin(theta);
+        const float cos = std::cos(theta);
         const float m11 = out_rot_matrix->m_arr2d[0][0];
         const float m21 = out_rot_matrix->m_arr2d[1][0];
         const float m31 = out_rot_matrix->m_arr2d[2][0];
@@ -114,7 +115,7 @@ namespace dd::util::math {
         out_rot_matrix->m_arr2d[2][2] = (out_rot_matrix->m_arr2d[2][2] * cos) + (m31 * sin);
     }
 
-    constexpr void RotateLocalZ(Matrix34f *out_rot_matrix, const float theta) {
+    __attribute__((noinline)) void RotateLocalZ(Matrix34f *out_rot_matrix, const float theta) {
         const float sin = std::sin(theta);
         const float cos = std::cos(theta);
         const float m11 = out_rot_matrix->m_arr2d[0][0];

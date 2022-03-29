@@ -242,7 +242,7 @@ namespace dd::util::math {
 
     /* Rotates a vector by "angle" along the x-axis */
     void RotateVectorAxisX(Vector3f *out_vector, const Vector3f& rot_vector, float angle) {
-        const float index = angle * FloatSample;
+        const float index = angle * (static_cast<float>(AngleIndexHalfRound) / FloatPi);
         const float sin = SampleSin(index);
         const float cos = SampleCos(index);
         /*  | x                       |
@@ -256,7 +256,7 @@ namespace dd::util::math {
 
     /* Rotates a vector by "angle" along the y-axis */
     void RotateVectorAxisY(Vector3f *out_vector, const Vector3f& rot_vector, float angle) {
-        const float index = angle * FloatSample;
+        const float index = angle * (static_cast<float>(AngleIndexHalfRound) / FloatPi);
         const float sin = SampleSin(index);
         const float cos = SampleCos(index);
         /*  | z*cos(ang) + x*sin(ang) |
@@ -270,7 +270,7 @@ namespace dd::util::math {
 
     /* Rotates a vector by "angle" along the y-axis */
     void RotateVectorAxisZ(Vector3f *out_vector, const Vector3f& rot_vector, float angle) {
-        const float index = angle * FloatSample;
+        const float index = angle * (static_cast<float>(AngleIndexHalfRound) / FloatPi);
         const float sin = SampleSin(index);
         const float cos = SampleCos(index);
         /*  | x*sin(ang) - y*cos(ang) |
