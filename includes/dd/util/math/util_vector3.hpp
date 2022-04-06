@@ -40,70 +40,32 @@ namespace dd::util::math {
 
             template<typename A = T> requires std::is_floating_point<A>::value && (sizeof(Vector3Type<A>) == (sizeof(float) * 3))
             constexpr v3 GetVectorType() {
-                if (std::is_constant_evaluated()) {
-                    return v3{x,y,z,0};
-                } else {
-                    const v3 zero{0,0,0,0};
-                    const v3 v = sse4::movaps(m_vec);
-                    const v3 out = sse4::insertps(v, zero, (3 << 4));
-                    return out;
-                }
+                return v3{x,y,z,0};
             }
 
             template<typename A = T> requires std::is_floating_point<A>::value && (sizeof(Vector3Type<A>) == (sizeof(float) * 3))
             constexpr const v3 GetVectorType() const {
-                if (std::is_constant_evaluated()) {
-                    return v3{x,y,z,0};
-                } else {
-                    const v3 zero{0,0,0,0};
-                    const v3 v = sse4::movaps(m_vec);
-                    const v3 out = sse4::insertps(v, zero, (3 << 4));
-                    return out;
-                }
+                return v3{x,y,z,0};
             }
 
             template<typename A = T> requires std::is_integral<A>::value && std::is_signed<A>::value && (sizeof(Vector3Type<A>) == (sizeof(int) * 3))
             constexpr v3 GetVectorType() {
-                if (std::is_constant_evaluated()) {
-                    return v3{x,y,z,0};
-                } else {
-                    const v3 v = sse4::lddqu(reinterpret_cast<const int*>(m_vec));
-                    const v3 out = sse4::pinsrd(v, 0, 3);
-                    return out;
-                }
+                return v3{x,y,z,0};
             }
 
             template<typename A = T> requires std::is_integral<A>::value && std::is_signed<A>::value && (sizeof(Vector3Type<A>) == (sizeof(int) * 3))
             constexpr const v3 GetVectorType() const {
-                if (std::is_constant_evaluated()) {
-                    return v3{x,y,z,0};
-                } else {
-                    const v3 v = sse4::lddqu(reinterpret_cast<const int*>(m_vec));
-                    const v3 out = sse4::pinsrd(v, 0, 3);
-                    return out;
-                }
+                return v3{x,y,z,0};
             }
 
             template<typename A = T> requires std::is_integral<A>::value && std::is_unsigned<A>::value && (sizeof(Vector3Type<A>) == (sizeof(int) * 3))
             constexpr v3 GetVectorType() {
-                if (std::is_constant_evaluated()) {
-                    return v3{x,y,z,0};
-                } else {
-                    const v3 v = sse4::v128(sse4::lddqu(reinterpret_cast<const int*>(m_vec))).ui;
-                    const v3 out = sse4::v128(sse4::pinsrd(v, 0, 3)).ui;
-                    return out;
-                }
+                return v3{x,y,z,0};
             }
 
             template<typename A = T> requires std::is_integral<A>::value && std::is_unsigned<A>::value && (sizeof(Vector3Type<A>) == (sizeof(int) * 3))
             constexpr const v3 GetVectorType() const {
-                if (std::is_constant_evaluated()) {
-                    return v3{x,y,z,0};
-                } else {
-                    const v3 v = sse4::v128(sse4::lddqu(reinterpret_cast<const int*>(m_vec))).ui;
-                    const v3 out = sse4::v128(sse4::pinsrd(v, 0, 3)).ui;
-                    return out;
-                }
+                return v3{x,y,z,0};
             }
 
             constexpr ALWAYS_INLINE Vector3Type operator+(Vector3Type& rhs) {

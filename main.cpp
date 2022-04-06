@@ -1,5 +1,4 @@
 #include <dd.h>
-#include <fenv.h>
 
 long unsigned int WindowThreadMain(void *arg) {
     /* Initialize Window and OpenGL context */
@@ -38,14 +37,6 @@ long unsigned int WindowThreadMain(void *arg) {
 int main() {
     /* Initialize System Time */
     dd::util::InitializeTime();
-
-    /* Set Flush Denormals to Zero */
-    fenv_t env = {};
-    bool result = ::fegetenv(std::addressof(env));
-    DD_ASSERT(result == 0 && env.__mxcsr == 0);
-    env.__mxcsr = 0x8000;
-    result = ::fesetenv(std::addressof(env));
-    DD_ASSERT(result == 0);
 
     /* Create OGL Window Thread and wait for initialization */
     Handle ogl_event = ::CreateEvent(nullptr, true, false, nullptr);

@@ -70,26 +70,29 @@ namespace dd::util::math {
     constexpr inline u32 AngleIndexQuarterRound = 0x40000000;
     constexpr inline u32 AngleIndexThreeQuarterRound = 0xC0000000;
 
-    constexpr long double SlowSin(long double V) {
-        return V - (std::pow(V, 3) / TFactorial<long double, 3>) + (std::pow(V, 5) / TFactorial<long double, 5>) - (std::pow(V, 7) / TFactorial<long double, 7>) + (std::pow(V, 9) / TFactorial<long double, 9>) - (std::pow(V, 11) / TFactorial<long double, 11>) + (std::pow(V, 13) / TFactorial<long double, 13>) - (std::pow(V, 15) / TFactorial<long double, 15>) + (std::pow(V, 17) / TFactorial<long double, 17>);
+    constexpr long double PreciseSin(long double V) {
+        return V - (std::pow(V, 3) / TFactorial<long double, 3>) + (std::pow(V, 5) / TFactorial<long double, 5>) - (std::pow(V, 7) / TFactorial<long double, 7>) + (std::pow(V, 9) / TFactorial<long double, 9>) - (std::pow(V, 11) / TFactorial<long double, 11>) + (std::pow(V, 13) / TFactorial<long double, 13>) - (std::pow(V, 15) / TFactorial<long double, 15>) + (std::pow(V, 17) / TFactorial<long double, 17>) - (std::pow(V, 19) / TFactorial<long double, 19>) + (std::pow(V, 21) / TFactorial<long double, 21>) - (std::pow(V, 23) / TFactorial<long double, 23>) + (std::pow(V, 25) / TFactorial<long double, 25>) - (std::pow(V, 27) / TFactorial<long double, 27>) + (std::pow(V, 29) / TFactorial<long double, 29>) - (std::pow(V, 31) / TFactorial<long double, 31>) + (std::pow(V, 33) / TFactorial<long double, 33>) - (std::pow(V, 35) / TFactorial<long double, 35>);
     }
 
-    constexpr long double SlowCos(long double V) {
-        return  1.0 - (std::pow(V, 2) / TFactorial<long double, 2>) + (std::pow(V, 4) / TFactorial<long double, 4>) - (std::pow(V, 6) / TFactorial<long double, 6>) + (std::pow(V, 8) / TFactorial<long double, 8>) - (std::pow(V, 10) / TFactorial<long double, 10>) + (std::pow(V, 12) / TFactorial<long double, 12>) - (std::pow(V, 14) / TFactorial<long double, 14>) + (std::pow(V, 16) / TFactorial<long double, 16>);
+    constexpr long double PreciseCos(long double V) {
+        return  1.0l - (std::pow(V, 2) / TFactorial<long double, 2>) + (std::pow(V, 4) / TFactorial<long double, 4>) - (std::pow(V, 6) / TFactorial<long double, 6>) + (std::pow(V, 8) / TFactorial<long double, 8>) - (std::pow(V, 10) / TFactorial<long double, 10>) + (std::pow(V, 12) / TFactorial<long double, 12>) - (std::pow(V, 14) / TFactorial<long double, 14>) + (std::pow(V, 16) / TFactorial<long double, 16>) - (std::pow(V, 18) / TFactorial<long double, 18>) + (std::pow(V, 20) / TFactorial<long double, 20>) - (std::pow(V, 22) / TFactorial<long double, 22>) + (std::pow(V, 24) / TFactorial<long double, 24>) - (std::pow(V, 26) / TFactorial<long double, 26>) + (std::pow(V, 28) / TFactorial<long double, 28>) - (std::pow(V, 30) / TFactorial<long double, 30>) + (std::pow(V, 32) / TFactorial<long double, 32>) - (std::pow(V, 34) / TFactorial<long double, 34>);
     }
 
     consteval auto GenerateSinCosTable() {
         std::array<float, 1024>  values{}; 
-        values[0] = std::cos(0);
-        values[1] = std::sin(0);
+        values[0] = 1.0l;
+        values[1] = 0.0l;
+
+        long double last_cos = 1.0l;
+        long double last_sin = 0.0l;
 
         for(int i = 0; i < 255; ++i) {
             const int index = i * 4;
-            const double n = ((2.0 * 3.1415927 * (static_cast<double>(i) + 1.00)) / 256.0);
-            double cos_value = SlowCos(n);
-            double sin_value = SlowSin(n);
-            double cos_diff =  cos_value - values[index];
-            double sin_diff =  sin_value - values[index + 1];
+            const long double n = ((2.0l * 3.141592653589l) * (static_cast<long double>(i) + 1.00l) / 256.0l);
+            long double cos_value = PreciseCos(n);
+            long double sin_value = PreciseSin(n);
+            long double cos_diff =  cos_value - last_cos;
+            long double sin_diff =  sin_value - last_sin;
 
             if (-FloatUlp < cos_value && cos_value < FloatUlp) {
                 cos_value = 0;
@@ -103,11 +106,13 @@ namespace dd::util::math {
             
             values[index + 4] = cos_value;
             values[index + 5] = sin_value;
+            last_cos = cos_value;
+            last_sin = sin_value;
         }
-        const double cos_value = std::cos((360.0f * FloatPi / FloatDegree180));
-        const double sin_value = std::sin((360.0f * FloatPi / FloatDegree180));
-        const double cos_diff =  cos_value - values[1020];
-        const double sin_diff =  sin_value - values[1021];
+        const long double cos_value = 1.0l;
+        const long double sin_value = 0.0l;
+        const long double cos_diff =  cos_value - last_cos;
+        const long double sin_diff =  sin_value - last_sin;
         values[1022] = cos_diff;
         values[1023] = sin_diff;
 
@@ -119,16 +124,16 @@ namespace dd::util::math {
     /* Each method has 256 values and 256 differences */
     const auto SinCosSampleTable = GenerateSinCosTable();
 
-    __attribute__((noinline)) float SampleSin(float value_from_angle_index) {
+    float SampleSin(float value_from_angle_index) {
         const unsigned int angle_index = static_cast<unsigned int>(value_from_angle_index);
-        const unsigned int   index     = (angle_index >> 0x18) & 0xFF;
+        const unsigned int   index     = (angle_index >> 24) & 0xFF;
         const float variance = static_cast<float>(angle_index & 0xFFFFFF) * 5.9604644775390625e-8;
         return SinCosSampleTable[(index * 4) + 1] + (SinCosSampleTable[(index * 4) + 3] * variance);
     }
 
-    __attribute__((noinline)) float SampleCos(float value_from_angle_index) {
+    float SampleCos(float value_from_angle_index) {
         const unsigned int angle_index = static_cast<unsigned int>(value_from_angle_index);
-        const unsigned int   index     = (angle_index >> 0x18) & 0xFF;
+        const unsigned int   index     = (angle_index >> 24) & 0xFF;
         const float variance = static_cast<float>(angle_index & 0xFFFFFF) * 5.9604644775390625e-8;
         return SinCosSampleTable[(index * 4)] + (SinCosSampleTable[(index * 4) + 2] * variance);
     }

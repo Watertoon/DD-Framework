@@ -135,7 +135,10 @@ namespace dd::ogl {
                 s32 advanced_format = 0;
                 u32 formats_found = 0;
                 last_result = (pfn_wglChoosePixelFormatARB)(m_hdc, pixel_attribute_array, nullptr, 1, std::addressof(advanced_format), std::addressof(formats_found));
-                DD_ASSERT(last_result != false);
+                if (last_result == false) {
+                    /* no SRGB fallback */
+                    advanced_format = format;
+                }
 
                 /* Delete dummy context */
                 ::wglMakeCurrent(m_hdc, nullptr);
@@ -208,6 +211,7 @@ namespace dd::ogl {
                 }
                 ::wglMakeCurrent(m_hdc, nullptr);
                 ::wglDeleteContext(m_hglrc);
+                ::wglMakeCurrent(nullptr, nullptr);
                 ::ReleaseDC(m_hwnd, m_hdc);
                 ::DestroyWindow(m_hwnd);
                 ::UnregisterClass("OpenGLWindow", ::GetModuleHandle(nullptr));

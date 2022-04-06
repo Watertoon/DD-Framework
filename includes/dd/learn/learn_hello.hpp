@@ -126,8 +126,7 @@ namespace dd::learn {
         shader.BindShader();
 
         /* Create rotation */
-        const double delta = dd::util::GetDeltaTime();
-        dd::util::math::RotateLocalZ(std::addressof(transform), dd::util::math::TRadians<float, 3.0f> * delta);
+        dd::util::math::RotateLocalZ(std::addressof(transform), dd::util::math::TRadians<float, 1.0f>);
         shader.SetUniformMatrix("uTransform", transform.m_arr);
 
         /* Bind vertex array objects */
