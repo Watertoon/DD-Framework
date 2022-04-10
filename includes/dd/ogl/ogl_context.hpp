@@ -38,8 +38,8 @@ namespace dd::ogl {
                 }
 
                 /* Allocate ptr_array */
-                m_extension_buffer = new (std::nothrow) char*[extension_count];
-                m_extension_count = extension_count;
+                m_extension_buffer = new (std::nothrow) char*[extension_count + 1];
+                m_extension_count = extension_count + 1;
 
                 /* Parse extensions into the ptr array */
                 i = 0;

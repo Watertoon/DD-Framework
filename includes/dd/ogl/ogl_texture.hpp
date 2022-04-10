@@ -27,7 +27,6 @@ namespace dd::ogl {
     class Texture {
         private:
             u32 m_texture_index;
-
         public:
             constexpr Texture() { /*...*/ }
 
@@ -45,6 +44,10 @@ namespace dd::ogl {
                 /* Set image data */
                 (pfn_glTexImage2D)(GL_TEXTURE_2D, 0, GL_RGB, create_arg->width, create_arg->height, 0, create_arg->channels, GL_UNSIGNED_BYTE, create_arg->image_buffer);
                 (pfn_glGenerateMipmap)(GL_TEXTURE_2D);
+            }
+
+            void FinalizeTexture() {
+                (pfn_glDeleteTextures)(1, std::addressof(m_texture_index));
             }
 
             void BindTexture() {

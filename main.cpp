@@ -37,6 +37,9 @@ long unsigned int WindowThreadMain(void *arg) {
 int main() {
     /* Initialize System Time */
     dd::util::InitializeTime();
+    
+    /* Set flush denormals to 0 */
+    _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
 
     /* Create OGL Window Thread and wait for initialization */
     Handle ogl_event = ::CreateEvent(nullptr, true, false, nullptr);

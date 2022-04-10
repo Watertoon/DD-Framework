@@ -37,9 +37,10 @@ namespace dd::learn {
         ogl::Shader shader;
         ogl::Texture texture0;
         ogl::Texture texture1;
-        dd::util::math::Matrix34f transform(0.5f, 0.0f, 0.0f, 0.5f, 
-                                            0.0f, 1.5f, 0.0f, -0.3f,
-                                            0.0f, 0.0f, 1.0f, 0.0f);
+        const dd::util::math::Matrix34f base_transform(0.5f, 0.0f, 0.0f, 0.5f, 
+                                                       0.0f, 1.5f, 0.0f, -0.3f,
+                                                       0.0f, 0.0f, 1.0f, 0.0f);
+        float rot_z_angle = 0.0f;
     }
 
     void SetupTriangle() {
@@ -126,8 +127,11 @@ namespace dd::learn {
         shader.BindShader();
 
         /* Create rotation */
-        dd::util::math::RotateLocalZ(std::addressof(transform), dd::util::math::TRadians<float, 1.0f>);
-        shader.SetUniformMatrix("uTransform", transform.m_arr);
+        dd::util::math::Matrix34f rot_mtx = base_transform;
+        rot_z_angle += dd::util::math::TRadians<float, 1.0f>;
+        ::fmod(rot_z_angle, dd::util::math::Float2Pi);
+        dd::util::math::RotateLocalZ(std::addressof(rot_mtx), rot_z_angle);
+        shader.SetUniformMatrix("uTransform", rot_mtx.m_arr);
 
         /* Bind vertex array objects */
         (pfn_glBindVertexArray)(vao_index);
@@ -137,6 +141,8 @@ namespace dd::learn {
     }
 
     void CleanTriangle() {
+        texture0.FinalizeTexture();
+        texture1.FinalizeTexture();
         (pfn_glDeleteVertexArrays)(1, std::addressof(vao_index));
         (pfn_glDeleteBuffers)(1, std::addressof(vbo_index));
         (pfn_glDeleteBuffers)(1, std::addressof(ibo_index));
