@@ -91,7 +91,7 @@ lib/$(TARGET).a: lib release_deps $(SOURCE_DIRS) $(INCLUDES)
 	-C release_deps \
 	-f $(CURDIR)/Makefile
 
-build/$(EXE_NAME).exe: build lib/$(TARGET).a $(MAIN_INPUT)
+build/$(EXE_NAME).exe: build release_deps $(SOURCE_DIRS) $(INCLUDES)
 	@$(MAKE) BUILD=release_deps OUTPUTEXE=$(CURDIR)/$@ \
 	BUILD_CFLAGS="-DNDEBUG=0" \
 	DEPSDIR=$(CURDIR)/release_deps \
@@ -107,9 +107,7 @@ else
 # Dependencies for make
 DEPENDS := $(OFILES:.o=.d) $(foreach hdr,$(GCH_FILES:.hpp.gch=.d),$(notdir $(hdr)))
 
-$(OUTPUTEXE)  : $(OUTPUTA)
-
-$(OUTPUTA)    : $(OFILES)
+$(OUTPUTEXE)  : $(OFILES)
 
 $(OFILES)     : $(GCH_FILES)
 
