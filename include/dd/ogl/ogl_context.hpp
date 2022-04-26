@@ -197,7 +197,7 @@ namespace dd::ogl {
                 (pfn_wglSwapIntervalEXT)(1);
 
                 /* Set frame frequency */
-                dd::util::SetFrameFrequency(m_hdc);
+                dd::util::SetFrameFrequency(60);
 
                 /* Set up raw input */
                 const RAWINPUTDEVICE raw_input_devices[2] = {
@@ -260,10 +260,10 @@ namespace dd::ogl {
                 } else if (message == WM_PAINT) {
                     return 0;
                 } else if (message == WM_SIZE) {
-                    dd::util::SetFrameFrequency(::GetDC(window_handle));
+                    dd::util::SetFrameFrequency(60);
                     (pfn_glViewport)(0, 0, LOWORD(l_param), HIWORD(l_param));
                 } else if (message == WM_DISPLAYCHANGE || message == WM_MOVE) {
-                    dd::util::SetFrameFrequency(::GetDC(window_handle));
+                    dd::util::SetFrameFrequency(60);
                 } else if (message == WM_INPUT) {
                     dd::hid::SetLastRawInput(reinterpret_cast<HRAWINPUT>(l_param));
                 }

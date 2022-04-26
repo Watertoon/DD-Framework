@@ -1,4 +1,35 @@
+ /*
+ *  Copyright (C) W. Michael Knudson
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License along with this program; 
+ *  if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ */
 #include <dd.hpp>
+
+bool ProcessWindowUntilNextFrame() {
+    const s64 process_target_time = dd::util::GetSystemTick() + dd::util::GetTickUntilNextFrame();
+    MSG msg = {};
+    while (::GetMessage(std::addressof(msg), nullptr, 0, 0) != 0) {
+        /* Perform our window functions */
+        ::TranslateMessage(std::addressof(msg));
+        ::DispatchMessage(std::addressof(msg));
+        
+        /* Stop processing to process frame */
+        if (process_target_time < dd::util::GetSystemTick()) {
+            return false;
+        }
+    }
+    return true;
+}
 
 long unsigned int WindowThreadMain(void *arg) {
     /* Initialize Window and OpenGL context */
@@ -9,8 +40,8 @@ long unsigned int WindowThreadMain(void *arg) {
     dd::learn::SetupTriangle();
 
     /* Perform message loop */
-    MSG msg = {};
-    while(::GetMessage(std::addressof(msg), nullptr, 0, 0) != 0) {
+    bool should_exit = false;
+    while (should_exit == false) {
         /* Swap our window buffer */
         gl_window.SwapBuffers();
         
@@ -20,12 +51,8 @@ long unsigned int WindowThreadMain(void *arg) {
         /* Draw */
         dd::learn::DrawTriangle();
 
-        /* Perform our window functions */
-        ::TranslateMessage(std::addressof(msg));
-        ::DispatchMessage(std::addressof(msg));
-
         /* Wait until next frame */
-        dd::util::WaitUntilNextFrame();
+        should_exit = ProcessWindowUntilNextFrame();
     }
 
     /* Clean up */

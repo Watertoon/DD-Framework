@@ -1,3 +1,18 @@
+ /*
+ *  Copyright (C) W. Michael Knudson
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License along with this program; 
+ *  if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ */
 #pragma once
 
 namespace dd::vk {
@@ -16,23 +31,23 @@ namespace dd::vk {
             VkBuffer        m_vk_device_buffer;
             const Context  *m_parent_context;
             u32             m_vk_memory_property_flags;
-            bool            m_requires_staging;
+            bool            m_requires_relocation;
             bool            m_is_device_memory;
             void           *m_host_pointer;
             VkDeviceSize    m_size;
         public:
             
             void Initialize(const Context *context, const MemoryPoolInfo* pool_info) {
-                DD_ASSERT(pool_info->import_memory == nullptr);
+                DD_ASSERT(pool_info->import_memory != nullptr);
                 const u32 pool_properties = pool_info->memory_property_flags;
                 
-                m_host_size = pool_info->size;
+                m_size = pool_info->size;
                 m_parent_context = context;
                 m_vk_memory_property_flags = pool_properties;
 
                 /* Check host pointer memory properties */
                 VkMemoryHostPointerPropertiesEXT host_properties = { .sType = VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT };
-                const u32 result0 = ::vkGetMemoryHostPointerPropertiesEXT(context->GetDevice(), 0, pool_info->import_memory, std::addressof(host_properties));
+                const u32 result0 = ::vkGetMemoryHostPointerPropertiesEXT(context->GetDevice(), VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT, pool_info->import_memory, std::addressof(host_properties));
                 DD_ASSERT(result0 != 0);
 
                 /* Handle whether our host pointer needs a staging buffer */
@@ -52,7 +67,7 @@ namespace dd::vk {
                     DD_ASSERT(device_memory_type != -1);
 
                     const VkMemoryAllocateInfo device_allocate_info =  {
-                        .sType = Vk_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+                        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
                         .allocationSize = pool_info->size,
                         .memoryTypeIndex = device_memory_type
                     };
@@ -68,7 +83,7 @@ namespace dd::vk {
                     .pHostPointer = pool_info->import_memory
                 };
                 const VkMemoryAllocateInfo host_allocate_info =  {
-                    .sType = Vk_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+                    .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
                     .pNext = std::addressof(host_info),
                     .allocationSize = pool_info->size,
                     .memoryTypeIndex = host_memory_type
@@ -105,14 +120,14 @@ namespace dd::vk {
                 /* Copy entire memory pool to buffer without host properties */
                 if (m_requires_relocation == true) {
                     /* Create staging buffers spanning host and device memory pools */
-                    const u32 queue_family_index = m_parent_context->GetGraphicsQueueFamily();
+                    const u32 queue_family_index = m_parent_context->GetGraphicsQueueFamilyIndex();
                     const VkBufferCreateInfo src_buffer_info = {
                         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-                        .size = m_size;
+                        .size = m_size,
                         .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
                         .queueFamilyIndexCount = 1,
-                        .pQueueFamilyIndices = std::addressof(m_parent_context->GetGraphicsQueueFamily())
+                        .pQueueFamilyIndices = std::addressof(queue_family_index)
                     };
 
                     const u32 result0 = ::vkCreateBuffer(m_parent_context->GetDevice(), std::addressof(src_buffer_info), nullptr, std::addressof(m_vk_host_buffer));
@@ -123,11 +138,11 @@ namespace dd::vk {
 
                     const VkBufferCreateInfo dst_buffer_info = {
                         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-                        .size = m_size;
+                        .size = m_size,
                         .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
                         .queueFamilyIndexCount = 1,
-                        .pQueueFamilyIndices = std::addressof(m_parent_context->GetGraphicsQueueFamily())
+                        .pQueueFamilyIndices = std::addressof(queue_family_index)
                     };
                     const u32 result2 = ::vkCreateBuffer(m_parent_context->GetDevice(), std::addressof(dst_buffer_info), nullptr, std::addressof(m_vk_device_buffer));
                     DD_ASSERT(result2 == VK_SUCCESS);

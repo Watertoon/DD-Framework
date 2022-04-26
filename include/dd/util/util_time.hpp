@@ -23,13 +23,15 @@ namespace dd::util {
 
     s64    GetSystemTick();
 
-    void   SetFrameFrequency(HDC device_context);
+    void   SetFrameFrequency(s32 refresh);
 
     void   BeginFrame();
 
     s64    GetMillisecondsFromTick(s64 tick);
 
     void   WaitUntilNextFrame();
+    
+    s64    GetTickUntilNextFrame();
 
     double GetDeltaTime();
 }

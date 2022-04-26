@@ -28,11 +28,7 @@ namespace dd::util {
         return tick.QuadPart;
     }
 
-    void SetFrameFrequency(HDC device_context) {
-        /* Get monitor refresh rate (note; loses precision) */
-        const s32 refresh = ::GetDeviceCaps(device_context, VREFRESH);
-        DD_ASSERT(refresh != 0 && refresh != 1);
-
+    void SetFrameFrequency(s32 refresh) {
         display_frequency = refresh;
         target_frame_frequency = system_frequency / display_frequency;
     }
@@ -51,6 +47,10 @@ namespace dd::util {
     void WaitUntilNextFrame() {
         const s32 sleep_time = static_cast<s32>(GetMillisecondsFromTick(target_frame_frequency / (GetSystemTick() - last_frame_time)));
         ::Sleep(sleep_time);
+    }
+
+    s64 GetTickUntilNextFrame() {
+        return static_cast<s64>(target_frame_frequency / (GetSystemTick() - last_frame_time));
     }
 
     double GetDeltaTime() {
