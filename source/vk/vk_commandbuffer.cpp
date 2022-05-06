@@ -229,7 +229,7 @@ namespace dd::vk {
         };
         
         const u32 result1 = ::vkCreateDescriptorPool(context->GetDevice(), std::addressof(buffer_pool_info), nullptr, std::addressof(m_vk_resource_buffer_descriptor_pool));
-        DD_ASSERT(result1 == VK_TRUE);
+        DD_ASSERT(result1 == VK_SUCCESS);
         
         /* Create resource buffer descriptor set */
         VkDescriptorSetLayout vk_buffer_descriptor_set_layout = context->GetResourceBufferDescriptorSetLayout();
@@ -241,7 +241,7 @@ namespace dd::vk {
         };
         
         const u32 result2 = ::vkAllocateDescriptorSets(context->GetDevice(), std::addressof(buffer_set_info), std::addressof(m_vk_resource_buffer_descriptor_set));
-        DD_ASSERT(result2 == VK_TRUE);
+        DD_ASSERT(result2 == VK_SUCCESS);
         
         /* Allocate resource buffer memory */
         const s32 device_memory_type = context->FindMemoryHeapIndex(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);

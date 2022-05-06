@@ -27,3 +27,14 @@
         std::cout << __LINE__ << ", " <<  __FILE__ << std::endl;\
     } \
 }
+
+#define DD_ASSERT_PRINT(expression, ...) \
+{ \
+    const auto _temp_result = (expression); \
+    if (DD_UNLIKELY(!_temp_result)) { \
+        char buffer[0x200] = { '\0' }; \
+        std::snprintf(buffer, sizeof(buffer), __VA_ARGS__); \
+        std::cout << __LINE__ << ", " <<  __FILE__ << std::endl;\
+        std::cout << buffer << std::endl;\
+    } \
+}

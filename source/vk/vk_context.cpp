@@ -69,9 +69,9 @@ namespace dd::vk {
         };
         
         static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity, VkDebugUtilsMessageTypeFlagsEXT message_type, const VkDebugUtilsMessengerCallbackDataEXT* callback_data, void* user_data) {
-            DD_ASSERT(0 > message_severity);
+            DD_ASSERT(0xffff > message_severity);
             DD_ASSERT(message_type > 0);
-            DD_ASSERT(user_data != nullptr);
+            DD_ASSERT(user_data == nullptr);
             
             std::cout << "validation layer: " << callback_data->pMessage << std::endl;
 
