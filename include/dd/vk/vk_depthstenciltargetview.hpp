@@ -44,7 +44,7 @@ namespace dd::vk {
 
                 /* Create image view */
                 const VkImageViewCreateInfo view_info = {
-                    .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                    .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
                     .image = target_info->depth_stencil_attachment->GetImage(),
                     .viewType = static_cast<VkImageViewType>(target_info->vk_image_view_type),
                     .format = static_cast<VkFormat>(target_info->vk_format),

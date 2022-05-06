@@ -198,24 +198,6 @@ namespace dd::ogl {
 
                 /* Set frame frequency */
                 dd::util::SetFrameFrequency(60);
-
-                /* Set up raw input */
-                const RAWINPUTDEVICE raw_input_devices[2] = {
-                    {
-                        .usUsagePage = 1,
-                        .usUsage = 2,
-                        .dwFlags = RIDEV_INPUTSINK,
-                        .hwndTarget = m_hwnd
-                    },
-                    {
-                        .usUsagePage = 1,
-                        .usUsage = 6,
-                        .dwFlags = RIDEV_INPUTSINK,
-                        .hwndTarget = m_hwnd
-                    }
-                };
-                bool result = ::RegisterRawInputDevices(raw_input_devices, sizeof(raw_input_devices) / sizeof(RAWINPUTDEVICE), sizeof(RAWINPUTDEVICE));
-                DD_ASSERT(result != false);
             }
 
             ~GLContextWindow() {
@@ -264,8 +246,6 @@ namespace dd::ogl {
                     (pfn_glViewport)(0, 0, LOWORD(l_param), HIWORD(l_param));
                 } else if (message == WM_DISPLAYCHANGE || message == WM_MOVE) {
                     dd::util::SetFrameFrequency(60);
-                } else if (message == WM_INPUT) {
-                    dd::hid::SetLastRawInput(reinterpret_cast<HRAWINPUT>(l_param));
                 }
 
                 return ::DefWindowProc(window_handle, message, w_param, l_param);

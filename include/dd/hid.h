@@ -15,4 +15,5 @@
  */
 #pragma once
 
-#include <dd/hid/hid_rawinput.hpp>
+#include <dd/hid/hid_rawinput.h>
+#include <dd/hid/hid_thread.h>

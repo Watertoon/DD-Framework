@@ -20,38 +20,58 @@ namespace dd::vk {
     struct RasterizerPipelineState {
         bool depth_clamp_enable;
         u32  vk_polygon_mode;
+
+        constexpr void SetDefaults() {
+            depth_clamp_enable = false;
+            vk_polygon_mode    = VK_POLYGON_MODE_FILL;
+        }
     };
 
     struct ColorBlendPipelineState {
-        bool                                 logic_op_enable;
         u32                                  color_blend_attachment_count;
         VkPipelineColorBlendAttachmentState *vk_color_blend_attachment_state_array;
+
+        constexpr void SetDefaults() {
+            color_blend_attachment_count          = 0;
+            vk_color_blend_attachment_state_array = nullptr;
+        }
     };
 
     struct PipelineInfo {
-        VkPipelineLayout         vk_pipeline_layout;
-        Shader                  *shader;
-        RasterizerPipelineState  rasterization_state;
-        ColorBlendPipelineState  color_blend_state;
+        Shader                    *shader;
+        RasterizerPipelineState   rasterization_state;
+        ColorBlendPipelineState   color_blend_state;
+
+        constexpr void SetDefaults() {
+            shader = nullptr;
+            rasterization_state.SetDefaults();
+            color_blend_state.SetDefaults();
+        }
     };
 
     class Pipeline {
         private:
-            VkPipeline m_vk_pipeline;
+            VkPipeline            m_vk_pipeline;
+            VkDescriptorSetLayout m_vk_descriptor_set_layout;
+            VkPipelineLayout      m_vk_pipeline_layout;
         public:
             constexpr Pipeline() {/*...*/}
 
             void Initialize(const Context *context, const PipelineInfo *pipeline_info) {
                 
                 /* pNext Pipeline State */
-            const VkPipelineRenderingCreateInfo rendering_info = {
-                .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
-                .colorAttachmentCount = 1,
-                .pColorAttachmentFormats = std::addressof(Context::TargetSurfaceFormat.format)
-            };
+                VkFormat color_formats[Context::TargetColorAttachmentCount] = {};
+                for (u32 i = 0; 0 < Context::TargetColorAttachmentCount; ++i) {
+                    color_formats[i] = Context::TargetSurfaceFormat.format;
+                }
+                const VkPipelineRenderingCreateInfo rendering_info = {
+                    .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+                    .colorAttachmentCount = Context::TargetColorAttachmentCount,
+                    .pColorAttachmentFormats = color_formats
+                };
 
                 /* Pipeline state */
-                VkPipelineShaderStageCreateInfo shader_create_info[6] = {};
+                VkPipelineShaderStageCreateInfo shader_create_info[Context::TargetShaderStages] = {};
         
                 u32 stage_count = 0;
                 const VkShaderModule vertex_module = pipeline_info->shader->GetVertexModule();
@@ -129,7 +149,7 @@ namespace dd::vk {
 
                 const VkPipelineColorBlendStateCreateInfo color_blend_info = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-                    .logicOpEnable = pipeline_info->color_blend_state.logic_op_enable,
+                    .logicOpEnable = VK_TRUE,
                     .attachmentCount = pipeline_info->color_blend_state.color_blend_attachment_count,
                     .pAttachments = pipeline_info->color_blend_state.vk_color_blend_attachment_state_array
                 };
@@ -181,11 +201,11 @@ namespace dd::vk {
                     .pDepthStencilState = std::addressof(depth_stencil_state),
                     .pColorBlendState = std::addressof(color_blend_info),
                     .pDynamicState = std::addressof(dynamic_state),
-                    .layout = pipeline_info->vk_pipeline_layout
+                    .layout = context->GetPipelineLayout()
                 };
-                
-                const u32 result0 = ::vkCreateGraphicsPipelines(context->GetDevice(), 0, 1, std::addressof(graphics_pipeline_info), nullptr, std::addressof(m_vk_pipeline));
-                DD_ASSERT(result0 == VK_SUCCESS);
+
+                const u32 result2 = ::vkCreateGraphicsPipelines(context->GetDevice(), 0, 1, std::addressof(graphics_pipeline_info), nullptr, std::addressof(m_vk_pipeline));
+                DD_ASSERT(result2 == VK_SUCCESS);
             }
 
             void Finalize(const Context *context) {

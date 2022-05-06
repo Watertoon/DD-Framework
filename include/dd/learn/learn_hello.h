@@ -18,8 +18,10 @@
 namespace dd::learn {
 
     void SetupTriangle();
+    
+    void CalcTriangle();
 
-    void DrawTriangle();
+    void DrawTriangle(vk::CommandBuffer *command_buffer);
 
     void CleanTriangle();
 }

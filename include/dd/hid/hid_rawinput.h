@@ -29,6 +29,8 @@ namespace dd::hid {
     };
 
     void SetLastRawInput(HRAWINPUT input_handle);
+    
+    void BeginFrame();
 
     const KeyboardState *GetKeyboardState();
 

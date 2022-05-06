@@ -55,7 +55,7 @@ namespace dd::util::math {
     constexpr Matrix34RowMajorType<T> ZeroMatrix34 = {};
 
     template<typename T>
-    constexpr Matrix34RowMajorType<T> IdentityMatrix34(Vector4f(1.0, 0.0, 0.0, 0.0), Vector4f(0.0, 1.0, 0.0, 0.0), Vector4f(0.0, 0.0, 1.0, 0.0));
+    constexpr Matrix34RowMajorType<T> IdentityMatrix34(Vector4Type<T>(1.0, 0.0, 0.0, 0.0), Vector4Type<T>(0.0, 1.0, 0.0, 0.0), Vector4Type<T>(0.0, 0.0, 1.0, 0.0));
 
     constexpr bool MakeVectorRotation(Matrix34f *out_rot_matrix, const Vector3f& align, const Vector3f& base) {
         const float dot = base.Dot(align) + 1.0f;

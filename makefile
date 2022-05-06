@@ -14,7 +14,7 @@ LIBDIRS  := $(VULKAN_SDK) third_party
 INCLUDES := include
 
 # Compiler options
-CXX_FLAGS := -std=gnu++20 -m64 -msse4.1 -ffunction-sections -fdata-sections -fno-strict-aliasing -fwrapv -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-stack-protector -fno-rtti -fno-exceptions
+CXX_FLAGS := -std=gnu++20 -m64 -msse4.1 -ffunction-sections -fdata-sections -fno-strict-aliasing -fwrapv -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-stack-protector -fno-rtti -fno-exceptions $(DEFINES)
 CXX_WARNS := -Wall -Wno-format-truncation -Wno-format-zero-length -Wno-stringop-truncation -Wno-invalid-offsetof -Wno-format-truncation -Wno-format-zero-length -Wno-stringop-truncation -Wextra -Werror -Wno-missing-field-initializers
 
 # Release and Debug mode options 
@@ -54,7 +54,7 @@ export LIBINC     := $(foreach dir,$(LIBDIRS),-L$(dir)/lib) \
 export INCLUDE_DIRS := -I$(CURDIR)/include -I$(CURDIR)/third_party/include $(INCLUDE)
 
 # Libs
-export LIBS := -lstdc++ -lgdi32 -luser32 -lkernel32 -lopengl32
+export LIBS := -lstdc++ -lgdi32 -luser32 -lkernel32 -lvulkan-1
 
 # Compiler Flags
 export COMPILER_FLAGS :=  $(RELEASE_FLAGS) $(CXX_FLAGS) $(CXX_WARNS) $(INCLUDE_DIRS) $(LIBINC)

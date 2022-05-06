@@ -35,13 +35,15 @@ namespace dd::vk {
 
     class Texture {
         private:
-            VkImage                  m_vk_image;
-            MemoryPool              *m_bound_memory_pool;
-            bool                     m_requires_relocation;
+            VkImage     m_vk_image;
+            MemoryPool *m_bound_memory_pool;
+            u32         m_vk_image_layout;
+            bool        m_import;
+            bool        m_requires_relocation;
         public:
             constexpr Texture() {/*...*/}
 
-            void Intialize(const Context *context, const TextureInfo *texture_info, MemoryPool *memory_pool) {
+            void Initialize(const Context *context, const TextureInfo *texture_info, MemoryPool *memory_pool) {
 
                 /* Create Image */
                 const u32 queue_family_index = context->GetGraphicsQueueFamilyIndex();
@@ -75,10 +77,19 @@ namespace dd::vk {
 
                 m_requires_relocation = memory_pool->RequiresRelocation();
                 m_bound_memory_pool = memory_pool;
+
+                m_vk_image_layout = texture_info->vk_image_layout;
+            }
+            
+            void ImportExisting(VkImage image) {
+                m_vk_image = image;
+                m_import = true;
             }
 
             void Finalize(const Context *context) {
-                ::vkDestroyImage(context->GetDevice(), m_vk_image, nullptr);
+                if (m_import == false) {
+                    ::vkDestroyImage(context->GetDevice(), m_vk_image, nullptr);
+                }
             }
 
             void Relocate(VkCommandBuffer vk_command_buffer) {
@@ -91,5 +102,44 @@ namespace dd::vk {
             constexpr ALWAYS_INLINE bool RequiresRelocation() const { return m_requires_relocation; }
 
             constexpr ALWAYS_INLINE VkImage GetImage() const { return m_vk_image; }
+
+            constexpr ALWAYS_INLINE VkImageLayout GetImageLayout() const { return static_cast<VkImageLayout>(m_vk_image_layout); }
+            
+            static u64 GetAlignment(const Context *context, const TextureInfo *texture_info) { 
+
+                /* Create staging Image */
+                VkImage vk_image;
+                const u32 queue_family_index = context->GetGraphicsQueueFamilyIndex();
+                const VkImageCreateInfo image_info {
+                    .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                    .flags = texture_info->vk_create_flags,
+                    .imageType = static_cast<VkImageType>(texture_info->vk_image_type),
+                    .format = static_cast<VkFormat>(texture_info->vk_format),
+                    .extent = {
+                        .width = texture_info->width,
+                        .height = texture_info->height,
+                        .depth = texture_info->depth
+                    },
+                    .mipLevels = texture_info->mip_levels,
+                    .arrayLayers = texture_info->array_layers,
+                    .samples = static_cast<VkSampleCountFlagBits>(texture_info->vk_sample_count_flag),
+                    .tiling = static_cast<VkImageTiling>(texture_info->vk_tiling),
+                    .usage = texture_info->vk_usage_flags,
+                    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                    .queueFamilyIndexCount = 1,
+                    .pQueueFamilyIndices = std::addressof(queue_family_index),
+                    .initialLayout = static_cast<VkImageLayout>(texture_info->vk_image_layout)
+                };
+
+                const u32 result0 = ::vkCreateImage(context->GetDevice(), std::addressof(image_info), nullptr, std::addressof(vk_image));
+                DD_ASSERT(result0 == VK_SUCCESS);
+
+                VkMemoryRequirements memory_requirements = {};
+                ::vkGetImageMemoryRequirements(context->GetDevice(), vk_image, std::addressof(memory_requirements));
+
+                ::vkDestroyImage(context->GetDevice(), vk_image, nullptr);
+                
+                return memory_requirements.alignment;
+            }
     };
 }

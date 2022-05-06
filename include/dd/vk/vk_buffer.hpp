@@ -27,6 +27,7 @@ namespace dd::vk {
         private:
             MemoryPool   *m_bound_memory_pool;
             VkBuffer      m_vk_buffer;
+            size_t        m_memory_offset;
             bool          m_requires_relocation;
         public:
             constexpr Buffer() {/*...*/}
@@ -38,7 +39,7 @@ namespace dd::vk {
                 const VkBufferCreateInfo buffer_create_info = {
                     .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
                     .size = buffer_info->size,
-                    .usage = buffer_info->vk_usage,
+                    .usage = buffer_info->vk_usage | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_KHR,
                     .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
                     .queueFamilyIndexCount = 1,
                     .pQueueFamilyIndices = std::addressof(queue_family_index)
@@ -53,12 +54,32 @@ namespace dd::vk {
 
                 m_requires_relocation = memory_pool->RequiresRelocation();
                 m_bound_memory_pool = memory_pool;
+                m_memory_offset = buffer_info->offset;
             }
 
             void Finalize(const Context *context) {
                 ::vkDestroyBuffer(context->GetDevice(), m_vk_buffer, nullptr);
                 m_vk_buffer = 0;
             }
+
+            void *Map() {
+                uintptr_t address = reinterpret_cast<uintptr_t>(m_bound_memory_pool->Map()) + m_memory_offset;
+                return reinterpret_cast<void*>(address);
+            }
+
+            void Unmap() {
+                m_bound_memory_pool->Unmap();
+            }
+            
+            VkDeviceAddress GetGpuAddress() {
+                const VkBufferDeviceAddressInfo device_address_info = {
+                    .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+                    .buffer = m_vk_buffer
+                };
+                return ::vkGetBufferDeviceAddress(GetGlobalContext()->GetDevice(), std::addressof(device_address_info));
+            }
+            
+            constexpr ALWAYS_INLINE VkBuffer GetBuffer() const { return m_vk_buffer; }
 
             void Relocate(VkCommandBuffer vk_command_buffer) {
                 if (m_bound_memory_pool->RequiresRelocation() == true) {
@@ -69,6 +90,29 @@ namespace dd::vk {
 
             constexpr ALWAYS_INLINE bool RequiresRelocation() const { return m_requires_relocation; }
 
-            constexpr ALWAYS_INLINE VkBuffer GetBuffer() const { return m_vk_buffer; }
+            static u64 GetAlignment(const Context *context, const BufferInfo *buffer_info) {
+
+                /* Use staging buffer to query alignment */
+                VkBuffer vk_buffer;
+                const u32 queue_family_index = context->GetGraphicsQueueFamilyIndex();
+                const VkBufferCreateInfo buffer_create_info = {
+                    .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+                    .size = buffer_info->size,
+                    .usage = buffer_info->vk_usage,
+                    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                    .queueFamilyIndexCount = 1,
+                    .pQueueFamilyIndices = std::addressof(queue_family_index)
+                };
+
+                const u32 result0 = ::vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(vk_buffer));
+                DD_ASSERT(result0 == VK_SUCCESS);
+
+                VkMemoryRequirements memory_requirements = {};
+                ::vkGetBufferMemoryRequirements(context->GetDevice(), vk_buffer, std::addressof(memory_requirements));
+
+                ::vkDestroyBuffer(context->GetDevice(), vk_buffer, nullptr);
+                
+                return memory_requirements.alignment;
+            }
     };
 }

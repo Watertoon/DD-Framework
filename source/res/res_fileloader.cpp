@@ -1,7 +1,4 @@
 #include <dd.hpp>
-/* stb_image */
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
 
 namespace dd::res {
     
@@ -68,6 +65,15 @@ namespace dd::res {
 
         ::CloseHandle(file);
     }
+}
+#pragma GCC push_options
+#pragma GCC optimize("-O2")
+
+/* STB doesn't play nice with optimizations */
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
+
+namespace dd::res {
 
     void LoadStbImage(const char *path, s32 desired_channels, unsigned char **out_image_data, s32 *out_width, s32 *out_height, s32 *out_channels) {
         void *file_buffer = nullptr;
@@ -84,3 +90,5 @@ namespace dd::res {
         ::stbi_image_free(image_data);
     }
 }
+
+#pragma GCC pop_options

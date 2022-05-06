@@ -19,6 +19,9 @@
 #include <dd/util/util_typedefs.h>
 #include <dd/util/util_defines.h>
 #include <dd/util/util_member.hpp>
+#include <dd/util/util_alignment.hpp>
+#include <dd/util/util_critsec.hpp>
+#include <dd/util/util_typestorage.hpp>
 
 #include <dd/util/math/util_constants.hpp>
 #include <dd/util/math/util_int128.sse4.hpp>

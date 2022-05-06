@@ -16,6 +16,15 @@
 #pragma once
 
 namespace dd::vk {
+    
+    enum ShaderStage {
+        ShaderStage_Vertex                 = 0,
+        ShaderStage_TessellationEvaluation = 1,
+        ShaderStage_TessellationControl    = 2,
+        ShaderStage_Geometry               = 3,
+        ShaderStage_Fragment               = 4,
+        ShaderStage_Compute                = 5,
+    };
 
     struct ShaderInfo {
         size_t  vertex_code_size;

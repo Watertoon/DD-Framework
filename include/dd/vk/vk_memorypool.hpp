@@ -19,11 +19,13 @@ namespace dd::vk {
     
     struct MemoryPoolInfo {
         VkDeviceSize size;
-        u32          memory_property_flags;
+        u32          vk_memory_property_flags;
         void        *import_memory;
     };
     
     class MemoryPool {
+        private:
+            friend class Buffer;
         private:
             VkDeviceMemory  m_vk_host_memory;
             VkDeviceMemory  m_vk_device_memory;
@@ -35,11 +37,14 @@ namespace dd::vk {
             bool            m_is_device_memory;
             void           *m_host_pointer;
             VkDeviceSize    m_size;
+            void           *m_mapped_memory;
+            u32             m_map_count;
         public:
+            constexpr MemoryPool() {/*...*/}
             
             void Initialize(const Context *context, const MemoryPoolInfo* pool_info) {
                 DD_ASSERT(pool_info->import_memory != nullptr);
-                const u32 pool_properties = pool_info->memory_property_flags;
+                const u32 pool_properties = pool_info->vk_memory_property_flags;
                 
                 m_size = pool_info->size;
                 m_parent_context = context;
@@ -47,7 +52,7 @@ namespace dd::vk {
 
                 /* Check host pointer memory properties */
                 VkMemoryHostPointerPropertiesEXT host_properties = { .sType = VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT };
-                const u32 result0 = ::vkGetMemoryHostPointerPropertiesEXT(context->GetDevice(), VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT, pool_info->import_memory, std::addressof(host_properties));
+                const u32 result0 = pfn_vkGetMemoryHostPointerPropertiesEXT(context->GetDevice(), VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT, pool_info->import_memory, std::addressof(host_properties));
                 DD_ASSERT(result0 != 0);
 
                 /* Handle whether our host pointer needs a staging buffer */
@@ -111,6 +116,23 @@ namespace dd::vk {
                     m_vk_device_memory = 0;
                 }
             }
+            
+            void *Map() {
+                if (m_mapped_memory == nullptr) {
+                    const u32 result0 = ::vkMapMemory(GetGlobalContext()->GetDevice(), this->GetDeviceMemory(), 0, VK_WHOLE_SIZE, 0, std::addressof(m_mapped_memory));
+                    DD_ASSERT(result0 == VK_SUCCESS);
+                }
+                m_map_count += 1;
+                return m_mapped_memory;
+            }
+            
+            void Unmap() {
+                m_map_count -= 1;
+                if (m_map_count == 0) {
+                    ::vkUnmapMemory(GetGlobalContext()->GetDevice(), this->GetDeviceMemory());
+                    m_mapped_memory = nullptr;
+                }
+            }
 
             constexpr VkDeviceMemory GetDeviceMemory() const { return (m_is_device_memory == false) ? m_vk_host_memory : m_vk_device_memory; }
             
@@ -157,6 +179,10 @@ namespace dd::vk {
                     ::vkCmdCopyBuffer(vk_command_buffer, m_vk_host_buffer, m_vk_device_buffer, 1, std::addressof(copy_info));
                     m_requires_relocation = false;
                 }
+            }
+            
+            static constexpr u64 GetAlignment(const Context *context) {
+                return context->GetPhysicalDeviceProperties()->properties.limits.minMemoryMapAlignment;
             }
     };
 }

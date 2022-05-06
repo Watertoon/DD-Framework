@@ -44,7 +44,7 @@ namespace dd::vk {
 
                 /* Create image view */
                 const VkImageViewCreateInfo view_info = {
-                    .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                    .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
                     .image = target_info->color_attachment->GetImage(),
                     .viewType = static_cast<VkImageViewType>(target_info->vk_image_view_type),
                     .format = static_cast<VkFormat>(target_info->vk_format),
@@ -73,6 +73,8 @@ namespace dd::vk {
                 ::vkDestroyImageView(context->GetDevice(), m_vk_color_image_view, nullptr);
                 m_vk_color_image_view = 0;
             }
+            
+            constexpr ALWAYS_INLINE Texture *GetTexture() { return m_texture; }
 
             constexpr ALWAYS_INLINE VkImage GetImage() const { return m_texture->GetImage(); }
 
