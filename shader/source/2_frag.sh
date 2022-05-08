@@ -20,19 +20,15 @@
 
 #if defined (DD_VERTEX_SHADER)
 
-    layout (buffer_reference) buffer VertexUbo {
+    layout (row_major, buffer_reference) buffer VertexUbo {
         mat4x3 uTransform;
     };
 
     struct ResourceBuffer {
         VertexUbo ubo;
         ADDRESS_PADDING(29);
-        uint texture_1;
-        uint texture_2;
-        TEXTURE_PADDING(30);
-        uint sampler_1;
-        uint sampler_2;
-        SAMPLER_PADDING(30);
+        TEXTURE_PADDING(32);
+        SAMPLER_PADDING(32);
     };
     
     DECLARE_RESOURCE_BUFFER(ResourceBuffer);
@@ -55,16 +51,6 @@
 #endif
 
 #if defined(DD_FRAGMENT_SHADER)
-
-    struct ResourceBuffer {
-        ADDRESS_PADDING(30);
-        uint texture_1;
-        uint texture_2;
-        TEXTURE_PADDING(30);
-        uint sampler_1;
-        uint sampler_2;
-        SAMPLER_PADDING(30);
-    };
     
     DECLARE_DEFAULT_RESOURCE_BUFFER;
 
@@ -74,7 +60,9 @@
     layout(location = 0) out vec4 oFragmentColor;
 
     void main() {
-        oFragmentColor = mix(texture(SAMPLER2D(0), ovTexCoord), texture(SAMPLER2D(1), ovTexCoord), 0.2);
+        //oFragmentColor = mix(texture(sampler2D(texture2DIndex(0), samplerIndex(0)), ovTexCoord), texture(sampler2D(texture2DIndex(1), samplerIndex(0)), ovTexCoord), 0.2);
+        oFragmentColor = texture(SAMPLER2D(0), ovTexCoord);
+        //oFragmentColor = vec4(ovColor,1.0);
     }
 
 #endif

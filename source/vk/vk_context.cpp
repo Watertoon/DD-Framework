@@ -1,3 +1,18 @@
+ /*
+ *  Copyright (C) W. Michael Knudson
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License along with this program; 
+ *  if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ */
 #include <dd.hpp>
 
 namespace dd::vk {
@@ -81,11 +96,16 @@ namespace dd::vk {
                 .samplerAnisotropy = VK_TRUE,
                 .textureCompressionBC = VK_TRUE,
                 .fragmentStoresAndAtomics = VK_TRUE,
-                .shaderStorageImageExtendedFormats = VK_TRUE
+                .shaderStorageImageExtendedFormats = VK_TRUE,
+                .shaderUniformBufferArrayDynamicIndexing = VK_TRUE,
+                .shaderSampledImageArrayDynamicIndexing = VK_TRUE,
+                .shaderStorageBufferArrayDynamicIndexing = VK_TRUE,
+                .shaderStorageImageArrayDynamicIndexing = VK_TRUE,
             }
         };
         
         static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity, VkDebugUtilsMessageTypeFlagsEXT message_type, const VkDebugUtilsMessengerCallbackDataEXT* callback_data, void* user_data) {
+            /* Meme */
             DD_ASSERT(0xffff > message_severity);
             DD_ASSERT(message_type > 0);
             DD_ASSERT(user_data == nullptr);
@@ -246,40 +266,44 @@ namespace dd::vk {
             if (m_vk_physical_device_properties.properties.limits.maxDescriptorSetUniformBuffers < TargetMaxBufferDescriptors)  { DD_ASSERT(false); continue; }
 
             /* Misc Feature checks */
-            if (m_vk_physical_device_supported_features.features.independentBlend == false)                  { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features.features.geometryShader == false)                    { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features.features.tessellationShader == false)                { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features.features.logicOp == false)                           { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features.features.depthClamp == false)                        { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features.features.depthBiasClamp == false)                    { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features.features.fillModeNonSolid == false)                  { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features.features.depthBounds == false)                       { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features.features.wideLines == false)                         { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features.features.largePoints == false)                       { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features.features.multiViewport == false)                     { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features.features.samplerAnisotropy == false)                 { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features.features.textureCompressionBC == false)              { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features.features.fragmentStoresAndAtomics == false)          { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features.features.shaderStorageImageExtendedFormats == false) { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features.features.independentBlend == false)                        { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features.features.geometryShader == false)                          { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features.features.tessellationShader == false)                      { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features.features.logicOp == false)                                 { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features.features.depthClamp == false)                              { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features.features.depthBiasClamp == false)                          { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features.features.fillModeNonSolid == false)                        { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features.features.depthBounds == false)                             { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features.features.wideLines == false)                               { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features.features.largePoints == false)                             { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features.features.multiViewport == false)                           { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features.features.samplerAnisotropy == false)                       { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features.features.textureCompressionBC == false)                    { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features.features.fragmentStoresAndAtomics == false)                { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features.features.shaderStorageImageExtendedFormats == false)       { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features.features.shaderUniformBufferArrayDynamicIndexing == false) { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features.features.shaderSampledImageArrayDynamicIndexing == false)  { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features.features.shaderStorageBufferArrayDynamicIndexing == false) { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features.features.shaderStorageImageArrayDynamicIndexing == false)  { DD_ASSERT(false); continue; }
 
-            if (m_vk_physical_device_supported_features_11.variablePointersStorageBuffer == false)          { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features_11.variablePointers == false)                       { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features_11.variablePointersStorageBuffer == false)                 { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features_11.variablePointers == false)                              { DD_ASSERT(false); continue; }
 
-            if (m_vk_physical_device_supported_features_12.descriptorIndexing == false)                                { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features_12.shaderUniformBufferArrayNonUniformIndexing == false)        { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features_12.shaderSampledImageArrayNonUniformIndexing == false)         { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features_12.descriptorBindingSampledImageUpdateAfterBind == false)      { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features_12.descriptorBindingPartiallyBound == false)                   { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features_12.descriptorBindingVariableDescriptorCount == false)          { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features_12.runtimeDescriptorArray == false)                            { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features_12.bufferDeviceAddress == false)                               { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features_12.descriptorIndexing == false)                            { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features_12.shaderUniformBufferArrayNonUniformIndexing == false)    { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features_12.shaderSampledImageArrayNonUniformIndexing == false)     { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features_12.descriptorBindingSampledImageUpdateAfterBind == false)  { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features_12.descriptorBindingPartiallyBound == false)               { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features_12.descriptorBindingVariableDescriptorCount == false)      { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features_12.runtimeDescriptorArray == false)                        { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features_12.bufferDeviceAddress == false)                           { DD_ASSERT(false); continue; }
 
-            if (m_vk_physical_device_supported_features_13.synchronization2 == false)                                  { DD_ASSERT(false); continue; }
-            if (m_vk_physical_device_supported_features_13.dynamicRendering == false)                                  { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features_13.synchronization2 == false)                              { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features_13.dynamicRendering == false)                              { DD_ASSERT(false); continue; }
 
-            if (m_vk_physical_device_vertex_input_dynamic_state_features.vertexInputDynamicState == false)             { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_vertex_input_dynamic_state_features.vertexInputDynamicState == false)         { DD_ASSERT(false); continue; }
 
-            if (m_vk_physical_device_extended_dynamic_state_features.extendedDynamicState2LogicOp == false)             { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_extended_dynamic_state_features.extendedDynamicState2LogicOp == false)        { DD_ASSERT(false); continue; }
 
             m_vk_physical_device = m_vk_physical_device_array[i];
             m_physical_device_index = i;
@@ -615,15 +639,22 @@ namespace dd::vk {
     }
 
     Context::~Context() {
+
         /* Finalize Vulkan context */
         ::vkQueueWaitIdle(m_vk_graphics_queue);
         ::vkDeviceWaitIdle(m_vk_device);
-        
+
+        ::vkDestroyPipelineLayout(m_vk_device, m_vk_pipeline_layout, nullptr);
+        ::vkDestroyDescriptorSetLayout(m_vk_device, m_vk_resource_buffer_descriptor_set_layout, nullptr);
+        ::vkDestroyDescriptorSetLayout(m_vk_device, m_vk_texture_descriptor_set_layout, nullptr);
+        ::vkDestroyDescriptorSetLayout(m_vk_device, m_vk_sampler_descriptor_set_layout, nullptr);
+
         ::vkDestroyCommandPool(m_vk_device, m_vk_graphics_command_pool, nullptr);
         ::vkDestroyDevice(m_vk_device, nullptr);
         #if defined(DD_DEBUG)
             pfn_vkDestroyDebugUtilsMessengerEXT(m_vk_instance, m_debug_messenger, nullptr);
         #endif
+        ::vkDestroySurfaceKHR(m_vk_instance, m_vk_surface, nullptr);
         ::vkDestroyInstance(m_vk_instance, nullptr);
 
         /* Free dynamic lists */

@@ -1,3 +1,18 @@
+ /*
+ *  Copyright (C) W. Michael Knudson
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License along with this program; 
+ *  if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ */
 #include <dd.hpp>
 
 namespace dd::hid {
@@ -48,9 +63,6 @@ namespace dd::hid {
                 /* Assume we stay RELATIVE */
                 interim_mouse_state.absolute_x += static_cast<s32>(((mouse->lLastX / 65535.0f) * width));
                 interim_mouse_state.absolute_y += static_cast<s32>(((mouse->lLastY / 65535.0f) * height));
-                std::cout << "mouse_state: " << mouse->lLastX << " " << mouse->lLastY << std::endl;
-                std::cout << "interimabs_state: " << interim_mouse_state.absolute_x << " " << interim_mouse_state.absolute_y << " " << std::endl;
-                std::cout << "interimrel_state: " << interim_mouse_state.delta_x << " " << interim_mouse_state.delta_y << " " << std::endl;
             }
 
             ::ReleaseSRWLockExclusive(std::addressof(state_lock));
@@ -76,8 +88,6 @@ namespace dd::hid {
         u32 struct_size = sizeof(RAWINPUTHEADER);
         u32 result = ::GetRawInputData(input_handle, RID_HEADER, std::addressof(raw_header), std::addressof(struct_size), sizeof(RAWINPUTHEADER));
         DD_ASSERT(result == sizeof(RAWINPUTHEADER));
-        
-        std::cout << raw_header.dwType << std::endl;
 
         /* Get raw input data */
         if (raw_header.dwType == RIM_TYPEMOUSE) {

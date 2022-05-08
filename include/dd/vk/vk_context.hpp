@@ -57,7 +57,10 @@ namespace dd::vk {
             static constexpr size_t TargetMaxPerStageStorageImageCount  = 8;
 
             /* Decide we are using a B8G8R8A8 Nonlinear SRGB format for our VkSurface */
-            static constexpr VkSurfaceFormatKHR TargetSurfaceFormat = { .format = VK_FORMAT_B8G8R8A8_SRGB, .colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
+            static constexpr VkSurfaceFormatKHR TargetSurfaceFormat = { 
+                .format = VK_FORMAT_B8G8R8A8_SRGB,
+                .colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
+            };
 
             /* Decide we will can have up to 8 color attachments per Render Pass */
             static constexpr size_t TargetColorAttachmentCount = 8;

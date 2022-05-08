@@ -47,9 +47,9 @@ namespace dd::learn {
         const float vertices[] = {
             /* Position */      /* Color */        /* Tex Coords*/
             0.5f,  0.5f, 0.0f,  0.1f, 0.2f, 0.5f,  1.0f, 1.0f,
-            0.5f, -0.5f, 0.0f,  0.7f, 0.2f, 0.5f,  1.0f, 0.0f,
-           -0.5f, -0.5f, 0.0f,  0.1f, 0.6f, 0.9f,  0.0f, 0.0f,
-           -0.5f,  0.5f, 0.0f,  0.2f, 0.2f, 0.5f,  0.0f, 1.0f
+            0.5f, -0.5f, 0.0f,  0.1f, 0.2f, 0.5f,  1.0f, 0.0f,
+           -0.5f, -0.5f, 0.0f,  0.4f, 0.6f, 0.9f,  0.0f, 0.0f,
+           -0.5f,  0.5f, 0.0f,  0.2f, 0.2f, 0.0f,  0.0f, 1.0f
         };
         constexpr inline u32 VerticeCount = 4;
         constexpr inline u32 VerticeStride = sizeof(vertices) / VerticeCount;
@@ -66,7 +66,7 @@ namespace dd::learn {
 
         char *memory_buffer = nullptr;
         char *memory_image = nullptr;
-        
+
         /* Vulkan pipeline state */
         util::TypeStorage<vk::Pipeline>       vk_pipeline;
         vk::PipelineCmdState                  vk_pipeline_cmd_state;
@@ -149,7 +149,7 @@ namespace dd::learn {
 
         vk::BufferInfo uniform_buffer_info = {
             .size = sizeof(vertices),
-            .vk_usage = VK_IMAGE_USAGE_SAMPLED_BIT
+            .vk_usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT
         };
         
         vk::TextureInfo texture0_info = {
@@ -204,8 +204,8 @@ namespace dd::learn {
         DD_ASSERT(memory_buffer != nullptr);
         DD_ASSERT(memory_image != nullptr);
         
-        ::memcpy(memory_buffer, std::addressof(vertices), sizeof(vertices));
-        ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory_buffer) + index_buffer_info.offset), std::addressof(indices), sizeof(indices));
+        ::memcpy(memory_buffer, vertices, sizeof(vertices));
+        ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory_buffer) + index_buffer_info.offset), indices, sizeof(indices));
         ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory_buffer) + uniform_buffer_info.offset), std::addressof(base_transform), sizeof(base_transform));
         
         ::memcpy(memory_image, texture0, texture0_size);
@@ -304,6 +304,7 @@ namespace dd::learn {
 
         /* Register our textures */
         sampler_slot = sampler_descriptor_pool->RegisterSampler(util::GetPointer(vk_sampler));
+        std::cout << "slot: " << sampler_slot << std::endl;
     }
     
     void CalcTriangle() {
@@ -319,6 +320,7 @@ namespace dd::learn {
 
         /* Copy matrix to buffer */
         void *ubo_address = util::GetReference(vk_uniform_buffer).Map();
+        DD_ASSERT(ubo_address != nullptr);
         ::memcpy(ubo_address, std::addressof(rot_mtx), sizeof(rot_mtx));
         util::GetReference(vk_uniform_buffer).Unmap();
         
@@ -335,6 +337,7 @@ namespace dd::learn {
             command_buffer->SetTextureStateTransition(util::GetPointer(vk_texture_view0)->GetTexture(), std::addressof(texture_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
             
             texture_view0_slot = util::GetPointer(vk_texture_descriptor_pool)->RegisterTexture(util::GetPointer(vk_texture_view0));
+            std::cout << "slot: " << texture_view0_slot << std::endl;
         }
         if (util::GetPointer(vk_texture_view1)->GetTexture()->GetImageLayout() == VK_IMAGE_LAYOUT_PREINITIALIZED) {
 
@@ -348,6 +351,7 @@ namespace dd::learn {
             command_buffer->SetTextureStateTransition(util::GetPointer(vk_texture_view1)->GetTexture(), std::addressof(texture_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
             
             texture_view1_slot = util::GetPointer(vk_texture_descriptor_pool)->RegisterTexture(util::GetPointer(vk_texture_view1));
+            std::cout << "slot: " << texture_view1_slot << std::endl;
         }
 
         /* Bind */
@@ -363,18 +367,26 @@ namespace dd::learn {
         command_buffer->SetTextureAndSampler(0, vk::ShaderStage_Fragment, texture_view0_slot, sampler_slot);
         command_buffer->SetTextureAndSampler(1, vk::ShaderStage_Fragment, texture_view1_slot, sampler_slot);
 
+        u32 width = 0, height = 0;
+        vk::GetGlobalContext()->GetWindowDimensions(std::addressof(width), std::addressof(height));
         VkViewport viewport {
-            .width = 1.0f,
-            .height = 1.0f
+            .width  = static_cast<float>(width),
+            .height = static_cast<float>(height),
+            .minDepth = 0.0f,
+            .maxDepth = 1.0f
         };
         command_buffer->SetViewports(1, std::addressof(viewport));
+
         VkRect2D scissor = {
-            
+            .extent = {
+                .width = width,
+                .height = height
+            }
         };
         command_buffer->SetScissors(1, std::addressof(scissor));
 
         /* Draw */
-        command_buffer->DrawIndexed(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_INDEX_TYPE_UINT32, util::GetPointer(vk_index_buffer), 0, 6);
+        command_buffer->DrawIndexed(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_INDEX_TYPE_UINT32, util::GetPointer(vk_index_buffer), 6, 0);
     }
 
     void CleanTriangle() {
@@ -385,10 +397,13 @@ namespace dd::learn {
 
         util::GetReference(vk_pipeline).Finalize(context);
         dd::util::DestructAt(vk_pipeline);
-        
+
+        util::GetReference(vk_texture_descriptor_pool).UnregisterResourceBySlot(texture_view1_slot);
+        util::GetReference(vk_texture_descriptor_pool).UnregisterResourceBySlot(texture_view0_slot);
         util::GetReference(vk_texture_descriptor_pool).Finalize(context);
         dd::util::DestructAt(vk_texture_descriptor_pool);
-        
+
+        util::GetReference(vk_sampler_descriptor_pool).UnregisterResourceBySlot(sampler_slot);
         util::GetReference(vk_sampler_descriptor_pool).Finalize(context);
         dd::util::DestructAt(vk_sampler_descriptor_pool);
         
@@ -421,8 +436,5 @@ namespace dd::learn {
         
         util::GetReference(vk_buffer_memory).Finalize(context);
         dd::util::DestructAt(vk_buffer_memory);
-        
-        delete[] memory_buffer;
-        delete[] memory_image;
     }
 }

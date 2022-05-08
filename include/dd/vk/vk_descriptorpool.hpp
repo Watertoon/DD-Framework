@@ -23,7 +23,7 @@ namespace dd::vk {
             u32               m_free_id_stack_count;
             u32              *m_free_id_stack;
         private:
-            u32 GetNewTextureId() {
+            u32 GetNewDescriptorId() {
                 if (m_free_id_stack_count != 0) {
                     m_free_id_stack_count -= 1;
                     return m_free_id_stack[m_free_id_stack_count];
@@ -91,7 +91,7 @@ namespace dd::vk {
             DescriptorSlot RegisterTexture(const TextureView *texture_view) {
                 DD_ASSERT(m_vk_pool_type == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
 
-                DescriptorSlot new_id = this->GetNewTextureId();
+                DescriptorSlot new_id = this->GetNewDescriptorId();
 
                 const VkDescriptorImageInfo image_info = {
                     .imageView   = texture_view->GetImageView(),
@@ -115,7 +115,7 @@ namespace dd::vk {
             DescriptorSlot RegisterSampler(const Sampler *sampler) {
                 DD_ASSERT(m_vk_pool_type == VK_DESCRIPTOR_TYPE_SAMPLER);
 
-                DescriptorSlot new_id = this->GetNewTextureId();
+                DescriptorSlot new_id = this->GetNewDescriptorId();
 
                 const VkDescriptorImageInfo image_info = {
                     .sampler = sampler->GetSampler()
@@ -136,6 +136,13 @@ namespace dd::vk {
             }
 
             void UnregisterResourceBySlot(DescriptorSlot slot) {
+                
+                /* If returning the latest slot, just decrement id */
+                if ((m_texture_id_count - 1) == slot) {
+                    m_texture_id_count--;
+                    return;
+                }
+                
                 /* Resize Free List if necessary */
                 if (m_free_id_stack_size == m_free_id_stack_count) {
 

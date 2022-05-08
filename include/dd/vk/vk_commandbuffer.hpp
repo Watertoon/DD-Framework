@@ -23,9 +23,9 @@ namespace dd::vk {
 
         constexpr void SetDefaults() {
             vk_logic_op        = VK_LOGIC_OP_COPY,
-            blend_constants[0] = 1.0f;
-            blend_constants[1] = 1.0f;
-            blend_constants[2] = 1.0f;
+            blend_constants[0] = 0.0f;
+            blend_constants[1] = 0.0f;
+            blend_constants[2] = 0.0f;
             blend_constants[3] = 1.0f;
         }
     };
@@ -78,10 +78,10 @@ namespace dd::vk {
         float           line_width;
 
         constexpr void SetDefaults() {
-            vk_cull_mode               = VK_CULL_MODE_FRONT_BIT;
-            vk_front_face              = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-            rasterizer_discard_enable  = true;
+            vk_cull_mode               = VK_CULL_MODE_BACK_BIT;
+            vk_front_face              = VK_FRONT_FACE_CLOCKWISE;
             rasterizer_discard_enable  = false;
+            primitive_restart_enable   = false;
             depth_bias_enable          = false;
             depth_bias_constant_factor = 1.0f;
             depth_bias_clamp           = 1.0f;

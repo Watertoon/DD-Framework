@@ -34,6 +34,7 @@ namespace dd::vk {
         constexpr void SetDefaults() {
             for (u32 i = 0; i < Context::TargetColorAttachmentCount; ++i) {
                 vk_color_blend_attachment_states[i].blendEnable = false;
+                vk_color_blend_attachment_states[i].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
             }
             color_blend_count = 1;
         }
@@ -43,13 +44,13 @@ namespace dd::vk {
         Shader                    *shader;
         RasterizerPipelineState   rasterization_state;
         ColorBlendPipelineState   color_blend_state;
-        VkPrimitiveTopology vk_primitve_topology;
+        VkPrimitiveTopology       vk_primitive_topology;
 
         constexpr void SetDefaults() {
             shader = nullptr;
             rasterization_state.SetDefaults();
             color_blend_state.SetDefaults();
-            vk_primitve_topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+            vk_primitive_topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         }
     };
 
@@ -129,7 +130,7 @@ namespace dd::vk {
 
                 const VkPipelineInputAssemblyStateCreateInfo input_assembly_state = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-                    .topology = pipeline_info->vk_primitve_topology
+                    .topology = pipeline_info->vk_primitive_topology
                 };
 
                 const VkPipelineViewportStateCreateInfo viewport_scissor_state = {

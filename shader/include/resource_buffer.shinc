@@ -2,9 +2,19 @@
 #extension GL_EXT_buffer_reference : enable
 #extension GL_EXT_buffer_reference2 : enable
 
-layout (set = 0, binding = 0) uniform texture2D texture2D_location[];
-layout (set = 0, binding = 0) uniform texture3D texture3D_location[];
-layout (set = 1, binding = 0) uniform sampler sampler_location[];
+layout (set = 0, binding = 0) uniform texture1D      texture1D_location[];
+layout (set = 0, binding = 0) uniform texture2D      texture2D_location[];
+layout (set = 0, binding = 0) uniform texture3D      texture3D_location[];
+layout (set = 0, binding = 0) uniform texture1DArray texture1DArray_location[];
+layout (set = 0, binding = 0) uniform texture2DArray texture2DArray_location[];
+layout (set = 0, binding = 0) uniform textureCube    textureCube_location[];
+layout (set = 1, binding = 0) uniform sampler        sampler_location[];
+
+#define texture2DIndex(idx) texture2D_location[nonuniformEXT(idx)]
+#define texture3DIndex(idx) texture3D_location[nonuniformEXT(idx)]
+#define samplerIndex(idx)   sampler_location[nonuniformEXT(idx)]
+
+#define SAMPLER2D(idx) sampler2D(texture2DIndex(rb[resource_index].texture_ids[idx]), samplerIndex(rb[resource_index].sampler_ids[idx]))
 
 struct DummyAddress {
     uint reserve0;
@@ -23,10 +33,6 @@ struct DummyAddress {
 #define TEXTURE_PADDING(count) uint _texturepadding[count]
 #define SAMPLER_PADDING(count) uint _samplerpadding[count]
 
-#define texture2DIndex(idx) texture2D_location[idx]
-#define texture3DIndex(idx) texture3D_location[idx]
-#define samplerIndex(idx) sampler_location[idx]
-
 #if defined(DD_VERTEX_SHADER)
     #define DD_RESOURCE_BUFFER_BINDING set = 2, binding = 0 
     #define DD_RESOURCE_INDEX_OFFSET 0
@@ -44,8 +50,6 @@ struct DefaultResourceBuffer {
     uint texture_ids[MAX_TEXTURES];
     uint sampler_ids[MAX_SAMPLERS];
 };
-
-#define SAMPLER2D(idx) sampler2D(texture2D_location[nonuniformEXT(rb[resource_index].texture_ids[idx])], sampler_location[nonuniformEXT(rb[resource_index].sampler_ids[idx])])
 
 #define DECLARE_DEFAULT_RESOURCE_BUFFER layout (DD_RESOURCE_BUFFER_BINDING) uniform _RB { DefaultResourceBuffer rb[128]; }
 

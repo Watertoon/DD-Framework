@@ -39,12 +39,13 @@ namespace dd::vk {
 
             color_attachments[color_target_count].sType              = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
             color_attachments[color_target_count].imageView          = color_target->GetImageView();
-            color_attachments[color_target_count].imageLayout        = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+            color_attachments[color_target_count].imageLayout        = VK_IMAGE_LAYOUT_GENERAL;
             color_attachments[color_target_count].resolveMode        = VK_RESOLVE_MODE_NONE;
             color_attachments[color_target_count].resolveImageView   = 0;
             color_attachments[color_target_count].resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            color_attachments[color_target_count].loadOp             = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+            color_attachments[color_target_count].loadOp             = VK_ATTACHMENT_LOAD_OP_CLEAR;
             color_attachments[color_target_count].storeOp            = VK_ATTACHMENT_STORE_OP_STORE;
+            color_attachments[color_target_count].clearValue         = {1.0f,1.0f,0.5f,1.0f};
             color_target_count += 1;
         }
 
@@ -52,7 +53,7 @@ namespace dd::vk {
         const VkRenderingAttachmentInfo depth_stencil_attachment = {
             .sType              = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
             .imageView          = (m_depth_stencil_target != nullptr) ? m_depth_stencil_target->GetImageView() : nullptr,
-            .imageLayout        = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
+            .imageLayout        = VK_IMAGE_LAYOUT_GENERAL,
             .resolveMode        = VK_RESOLVE_MODE_NONE,
             .resolveImageView   = 0,
             .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
@@ -398,6 +399,12 @@ namespace dd::vk {
 
     void CommandBuffer::Finalize(const Context *context) {
         ::vkFreeCommandBuffers(context->GetDevice(), context->GetGraphicsCommandPool(), 1, std::addressof(m_vk_command_buffer));
+        
+        for (u32 i = 0; i < Context::TargetShaderStages; ++i) {
+            ::vkDestroyBuffer(context->GetDevice(), m_vk_resource_buffer_per_stage_array[i], nullptr);
+        }
+        ::vkDestroyDescriptorPool(context->GetDevice(), m_vk_resource_buffer_descriptor_pool, nullptr);
+        ::vkFreeMemory(context->GetDevice(), m_vk_resource_buffer_memory, nullptr);
     }
 
     void CommandBuffer::Begin() {
@@ -432,6 +439,17 @@ namespace dd::vk {
         this->EndRenderingIfRendering();
 
         ::vkCmdClearColorImage(m_vk_command_buffer, color_target->GetImage(), VK_IMAGE_LAYOUT_GENERAL, color, 1, sub_range);
+        
+        /* Barrier the clear */
+        const dd::vk::TextureBarrierCmdState clear_barrier_state = {
+            .vk_src_stage_mask  = VK_PIPELINE_STAGE_TRANSFER_BIT,
+            .vk_dst_stage_mask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .vk_src_access_mask = VK_ACCESS_TRANSFER_WRITE_BIT,
+            .vk_dst_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            .vk_src_layout      = VK_IMAGE_LAYOUT_GENERAL,
+            .vk_dst_layout      = VK_IMAGE_LAYOUT_GENERAL
+        };
+        this->SetTextureStateTransition(color_target->GetTexture(), std::addressof(clear_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
     }
 
     void CommandBuffer::ClearDepthStencilTarget(DepthStencilTargetView *depth_stencil_target, const VkClearDepthStencilValue clear_value, const VkImageSubresourceRange *sub_range) {

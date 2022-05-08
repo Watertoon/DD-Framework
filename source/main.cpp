@@ -78,7 +78,7 @@ int main() {
     dd::vk::CommandBuffer   *global_command_buffer = dd::util::GetPointer(command_buffer);
     dd::vk::FrameBuffer     *global_frame_buffer = dd::util::GetPointer(framebuffer);
     const VkClearColorValue clear_color = {
-        .float32 = { 0.0f, 0.0f, 0.0f, 1.0f }
+        .float32 = { 0.0f, 1.0f, 0.0f, 1.0f }
     };
     const VkImageSubresourceRange clear_sub_range = {
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -87,11 +87,8 @@ int main() {
     };
     
     /* Calc And Draw */
-    dd::hid::InitializeRawInputThread(global_context->GetWindowHandle());
+    //dd::hid::InitializeRawInputThread(global_context->GetWindowHandle());
     while (true) {
-        
-        /* TODO; Multiple command buffers */
-        ::vkQueueWaitIdle(dd::util::GetPointer(context)->GetGraphicsQueue());
 
         /* Check for user exit */
         ::AcquireSRWLockExclusive(std::addressof(context_init_state.context_lock));
@@ -189,7 +186,7 @@ int main() {
         /* Calc */
         dd::learn::CalcTriangle();
     }
-    dd::hid::FinalizeRawInputThread();
+    //dd::hid::FinalizeRawInputThread();
 
     /* Cleanup */
     dd::learn::CleanTriangle();
