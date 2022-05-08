@@ -28,12 +28,14 @@ namespace dd::vk {
     };
 
     struct ColorBlendPipelineState {
-        u32                                  color_blend_attachment_count;
-        VkPipelineColorBlendAttachmentState *vk_color_blend_attachment_state_array;
+        u32 color_blend_count;
+        VkPipelineColorBlendAttachmentState vk_color_blend_attachment_states[Context::TargetColorAttachmentCount];
 
         constexpr void SetDefaults() {
-            color_blend_attachment_count          = 0;
-            vk_color_blend_attachment_state_array = nullptr;
+            for (u32 i = 0; i < Context::TargetColorAttachmentCount; ++i) {
+                vk_color_blend_attachment_states[i].blendEnable = false;
+            }
+            color_blend_count = 1;
         }
     };
 
@@ -41,11 +43,13 @@ namespace dd::vk {
         Shader                    *shader;
         RasterizerPipelineState   rasterization_state;
         ColorBlendPipelineState   color_blend_state;
+        VkPrimitiveTopology vk_primitve_topology;
 
         constexpr void SetDefaults() {
             shader = nullptr;
             rasterization_state.SetDefaults();
             color_blend_state.SetDefaults();
+            vk_primitve_topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         }
     };
 
@@ -61,12 +65,12 @@ namespace dd::vk {
                 
                 /* pNext Pipeline State */
                 VkFormat color_formats[Context::TargetColorAttachmentCount] = {};
-                for (u32 i = 0; 0 < Context::TargetColorAttachmentCount; ++i) {
+                for (u32 i = 0; i < pipeline_info->color_blend_state.color_blend_count; ++i) {
                     color_formats[i] = Context::TargetSurfaceFormat.format;
                 }
                 const VkPipelineRenderingCreateInfo rendering_info = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
-                    .colorAttachmentCount = Context::TargetColorAttachmentCount,
+                    .colorAttachmentCount = pipeline_info->color_blend_state.color_blend_count,
                     .pColorAttachmentFormats = color_formats
                 };
 
@@ -83,7 +87,7 @@ namespace dd::vk {
                     ++stage_count;
                 }
                 const VkShaderModule tesselation_control_module = pipeline_info->shader->GetTessellationControlModule();
-                if (vertex_module != 0) {
+                if (tesselation_control_module != 0) {
                     shader_create_info[stage_count].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
                     shader_create_info[stage_count].stage  = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
                     shader_create_info[stage_count].module = tesselation_control_module;
@@ -91,7 +95,7 @@ namespace dd::vk {
                     ++stage_count;
                 }
                 const VkShaderModule tesselation_evaluation_module = pipeline_info->shader->GetTessellationEvaluationModule();
-                if (vertex_module != 0) {
+                if (tesselation_evaluation_module != 0) {
                     shader_create_info[stage_count].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
                     shader_create_info[stage_count].stage  = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
                     shader_create_info[stage_count].module = tesselation_evaluation_module;
@@ -99,7 +103,7 @@ namespace dd::vk {
                     ++stage_count;
                 }
                 const VkShaderModule geometry_module = pipeline_info->shader->GetGeometryModule();
-                if (vertex_module != 0) {
+                if (geometry_module != 0) {
                     shader_create_info[stage_count].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
                     shader_create_info[stage_count].stage  = VK_SHADER_STAGE_GEOMETRY_BIT;
                     shader_create_info[stage_count].module = geometry_module;
@@ -107,7 +111,7 @@ namespace dd::vk {
                     ++stage_count;
                 }
                 const VkShaderModule fragment_module = pipeline_info->shader->GetFragmentModule();
-                if (vertex_module != 0) {
+                if (fragment_module != 0) {
                     shader_create_info[stage_count].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
                     shader_create_info[stage_count].stage  = VK_SHADER_STAGE_FRAGMENT_BIT;
                     shader_create_info[stage_count].module = fragment_module;
@@ -115,7 +119,7 @@ namespace dd::vk {
                     ++stage_count;
                 }
                 const VkShaderModule compute_module = pipeline_info->shader->GetComputeModule();
-                if (vertex_module != 0) {
+                if (compute_module != 0) {
                     shader_create_info[stage_count].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
                     shader_create_info[stage_count].stage  = VK_SHADER_STAGE_COMPUTE_BIT;
                     shader_create_info[stage_count].module = compute_module;
@@ -124,7 +128,8 @@ namespace dd::vk {
                 }
 
                 const VkPipelineInputAssemblyStateCreateInfo input_assembly_state = {
-                    .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO
+                    .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+                    .topology = pipeline_info->vk_primitve_topology
                 };
 
                 const VkPipelineViewportStateCreateInfo viewport_scissor_state = {
@@ -150,8 +155,8 @@ namespace dd::vk {
                 const VkPipelineColorBlendStateCreateInfo color_blend_info = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
                     .logicOpEnable = VK_TRUE,
-                    .attachmentCount = pipeline_info->color_blend_state.color_blend_attachment_count,
-                    .pAttachments = pipeline_info->color_blend_state.vk_color_blend_attachment_state_array
+                    .attachmentCount = pipeline_info->color_blend_state.color_blend_count,
+                    .pAttachments = pipeline_info->color_blend_state.vk_color_blend_attachment_states
                 };
 
                 const VkDynamicState dynamic_state_array[] = {

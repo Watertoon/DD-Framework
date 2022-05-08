@@ -12,6 +12,8 @@ namespace dd::vk {
 
     /* Device procs */
     DEFINE_EXTERN_VK_PROC(vkGetMemoryHostPointerPropertiesEXT);
+    DEFINE_EXTERN_VK_PROC(vkCmdSetLogicOpEXT);
+    DEFINE_EXTERN_VK_PROC(vkCmdSetVertexInputEXT);
 
     void LoadCProcsDevice(VkDevice device);
 }

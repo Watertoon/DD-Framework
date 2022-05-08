@@ -104,6 +104,8 @@ namespace dd::vk {
             constexpr ALWAYS_INLINE VkImage GetImage() const { return m_vk_image; }
 
             constexpr ALWAYS_INLINE VkImageLayout GetImageLayout() const { return static_cast<VkImageLayout>(m_vk_image_layout); }
+
+            void SetImageLayout(VkImageLayout new_layout) { m_vk_image_layout = static_cast<u32>(new_layout); }
             
             static u64 GetAlignment(const Context *context, const TextureInfo *texture_info) { 
 

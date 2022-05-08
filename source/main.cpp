@@ -40,13 +40,15 @@ long unsigned int ContextMain(void *arg) {
     
     /* Wait for main thread to finish */
     ::WaitForSingleObject(context_state->context_event, INFINITE);
+    ::ResetEvent(context_state->context_event);
     
     /* Cleanup */
-    dd::vk::SetGlobalContext(nullptr);
+    ::vkDeviceWaitIdle(dd::util::GetPointer(context)->GetDevice());
     dd::util::GetReference(framebuffer).Finalize(dd::util::GetPointer(context));
     dd::util::DestructAt(framebuffer);
     dd::util::GetReference(command_buffer).Finalize(dd::util::GetPointer(context));
     dd::util::DestructAt(command_buffer);
+    dd::vk::SetGlobalContext(nullptr);
     dd::util::DestructAt(context);
     return 0;
 }
@@ -67,6 +69,7 @@ int main() {
     Handle window_thread = ::CreateThread(nullptr, 0x3000, ContextMain, std::addressof(context_init_state), 0, nullptr);
     DD_ASSERT(window_thread != nullptr);
     ::WaitForSingleObject(context_init_state.context_event, INFINITE);
+    ::ResetEvent(context_init_state.context_event);
 
     dd::learn::SetupTriangle();
     
@@ -74,30 +77,22 @@ int main() {
     dd::vk::Context         *global_context = dd::vk::GetGlobalContext();
     dd::vk::CommandBuffer   *global_command_buffer = dd::util::GetPointer(command_buffer);
     dd::vk::FrameBuffer     *global_frame_buffer = dd::util::GetPointer(framebuffer);
-    dd::vk::ColorTargetView *current_color_target = global_frame_buffer->GetCurrentColorTarget();
-
     const VkClearColorValue clear_color = {
-        .float32 = { 0.0f, 1.0f, 1.0f, 1.0f }
+        .float32 = { 0.0f, 0.0f, 0.0f, 1.0f }
     };
     const VkImageSubresourceRange clear_sub_range = {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         .levelCount = 1,
         .layerCount = 1,
     };
-
-    VkFence submit_fence;
-
-    {
-        const VkFenceCreateInfo fence_info = {
-            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO
-        };
-        const u32 result0 = ::vkCreateFence(global_context->GetDevice(), std::addressof(fence_info), nullptr, std::addressof(submit_fence));
-        DD_ASSERT(result0 == VK_SUCCESS);
-    }
-    
     
     /* Calc And Draw */
     dd::hid::InitializeRawInputThread(global_context->GetWindowHandle());
     while (true) {
+        
+        /* TODO; Multiple command buffers */
+        ::vkQueueWaitIdle(dd::util::GetPointer(context)->GetGraphicsQueue());
+
         /* Check for user exit */
         ::AcquireSRWLockExclusive(std::addressof(context_init_state.context_lock));
         if (context_init_state.is_ready_for_exit == true) {
@@ -105,18 +100,23 @@ int main() {
         }
         ::ReleaseSRWLockExclusive(std::addressof(context_init_state.context_lock));
 
+        dd::vk::ColorTargetView *current_color_target = global_frame_buffer->GetCurrentColorTarget();
+        dd::vk::Texture *color_target_texture = current_color_target->GetTexture();
+
         /* Begin frame */
         dd::util::BeginFrame();
         dd::hid::BeginFrame();
         global_command_buffer->Begin();
         
         /* Transition render target to attachment */
-        const dd::vk::TextureBarrierCmdState attachment_barrier_state = {
-            .vk_dst_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+        const dd::vk::TextureBarrierCmdState clear_barrier_state = {
+            .vk_src_stage_mask  = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            .vk_dst_stage_mask  = VK_PIPELINE_STAGE_TRANSFER_BIT,
+            .vk_dst_access_mask = VK_ACCESS_TRANSFER_WRITE_BIT,
             .vk_src_layout      = VK_IMAGE_LAYOUT_UNDEFINED,
-            .vk_dst_layout      = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+            .vk_dst_layout      = VK_IMAGE_LAYOUT_GENERAL
         };
-        global_command_buffer->SetTextureStateTransition(current_color_target->GetTexture(), std::addressof(attachment_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
+        global_command_buffer->SetTextureStateTransition(color_target_texture, std::addressof(clear_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
         
         /* Clear render target */
         global_command_buffer->ClearColorTarget(current_color_target, std::addressof(clear_color), std::addressof(clear_sub_range));
@@ -129,24 +129,59 @@ int main() {
         
         /* Transition render target to present */
         const dd::vk::TextureBarrierCmdState present_barrier_state = {
+            .vk_src_stage_mask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .vk_dst_stage_mask  = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
             .vk_src_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-            .vk_src_layout      = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .vk_src_layout      = VK_IMAGE_LAYOUT_GENERAL,
             .vk_dst_layout      = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
         };
-        global_command_buffer->SetTextureStateTransition(current_color_target->GetTexture(), std::addressof(present_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
+        global_command_buffer->SetTextureStateTransition(color_target_texture, std::addressof(present_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
         
         /* End draw */
         global_command_buffer->End();
 
         /* Submit command buffer */
         VkCommandBuffer vk_command_buffer = global_command_buffer->GetCommandBuffer();
-        const VkSubmitInfo submit_info = {
-            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-            .commandBufferCount = 1,
-            .pCommandBuffers = std::addressof(vk_command_buffer)
+        VkSemaphore wait_semaphore   = dd::util::GetReference(framebuffer).GetCurrentAcquireCompleteSemaphore();
+        VkSemaphore signal_semaphore = dd::util::GetReference(framebuffer).GetCurrentQueueCompleteSemaphore();
+
+        const VkSemaphoreSubmitInfo wait_semaphores = {
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+            .semaphore = wait_semaphore,
+            .stageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
         };
-        const u32 result1 = ::vkQueueSubmit(global_context->GetGraphicsQueue(), 1, std::addressof(submit_info), submit_fence);
+        
+        const VkCommandBufferSubmitInfo command_submit_infos = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+            .commandBuffer = vk_command_buffer
+        };
+        
+        const VkSemaphoreSubmitInfo signal_semaphores = {
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+            .semaphore = signal_semaphore,
+            .stageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+        };
+
+        const VkSubmitInfo2 submit_info = {
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+            .waitSemaphoreInfoCount = 1,
+            .pWaitSemaphoreInfos = std::addressof(wait_semaphores),
+            .commandBufferInfoCount = 1,
+            .pCommandBufferInfos = std::addressof(command_submit_infos),
+            .signalSemaphoreInfoCount = 1,
+            .pSignalSemaphoreInfos = std::addressof(signal_semaphores)
+        };
+
+        VkFence submit_fence = dd::util::GetReference(framebuffer).GetCurrentQueueSubmitFence();
+
+        const u32 result1 = ::vkQueueSubmit2(global_context->GetGraphicsQueue(), 1, std::addressof(submit_info), submit_fence);
         DD_ASSERT(result1 == VK_SUCCESS);
+        
+        const u32 result2 = ::vkWaitForFences(global_context->GetDevice(), 1, std::addressof(submit_fence), VK_TRUE, UINT64_MAX);
+        DD_ASSERT(result2 == VK_SUCCESS);
+        
+        const u32 result3 = ::vkResetFences(global_context->GetDevice(), 1, std::addressof(submit_fence));
+        DD_ASSERT(result3 == VK_SUCCESS);
         
         /* Present */
         global_frame_buffer->PresentTextureAndAcquireNext(global_context);
@@ -158,7 +193,6 @@ int main() {
 
     /* Cleanup */
     dd::learn::CleanTriangle();
-    ::vkDestroyFence(dd::vk::GetGlobalContext()->GetDevice(), submit_fence, nullptr);
 
     /* Signal Window thread we are finished */
     ::SetEvent(context_init_state.context_event);

@@ -35,9 +35,15 @@ namespace dd::vk {
             void Initialize(const Context *context, const BufferInfo *buffer_info, MemoryPool *memory_pool) {
 
                 /* Create buffer */
+                const VkExternalMemoryBufferCreateInfo external_info = {
+                    .sType = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO,
+                    .handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT
+                };
+
                 const u32 queue_family_index = context->GetGraphicsQueueFamilyIndex();
                 const VkBufferCreateInfo buffer_create_info = {
                     .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+                    .pNext = (memory_pool->IsHostMemory() == true) ? std::addressof(external_info) : nullptr,
                     .size = buffer_info->size,
                     .usage = buffer_info->vk_usage | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_KHR,
                     .sharingMode = VK_SHARING_MODE_EXCLUSIVE,

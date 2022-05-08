@@ -22,6 +22,9 @@ namespace dd::hid {
         
         LRESULT CALLBACK HidWndProc(HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param) {
             switch (message) {
+                case WM_DESTROY:
+                    ::PostQuitMessage(0);
+                    return 0;
                 case WM_INPUT:
                     SetLastRawInput(reinterpret_cast<HRAWINPUT>(l_param));
                     break;

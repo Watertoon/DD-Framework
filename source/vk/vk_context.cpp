@@ -24,47 +24,64 @@ namespace dd::vk {
         constexpr const char *DeviceExtensions[] = {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
             VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME,
-            VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME
+            VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME,
+            VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME
+            
         };
         constexpr u32 DeviceExtensionCount = sizeof(DeviceExtensions) / sizeof(const char*);
         
+        constinit VkPhysicalDeviceExtendedDynamicState2FeaturesEXT TargetDeviceExtendedDynamicStateFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT,
+            .extendedDynamicState2LogicOp = VK_TRUE
+        };
+        constinit VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT TargetDeviceVertexInputDynamicStateFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_INPUT_DYNAMIC_STATE_FEATURES_EXT,
+            .pNext = std::addressof(TargetDeviceExtendedDynamicStateFeatures),
+            .vertexInputDynamicState = VK_TRUE
+        };
         constinit VkPhysicalDeviceVulkan13Features TargetDeviceFeatures13 = {
-            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+            .pNext = std::addressof(TargetDeviceVertexInputDynamicStateFeatures),
+            .synchronization2 = VK_TRUE,
+            .dynamicRendering = VK_TRUE
         };
         constinit VkPhysicalDeviceVulkan12Features TargetDeviceFeatures12 = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
             .pNext = std::addressof(TargetDeviceFeatures13),
-            .descriptorIndexing = true,
-            .shaderUniformBufferArrayNonUniformIndexing = true,
-            .shaderSampledImageArrayNonUniformIndexing = true,
-            .descriptorBindingSampledImageUpdateAfterBind = true,
-            .descriptorBindingPartiallyBound = true,
-            .descriptorBindingVariableDescriptorCount = true,
-            .bufferDeviceAddress = true
+            .descriptorIndexing = VK_TRUE,
+            .shaderUniformBufferArrayNonUniformIndexing = VK_TRUE,
+            .shaderSampledImageArrayNonUniformIndexing = VK_TRUE,
+            .descriptorBindingSampledImageUpdateAfterBind = VK_TRUE,
+            .descriptorBindingPartiallyBound = VK_TRUE,
+            .descriptorBindingVariableDescriptorCount = VK_TRUE,
+            .runtimeDescriptorArray = VK_TRUE,
+            .bufferDeviceAddress = VK_TRUE
         };
         constinit VkPhysicalDeviceVulkan11Features TargetDeviceFeatures11 = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES,
-            .pNext = std::addressof(TargetDeviceFeatures12)
+            .pNext = std::addressof(TargetDeviceFeatures12),
+            .variablePointersStorageBuffer = VK_TRUE,
+            .variablePointers = VK_TRUE
         };
         constinit VkPhysicalDeviceFeatures2 TargetDeviceFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
             .pNext = std::addressof(TargetDeviceFeatures11),
             .features = {
-                .independentBlend = true,
-                .geometryShader = true,
-                .tessellationShader = true,
-                .logicOp = true,
-                .depthClamp = true,
-                .depthBiasClamp = true,
-                .fillModeNonSolid = true,
-                .depthBounds = true,
-                .wideLines = true,
-                .largePoints = true,
-                .multiViewport = true,
-                .samplerAnisotropy = true,
-                .textureCompressionBC = true,
-                .fragmentStoresAndAtomics = true,
-                .shaderStorageImageExtendedFormats = true
+                .independentBlend = VK_TRUE,
+                .geometryShader = VK_TRUE,
+                .tessellationShader = VK_TRUE,
+                .logicOp = VK_TRUE,
+                .depthClamp = VK_TRUE,
+                .depthBiasClamp = VK_TRUE,
+                .fillModeNonSolid = VK_TRUE,
+                .depthBounds = VK_TRUE,
+                .wideLines = VK_TRUE,
+                .largePoints = VK_TRUE,
+                .multiViewport = VK_TRUE,
+                .samplerAnisotropy = VK_TRUE,
+                .textureCompressionBC = VK_TRUE,
+                .fragmentStoresAndAtomics = VK_TRUE,
+                .shaderStorageImageExtendedFormats = VK_TRUE
             }
         };
         
@@ -123,6 +140,10 @@ namespace dd::vk {
         m_vk_physical_device_supported_features_12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
         m_vk_physical_device_supported_features_12.pNext = std::addressof(m_vk_physical_device_supported_features_13);
         m_vk_physical_device_supported_features_13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+        m_vk_physical_device_supported_features_13.pNext = std::addressof(m_vk_physical_device_vertex_input_dynamic_state_features);
+        m_vk_physical_device_vertex_input_dynamic_state_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_INPUT_DYNAMIC_STATE_FEATURES_EXT;
+        m_vk_physical_device_vertex_input_dynamic_state_features.pNext = std::addressof(m_vk_physical_device_extended_dynamic_state_features);
+        m_vk_physical_device_extended_dynamic_state_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT;
         
         for (u32 i = 0; i < m_vk_physical_device_count; ++i) {
             /* Query Physical Device */
@@ -143,7 +164,8 @@ namespace dd::vk {
                 DD_ASSERT(b_result1 == true);
 
                 const u32 result = ::vkGetPhysicalDeviceWin32PresentationSupportKHR(m_vk_physical_device_array[i], graphics_queue_family_index);
-                DD_ASSERT(result == VK_SUCCESS);
+                DD_ASSERT(result == VK_TRUE);
+
                 m_vk_physical_device = 0;
             }
 
@@ -239,14 +261,25 @@ namespace dd::vk {
             if (m_vk_physical_device_supported_features.features.textureCompressionBC == false)              { DD_ASSERT(false); continue; }
             if (m_vk_physical_device_supported_features.features.fragmentStoresAndAtomics == false)          { DD_ASSERT(false); continue; }
             if (m_vk_physical_device_supported_features.features.shaderStorageImageExtendedFormats == false) { DD_ASSERT(false); continue; }
-            
+
+            if (m_vk_physical_device_supported_features_11.variablePointersStorageBuffer == false)          { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features_11.variablePointers == false)                       { DD_ASSERT(false); continue; }
+
             if (m_vk_physical_device_supported_features_12.descriptorIndexing == false)                                { DD_ASSERT(false); continue; }
             if (m_vk_physical_device_supported_features_12.shaderUniformBufferArrayNonUniformIndexing == false)        { DD_ASSERT(false); continue; }
             if (m_vk_physical_device_supported_features_12.shaderSampledImageArrayNonUniformIndexing == false)         { DD_ASSERT(false); continue; }
             if (m_vk_physical_device_supported_features_12.descriptorBindingSampledImageUpdateAfterBind == false)      { DD_ASSERT(false); continue; }
             if (m_vk_physical_device_supported_features_12.descriptorBindingPartiallyBound == false)                   { DD_ASSERT(false); continue; }
             if (m_vk_physical_device_supported_features_12.descriptorBindingVariableDescriptorCount == false)          { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features_12.runtimeDescriptorArray == false)                            { DD_ASSERT(false); continue; }
             if (m_vk_physical_device_supported_features_12.bufferDeviceAddress == false)                               { DD_ASSERT(false); continue; }
+
+            if (m_vk_physical_device_supported_features_13.synchronization2 == false)                                  { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features_13.dynamicRendering == false)                                  { DD_ASSERT(false); continue; }
+
+            if (m_vk_physical_device_vertex_input_dynamic_state_features.vertexInputDynamicState == false)             { DD_ASSERT(false); continue; }
+
+            if (m_vk_physical_device_extended_dynamic_state_features.extendedDynamicState2LogicOp == false)             { DD_ASSERT(false); continue; }
 
             m_vk_physical_device = m_vk_physical_device_array[i];
             m_physical_device_index = i;
@@ -266,7 +299,15 @@ namespace dd::vk {
         for (u32 i = 0; i < queue_family_count; ++i) {
             
             /* Every required graphics queue family feature should be checked here */
-            if (!((queue_properties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != VK_QUEUE_GRAPHICS_BIT)) { continue; }
+            if ((queue_properties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != VK_QUEUE_GRAPHICS_BIT) { continue; }
+            
+            {
+                u32 supports_present = false;
+                const u32 result0 = ::vkGetPhysicalDeviceSurfaceSupportKHR(m_vk_physical_device, i, m_vk_surface, std::addressof(supports_present));
+                DD_ASSERT(result0 == VK_SUCCESS);
+                
+                if (supports_present == VK_FALSE) { continue; }
+            }
             
             delete[] queue_properties;
             *queue_family_index = i;
@@ -405,6 +446,7 @@ namespace dd::vk {
         /* Create graphics Command Pool */
         const VkCommandPoolCreateInfo graphics_command_pool_info = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+            .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
             .queueFamilyIndex = graphics_queue_family_index
         };
         
@@ -464,7 +506,6 @@ namespace dd::vk {
 
         /* Create texture descriptor layout */
         const VkDescriptorBindingFlags  texture_set_binding_flag[] = {
-            VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT | VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT,
             VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT | VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT
         };
         const VkDescriptorSetLayoutBindingFlagsCreateInfo texture_set_binding_info = {
@@ -476,14 +517,8 @@ namespace dd::vk {
         const VkDescriptorSetLayoutBinding texture_set_bindings[] = { 
             {
                 .binding         = Context::TargetTextureDescriptorBinding,
-                .descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                .descriptorType  = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
                 .descriptorCount = TargetMaxTextureDescriptors,
-                .stageFlags      = VK_SHADER_STAGE_ALL,
-            },
-            {
-                .binding         = Context::TargetSamplerDescriptorBinding,
-                .descriptorType  = VK_DESCRIPTOR_TYPE_SAMPLER,
-                .descriptorCount = TargetMaxSamplerDescriptors,
                 .stageFlags      = VK_SHADER_STAGE_ALL,
             }
         };
@@ -498,9 +533,39 @@ namespace dd::vk {
         const u32 result7 = ::vkCreateDescriptorSetLayout(m_vk_device, std::addressof(texture_set_layout_info), nullptr, std::addressof(m_vk_texture_descriptor_set_layout));
         DD_ASSERT(result7 == VK_SUCCESS);
 
+        /* Create texture descriptor layout */
+        const VkDescriptorBindingFlags  sampler_set_binding_flag[] = {
+            VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT | VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT
+        };
+        const VkDescriptorSetLayoutBindingFlagsCreateInfo sampler_set_binding_info = {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO,
+            .bindingCount = sizeof(sampler_set_binding_flag) / sizeof(VkDescriptorBindingFlags),
+            .pBindingFlags = sampler_set_binding_flag
+        };
+
+        const VkDescriptorSetLayoutBinding sampler_set_bindings[] = { 
+            {
+                .binding         = Context::TargetSamplerDescriptorBinding,
+                .descriptorType  = VK_DESCRIPTOR_TYPE_SAMPLER,
+                .descriptorCount = TargetMaxSamplerDescriptors,
+                .stageFlags      = VK_SHADER_STAGE_ALL,
+            }
+        };
+
+        const VkDescriptorSetLayoutCreateInfo sampler_set_layout_info = {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+            .pNext = std::addressof(sampler_set_binding_info),
+            .flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT,
+            .bindingCount = sizeof(sampler_set_bindings) / sizeof(VkDescriptorSetLayoutBinding),
+            .pBindings = sampler_set_bindings
+        };
+        const u32 result6 = ::vkCreateDescriptorSetLayout(m_vk_device, std::addressof(sampler_set_layout_info), nullptr, std::addressof(m_vk_sampler_descriptor_set_layout));
+        DD_ASSERT(result6 == VK_SUCCESS);
+
         /* Create global pipeline */
         const VkDescriptorSetLayout descriptor_set_layouts[] = {
             m_vk_texture_descriptor_set_layout,
+            m_vk_sampler_descriptor_set_layout,
             m_vk_resource_buffer_descriptor_set_layout
         };
         
@@ -545,12 +610,13 @@ namespace dd::vk {
             .pPushConstantRanges = resource_index_push_constant_ranges
         };
         
-        const u32 result8 = ::vkCreatePipelineLayout(m_vk_device, std::addressof(pipeline_layout_info), nullptr, std::addressof(m_vk_pipeline_layout));
-        DD_ASSERT(result8 == VK_SUCCESS);
+        const u32 result9 = ::vkCreatePipelineLayout(m_vk_device, std::addressof(pipeline_layout_info), nullptr, std::addressof(m_vk_pipeline_layout));
+        DD_ASSERT(result9 == VK_SUCCESS);
     }
 
     Context::~Context() {
         /* Finalize Vulkan context */
+        ::vkQueueWaitIdle(m_vk_graphics_queue);
         ::vkDeviceWaitIdle(m_vk_device);
         
         ::vkDestroyCommandPool(m_vk_device, m_vk_graphics_command_pool, nullptr);

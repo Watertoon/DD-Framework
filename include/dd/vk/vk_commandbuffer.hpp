@@ -69,8 +69,9 @@ namespace dd::vk {
         VkCullModeFlags vk_cull_mode;
         VkFrontFace     vk_front_face;
         bool            rasterizer_discard_enable;
+        bool            primitive_restart_enable;
         bool            depth_bias_enable;
-        u16             reserve;
+        u8              reserve;
         float           depth_bias_constant_factor;
         float           depth_bias_clamp;
         float           depth_bias_slope_factor;
@@ -80,6 +81,7 @@ namespace dd::vk {
             vk_cull_mode               = VK_CULL_MODE_FRONT_BIT;
             vk_front_face              = VK_FRONT_FACE_COUNTER_CLOCKWISE;
             rasterizer_discard_enable  = true;
+            rasterizer_discard_enable  = false;
             depth_bias_enable          = false;
             depth_bias_constant_factor = 1.0f;
             depth_bias_clamp           = 1.0f;

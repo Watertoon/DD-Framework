@@ -28,7 +28,7 @@ namespace dd::vk {
             return;
         }
 
-        /* Initialize our color target attachments */
+        /* Initialize color target attachments */
         VkRenderingAttachmentInfo color_attachments[8] = {};
         u32 color_target_count = 0;
         for (const ColorTargetView *color_target : m_color_targets) {
@@ -48,7 +48,7 @@ namespace dd::vk {
             color_target_count += 1;
         }
 
-        /* Initialize our depth stencil attachment */
+        /* Initialize depth stencil attachment */
         const VkRenderingAttachmentInfo depth_stencil_attachment = {
             .sType              = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
             .imageView          = (m_depth_stencil_target != nullptr) ? m_depth_stencil_target->GetImageView() : nullptr,
@@ -60,7 +60,7 @@ namespace dd::vk {
             .storeOp            = VK_ATTACHMENT_STORE_OP_STORE
         };
 
-        /* Initialize our rendering info */
+        /* Initialize rendering info */
         const VkRenderingAttachmentInfo *depth_stencil_ref = (m_depth_stencil_target != nullptr) ? std::addressof(depth_stencil_attachment) : nullptr;
         u32 width = 0; 
         u32 height = 0;
@@ -376,7 +376,7 @@ namespace dd::vk {
             {
                 .sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                 .dstSet          = m_vk_resource_buffer_descriptor_set,
-                .dstBinding      = Context::TargetVertexResourceBufferDescriptorBinding,
+                .dstBinding      = Context::TargetFragmentResourceBufferDescriptorBinding,
                 .dstArrayElement = 0,
                 .descriptorCount = 1,
                 .descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -385,13 +385,12 @@ namespace dd::vk {
             {
                 .sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                 .dstSet          = m_vk_resource_buffer_descriptor_set,
-                .dstBinding      = Context::TargetVertexResourceBufferDescriptorBinding,
+                .dstBinding      = Context::TargetComputeResourceBufferDescriptorBinding,
                 .dstArrayElement = 0,
                 .descriptorCount = 1,
                 .descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                 .pBufferInfo     = std::addressof(descriptor_buffer_info[ShaderStage_Compute]),
-            },
-            
+            }
         };
 
         ::vkUpdateDescriptorSets(context->GetDevice(), sizeof(write_set) / sizeof(VkWriteDescriptorSet), write_set, 0, nullptr);
@@ -412,7 +411,7 @@ namespace dd::vk {
         DD_ASSERT(result == VK_SUCCESS);
 
         /* Bind Resource buffer */
-        ::vkCmdBindDescriptorSets(m_vk_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetGlobalContext()->GetPipelineLayout(), 3, 1, std::addressof(m_vk_resource_buffer_descriptor_set), 0, nullptr);
+        ::vkCmdBindDescriptorSets(m_vk_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetGlobalContext()->GetPipelineLayout(), 2, 1, std::addressof(m_vk_resource_buffer_descriptor_set), 0, nullptr);
         m_vertex_resource_update_count = 0;
         m_tessellation_evaluation_resource_update_count = 0;
         m_tessellation_control_resource_update_count = 0;
@@ -451,19 +450,20 @@ namespace dd::vk {
         this->PushResourceBufferIndices();
 
         /* Draw */
-        ::vkCmdSetPrimitiveTopologyEXT(m_vk_command_buffer, vk_primitive_topology);
+        ::vkCmdSetPrimitiveTopology(m_vk_command_buffer, vk_primitive_topology);
         ::vkCmdDraw(m_vk_command_buffer, vertex_count, 1, base_vertex, 0);
     }
     
     void CommandBuffer::DrawIndexed(VkPrimitiveTopology vk_primitive_topology, VkIndexType index_format, Buffer *index_buffer, u32 index_count, u32 base_index) {
-
-        this->UpdateResourceBufferIfNecessary();
-        this->BeginRenderingIfNotRendering();
-
+        
         /* Relocate memory pool to device memory if required */
         if (index_buffer->RequiresRelocation() == true) {
+            this->EndRenderingIfRendering();
             index_buffer->Relocate(m_vk_command_buffer);
         }
+        
+        this->UpdateResourceBufferIfNecessary();
+        this->BeginRenderingIfNotRendering();
 
         /* Bind index buffer */
         const VkDeviceSize offset = 0;
@@ -473,7 +473,7 @@ namespace dd::vk {
         this->PushResourceBufferIndices();
 
         /* Draw */
-        ::vkCmdSetPrimitiveTopologyEXT(m_vk_command_buffer, vk_primitive_topology);
+        ::vkCmdSetPrimitiveTopology(m_vk_command_buffer, vk_primitive_topology);
         ::vkCmdDrawIndexed(m_vk_command_buffer, index_count, 1, base_index, 0, 0);
     }
 
@@ -489,7 +489,7 @@ namespace dd::vk {
     }
 
     void CommandBuffer::SetColorBlendState(const ColorBlendCmdState *color_blend_state) {
-        ::vkCmdSetLogicOpEXT(m_vk_command_buffer, color_blend_state->vk_logic_op);
+        pfn_vkCmdSetLogicOpEXT(m_vk_command_buffer, color_blend_state->vk_logic_op);
         ::vkCmdSetBlendConstants(m_vk_command_buffer, color_blend_state->blend_constants);
     }
 
@@ -512,6 +512,7 @@ namespace dd::vk {
 
     void CommandBuffer::SetRasterizerState(const RasterizerCmdState *rasterizer_state) {
         ::vkCmdSetRasterizerDiscardEnable(m_vk_command_buffer, rasterizer_state->rasterizer_discard_enable);
+        ::vkCmdSetPrimitiveRestartEnable(m_vk_command_buffer, rasterizer_state->primitive_restart_enable);
         ::vkCmdSetDepthBiasEnable(m_vk_command_buffer, rasterizer_state->depth_bias_enable);
         ::vkCmdSetDepthBias(m_vk_command_buffer, rasterizer_state->depth_bias_constant_factor, rasterizer_state->depth_bias_clamp, rasterizer_state->depth_bias_slope_factor);
         ::vkCmdSetLineWidth(m_vk_command_buffer, rasterizer_state->line_width);
@@ -520,7 +521,7 @@ namespace dd::vk {
     }
 
     void CommandBuffer::SetVertexState(const VertexCmdState *vertex_state) {
-        ::vkCmdSetVertexInputEXT(m_vk_command_buffer, vertex_state->vertex_binding_count, vertex_state->vertex_binding_array, vertex_state->vertex_attribute_count, vertex_state->vertex_attribute_array);
+        pfn_vkCmdSetVertexInputEXT(m_vk_command_buffer, vertex_state->vertex_binding_count, vertex_state->vertex_binding_array, vertex_state->vertex_attribute_count, vertex_state->vertex_attribute_array);
     }
 
     void CommandBuffer::SetViewports(u32 viewport_count, const VkViewport *viewport_array) {
@@ -580,6 +581,10 @@ namespace dd::vk {
     }
 
     void CommandBuffer::SetTextureStateTransition(Texture *texture, const TextureBarrierCmdState *barrier_state, VkImageAspectFlagBits aspect_mask) {
+        
+        if (barrier_state->vk_dst_stage_mask == VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT) {
+            this->EndRenderingIfRendering();
+        }
 
         /* Image memory barrier */
         const VkImageMemoryBarrier2 buffer_barrier = {
@@ -608,23 +613,25 @@ namespace dd::vk {
         };
 
         ::vkCmdPipelineBarrier2(m_vk_command_buffer, std::addressof(dependency_info));
+        
+        texture->SetImageLayout(barrier_state->vk_dst_layout);
     }
     
     void CommandBuffer::SetDescriptorPool(const DescriptorPool *descriptor_pool) {
 
         VkDescriptorSet vk_descriptor_set = descriptor_pool->GetDescriptorSet();
-        u32 binding = 0;
+        u32 set = 0;
         const u32 pool_type = descriptor_pool->GetPoolType();
 
         if (pool_type == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE) {
-            binding = Context::TargetTextureDescriptorBinding;
-        } else if (pool_type == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE) {
-            binding = Context::TargetSamplerDescriptorBinding;
+            set = 0;
+        } else if (pool_type == VK_DESCRIPTOR_TYPE_SAMPLER) {
+            set = 1;
         } else {
             DD_ASSERT(false);
         }
 
-        ::vkCmdBindDescriptorSets(m_vk_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetGlobalContext()->GetPipelineLayout(), binding, 1, std::addressof(vk_descriptor_set), 0, nullptr);
+        ::vkCmdBindDescriptorSets(m_vk_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetGlobalContext()->GetPipelineLayout(), set, 1, std::addressof(vk_descriptor_set), 0, nullptr);
     }
 
     void CommandBuffer::SetUniformBuffer(u32 location, ShaderStage shader_stage, const VkDeviceAddress gpu_address) {

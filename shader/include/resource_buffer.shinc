@@ -1,0 +1,52 @@
+#extension GL_EXT_nonuniform_qualifier : enable
+#extension GL_EXT_buffer_reference : enable
+#extension GL_EXT_buffer_reference2 : enable
+
+layout (set = 0, binding = 0) uniform texture2D texture2D_location[];
+layout (set = 0, binding = 0) uniform texture3D texture3D_location[];
+layout (set = 1, binding = 0) uniform sampler sampler_location[];
+
+struct DummyAddress {
+    uint reserve0;
+    uint reserve2;
+};
+
+#define MAX_UNIFORM_BUFFERS 14
+#define MAX_STORAGE_BUFFERS 16
+#define MAX_ADDRESSES (MAX_UNIFORM_BUFFERS + MAX_STORAGE_BUFFERS)
+#define MAX_TEXTURES 32
+#define MAX_SAMPLERS 32
+
+#define ADDRESS_PADDING(count) DummyAddress _addresspadding[count]
+#define UBO_PADDING(count) DummyAddress _ubopadding[count]
+#define SBO_PADDING(count) DummyAddress _sbopadding[count]
+#define TEXTURE_PADDING(count) uint _texturepadding[count]
+#define SAMPLER_PADDING(count) uint _samplerpadding[count]
+
+#define texture2DIndex(idx) texture2D_location[idx]
+#define texture3DIndex(idx) texture3D_location[idx]
+#define samplerIndex(idx) sampler_location[idx]
+
+#if defined(DD_VERTEX_SHADER)
+    #define DD_RESOURCE_BUFFER_BINDING set = 2, binding = 0 
+    #define DD_RESOURCE_INDEX_OFFSET 0
+#elif defined(DD_FRAGMENT_SHADER)
+    #define DD_RESOURCE_BUFFER_BINDING set = 2, binding = 4
+    #define DD_RESOURCE_INDEX_OFFSET 16
+#endif
+
+layout (push_constant) uniform ResourceIndex {
+    layout(offset = DD_RESOURCE_INDEX_OFFSET) uint resource_index;
+};
+
+struct DefaultResourceBuffer {
+    ADDRESS_PADDING(MAX_ADDRESSES);
+    uint texture_ids[MAX_TEXTURES];
+    uint sampler_ids[MAX_SAMPLERS];
+};
+
+#define SAMPLER2D(idx) sampler2D(texture2D_location[nonuniformEXT(rb[resource_index].texture_ids[idx])], sampler_location[nonuniformEXT(rb[resource_index].sampler_ids[idx])])
+
+#define DECLARE_DEFAULT_RESOURCE_BUFFER layout (DD_RESOURCE_BUFFER_BINDING) uniform _RB { DefaultResourceBuffer rb[128]; }
+
+#define DECLARE_RESOURCE_BUFFER(structure) layout (DD_RESOURCE_BUFFER_BINDING) uniform _RB { structure rb[128]; }

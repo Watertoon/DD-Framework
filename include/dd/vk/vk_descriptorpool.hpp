@@ -53,7 +53,7 @@ namespace dd::vk {
                 };
 
                 const u32 result0 = ::vkCreateDescriptorPool(context->GetDevice(), std::addressof(pool_info), nullptr, std::addressof(m_vk_descriptor_pool));
-                DD_ASSERT(result0 == VK_TRUE);
+                DD_ASSERT(result0 == VK_SUCCESS);
 
                 /* Create Descriptor Set */
                 VkDescriptorSetLayout vk_descriptor_set_layout;
@@ -71,7 +71,7 @@ namespace dd::vk {
                 };
 
                 const u32 result1 = ::vkAllocateDescriptorSets(context->GetDevice(), std::addressof(set_info), std::addressof(m_vk_descriptor_set));
-                DD_ASSERT(result1 == VK_TRUE);
+                DD_ASSERT(result1 == VK_SUCCESS);
 
                 /* Initalize default free list size */
                 m_free_id_stack = new u32[FreeListDefaultSize];
@@ -80,6 +80,8 @@ namespace dd::vk {
                 m_free_id_stack_size = FreeListDefaultSize;
                 
                 m_vk_pool_type = descriptor_type;
+                m_max_slot_ids = max_descriptor_slots;
+                m_texture_id_count = 0;
             }
 
             void Finalize(const Context *context) {
@@ -101,7 +103,7 @@ namespace dd::vk {
                     .dstBinding      = Context::TargetSamplerDescriptorBinding,
                     .dstArrayElement = new_id,
                     .descriptorCount = 1,
-                    .descriptorType  = VK_DESCRIPTOR_TYPE_SAMPLER,
+                    .descriptorType  = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
                     .pImageInfo      = std::addressof(image_info)
                 };
 

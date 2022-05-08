@@ -21,24 +21,28 @@ namespace dd::learn {
 
         /* Vulkan objects */
         util::TypeStorage<vk::Shader>         vk_shader;
-        util::TypeStorage<vk::DescriptorPool> vk_descriptor_pool;
+        util::TypeStorage<vk::DescriptorPool> vk_texture_descriptor_pool;
+        util::TypeStorage<vk::DescriptorPool> vk_sampler_descriptor_pool;
 
-        util::TypeStorage<vk::MemoryPool>     vk_memory;
+        util::TypeStorage<vk::MemoryPool>     vk_buffer_memory;
         util::TypeStorage<vk::Buffer>         vk_vertex_buffer;
         util::TypeStorage<vk::Buffer>         vk_index_buffer;
         util::TypeStorage<vk::Buffer>         vk_uniform_buffer;
         unsigned char *texture0 = nullptr;
         unsigned char *texture1 = nullptr;
+        util::TypeStorage<vk::MemoryPool>     vk_image_memory;
         util::TypeStorage<vk::Texture>        vk_texture0;
         util::TypeStorage<vk::Texture>        vk_texture1;
+        util::TypeStorage<vk::Sampler>        vk_sampler;
         util::TypeStorage<vk::TextureView>    vk_texture_view0;
         util::TypeStorage<vk::TextureView>    vk_texture_view1;
         vk::DescriptorSlot                    texture_view0_slot;
         vk::DescriptorSlot                    texture_view1_slot;
+        vk::DescriptorSlot                    sampler_slot;
 
         /* Resources */
-        const char *vertex_shader_path = "resources/2_vert.sh";
-        const char *fragment_shader_path = "resources/2_frag.sh";
+        const char *vertex_shader_path = "shaders/2_frag_vertex.spv";
+        const char *fragment_shader_path = "shaders/2_frag_fragment.spv";
 
         const float vertices[] = {
             /* Position */      /* Color */        /* Tex Coords*/
@@ -61,6 +65,7 @@ namespace dd::learn {
         float rot_z_angle = 0.0f;
 
         char *memory_buffer = nullptr;
+        char *memory_image = nullptr;
         
         /* Vulkan pipeline state */
         util::TypeStorage<vk::Pipeline>       vk_pipeline;
@@ -108,15 +113,16 @@ namespace dd::learn {
         /* Load Shader */
         char *vertex_shader = nullptr;
         char *fragment_shader = nullptr;
-        res::LoadTextFile(vertex_shader_path, std::addressof(vertex_shader), nullptr);
-        res::LoadTextFile(fragment_shader_path, std::addressof(fragment_shader), nullptr);
+        u32 vertex_size = 0, fragment_size = 0;
+        res::LoadFile(vertex_shader_path, reinterpret_cast<void**>(std::addressof(vertex_shader)), std::addressof(vertex_size));
+        res::LoadFile(fragment_shader_path, reinterpret_cast<void**>(std::addressof(fragment_shader)), std::addressof(fragment_size));
 
         /* Create Shader */
         dd::util::ConstructAt(vk_shader);
         const vk::ShaderInfo shader_info = {
-            .vertex_code_size = ::strlen(vertex_shader) + 1,
+            .vertex_code_size = vertex_size,
             .vertex_code = reinterpret_cast<u32*>(vertex_shader),
-            .fragment_code_size = ::strlen(fragment_shader) + 1,
+            .fragment_code_size = fragment_size,
             .fragment_code = reinterpret_cast<u32*>(fragment_shader)
         };
         util::GetReference(vk_shader).Initialize(context, std::addressof(shader_info));
@@ -175,60 +181,82 @@ namespace dd::learn {
         };
         
         /* Calculate offsets */
-        index_buffer_info.offset    = util::AlignUp(sizeof(vertices) , vk::Buffer::GetAlignment(context, std::addressof(index_buffer_info)));
-        uniform_buffer_info.offset  = util::AlignUp(sizeof(vertices) + sizeof(indices), vk::Buffer::GetAlignment(context, std::addressof(uniform_buffer_info)));
+        index_buffer_info.offset    = util::AlignUp(sizeof(vertices), vk::Buffer::GetAlignment(context, std::addressof(index_buffer_info)));
+        uniform_buffer_info.offset  = util::AlignUp(index_buffer_info.offset + sizeof(indices), vk::Buffer::GetAlignment(context, std::addressof(uniform_buffer_info)));
 
-        texture0_info.memory_offset = util::AlignUp(sizeof(vertices) + sizeof(indices) + sizeof(base_transform), vk::Texture::GetAlignment(context, std::addressof(texture0_info)));
-        texture1_info.memory_offset = util::AlignUp(sizeof(vertices) + sizeof(indices) + sizeof(base_transform) + texture0_size, vk::Texture::GetAlignment(context, std::addressof(texture1_info)));
+        texture1_info.memory_offset = util::AlignUp(texture0_size, vk::Texture::GetAlignment(context, std::addressof(texture1_info)));
 
         /* Determine memory size */
-        const u64 buffer_size = util::AlignUp(texture1_info.memory_offset + texture1_size, vk::Context::TargetMemoryPoolAlignment);
+        const u64 buffer_memory_size = util::AlignUp(uniform_buffer_info.offset + sizeof(base_transform), vk::Context::TargetMemoryPoolAlignment);
+        const u64 image_memory_size = util::AlignUp(texture1_info.memory_offset + texture1_size, vk::Context::TargetMemoryPoolAlignment);
+        
+        std::cout << index_buffer_info.offset << std::endl;
+        std::cout << uniform_buffer_info.offset << std::endl;
+        
+        std::cout << texture1_info.memory_offset << std::endl;
+        std::cout << buffer_memory_size << std::endl;
+        std::cout << image_memory_size << std::endl;
+        
 
-        /* Create GPU host buffer */
-        memory_buffer = new(std::align_val_t(vk::Context::TargetMemoryPoolAlignment)) char[buffer_size];
+        /* Copy host memory */
+        memory_buffer = new(std::align_val_t(vk::Context::TargetMemoryPoolAlignment)) char[buffer_memory_size];
+        memory_image  = new(std::align_val_t(vk::Context::TargetMemoryPoolAlignment)) char[image_memory_size];
         DD_ASSERT(memory_buffer != nullptr);
+        DD_ASSERT(memory_image != nullptr);
+        
         ::memcpy(memory_buffer, std::addressof(vertices), sizeof(vertices));
         ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory_buffer) + index_buffer_info.offset), std::addressof(indices), sizeof(indices));
         ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory_buffer) + uniform_buffer_info.offset), std::addressof(base_transform), sizeof(base_transform));
-        ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory_buffer) + texture0_info.memory_offset), texture0, texture0_size);
-        ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory_buffer) + texture1_info.memory_offset), texture1, texture1_size);
+        
+        ::memcpy(memory_image, texture0, texture0_size);
+        ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory_image) + texture1_info.memory_offset), texture1, texture1_size);
 
         /* Free unneeded image buffers */
         res::FreeStbImage(texture0);
         res::FreeStbImage(texture1);
 
-        /* Create memory pool */
-        util::ConstructAt(vk_memory);
-        const vk::MemoryPoolInfo pool_info = {
-            .size = buffer_size,
+        /* Create buffer memory pool */
+        util::ConstructAt(vk_buffer_memory);
+        const vk::MemoryPoolInfo buffer_pool_info = {
+            .size                     = buffer_memory_size,
             .vk_memory_property_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            .import_memory = memory_buffer
+            .import_memory            = memory_buffer
         };
-        vk::MemoryPool *pool = util::GetPointer(vk_memory);
-        pool->Initialize(context, std::addressof(pool_info));
+        vk::MemoryPool *buffer_pool = util::GetPointer(vk_buffer_memory);
+        buffer_pool->Initialize(context, std::addressof(buffer_pool_info));
+        
+        /* Create image memory pool */
+        util::ConstructAt(vk_image_memory);
+        const vk::MemoryPoolInfo image_pool_info = {
+            .size                     = image_memory_size,
+            .vk_memory_property_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            .import_memory            = memory_image
+        };
+        vk::MemoryPool *image_pool = util::GetPointer(vk_image_memory);
+        image_pool->Initialize(context, std::addressof(image_pool_info));
 
         /* Create buffers */
         util::ConstructAt(vk_vertex_buffer);
-        util::GetReference(vk_vertex_buffer).Initialize(context, std::addressof(vertex_buffer_info), pool);
+        util::GetReference(vk_vertex_buffer).Initialize(context, std::addressof(vertex_buffer_info), buffer_pool);
 
         util::ConstructAt(vk_index_buffer);
-        util::GetReference(vk_index_buffer).Initialize(context, std::addressof(index_buffer_info), pool);
+        util::GetReference(vk_index_buffer).Initialize(context, std::addressof(index_buffer_info), buffer_pool);
 
         util::ConstructAt(vk_uniform_buffer);
-        util::GetReference(vk_uniform_buffer).Initialize(context, std::addressof(uniform_buffer_info), pool);
+        util::GetReference(vk_uniform_buffer).Initialize(context, std::addressof(uniform_buffer_info), buffer_pool);
 
         /* Create textures */
         util::ConstructAt(vk_texture0);
-        util::GetReference(vk_texture0).Initialize(context, std::addressof(texture0_info), pool);
+        util::GetReference(vk_texture0).Initialize(context, std::addressof(texture0_info), image_pool);
 
         util::ConstructAt(vk_texture1);
-        util::GetReference(vk_texture1).Initialize(context, std::addressof(texture1_info), pool);
+        util::GetReference(vk_texture1).Initialize(context, std::addressof(texture1_info), image_pool);
 
         /* Create texture views */
         vk::TextureViewInfo view_info = {};
         view_info.SetDefaults();
 
-        view_info.vk_format  = VK_FORMAT_R8G8B8_UNORM;
+        view_info.vk_format  = VK_FORMAT_R8G8B8A8_UNORM;
         view_info.texture = util::GetPointer(vk_texture0);
 
         util::ConstructAt(vk_texture_view0);
@@ -239,6 +267,13 @@ namespace dd::learn {
 
         util::ConstructAt(vk_texture_view1);
         util::GetReference(vk_texture_view1).Initialize(context, std::addressof(view_info));
+        
+        /* Create sampler */
+        vk::SamplerInfo sampler_info = {};
+        sampler_info.SetDefaults();
+        
+        util::ConstructAt(vk_sampler);
+        util::GetReference(vk_sampler).Initialize(context, std::addressof(sampler_info));
 
         /* Create pipeline */
         vk::PipelineInfo pipeline_info = {};
@@ -255,15 +290,20 @@ namespace dd::learn {
         vk_pipeline_cmd_state.vertex_state.vertex_binding_array = std::addressof(vk_input_binding_description);
         vk_pipeline_cmd_state.vertex_state.vertex_attribute_array = vk_attribute_descriptions;
 
-        /* Create descriptor pool */
-        vk::DescriptorPool *descriptor_pool = util::GetPointer(vk_descriptor_pool);
+        /* Create texture descriptor pool */
+        vk::DescriptorPool *texture_descriptor_pool = util::GetPointer(vk_texture_descriptor_pool);
 
-        util::ConstructAt(vk_descriptor_pool);
-        descriptor_pool->Initialize(context, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 32);
+        util::ConstructAt(vk_texture_descriptor_pool);
+        texture_descriptor_pool->Initialize(context, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 32);
+
+        /* Create sampler descriptor pool */
+        vk::DescriptorPool *sampler_descriptor_pool = util::GetPointer(vk_sampler_descriptor_pool);
+
+        util::ConstructAt(vk_sampler_descriptor_pool);
+        sampler_descriptor_pool->Initialize(context, VK_DESCRIPTOR_TYPE_SAMPLER, 32);
 
         /* Register our textures */
-        texture_view0_slot = descriptor_pool->RegisterTexture(util::GetPointer(vk_texture_view0));
-        texture_view1_slot = descriptor_pool->RegisterTexture(util::GetPointer(vk_texture_view1));
+        sampler_slot = sampler_descriptor_pool->RegisterSampler(util::GetPointer(vk_sampler));
     }
     
     void CalcTriangle() {
@@ -281,8 +321,38 @@ namespace dd::learn {
         void *ubo_address = util::GetReference(vk_uniform_buffer).Map();
         ::memcpy(ubo_address, std::addressof(rot_mtx), sizeof(rot_mtx));
         util::GetReference(vk_uniform_buffer).Unmap();
+        
+        /* Ensure textures are transistioned */
+        if (util::GetPointer(vk_texture_view0)->GetTexture()->GetImageLayout() == VK_IMAGE_LAYOUT_PREINITIALIZED) {
+
+            const dd::vk::TextureBarrierCmdState texture_barrier_state = {
+                .vk_dst_stage_mask  = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                .vk_dst_access_mask = VK_ACCESS_SHADER_READ_BIT,
+                .vk_src_layout      = VK_IMAGE_LAYOUT_PREINITIALIZED,
+                .vk_dst_layout      = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            };
+
+            command_buffer->SetTextureStateTransition(util::GetPointer(vk_texture_view0)->GetTexture(), std::addressof(texture_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
+            
+            texture_view0_slot = util::GetPointer(vk_texture_descriptor_pool)->RegisterTexture(util::GetPointer(vk_texture_view0));
+        }
+        if (util::GetPointer(vk_texture_view1)->GetTexture()->GetImageLayout() == VK_IMAGE_LAYOUT_PREINITIALIZED) {
+
+            const dd::vk::TextureBarrierCmdState texture_barrier_state = {
+                .vk_dst_stage_mask  = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                .vk_dst_access_mask = VK_ACCESS_SHADER_READ_BIT,
+                .vk_src_layout      = VK_IMAGE_LAYOUT_PREINITIALIZED,
+                .vk_dst_layout      = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            };
+
+            command_buffer->SetTextureStateTransition(util::GetPointer(vk_texture_view1)->GetTexture(), std::addressof(texture_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
+            
+            texture_view1_slot = util::GetPointer(vk_texture_descriptor_pool)->RegisterTexture(util::GetPointer(vk_texture_view1));
+        }
 
         /* Bind */
+        command_buffer->SetDescriptorPool(util::GetPointer(vk_sampler_descriptor_pool));
+        command_buffer->SetDescriptorPool(util::GetPointer(vk_texture_descriptor_pool));
         command_buffer->SetPipeline(util::GetPointer(vk_pipeline));
         command_buffer->SetPipelineState(std::addressof(vk_pipeline_cmd_state));
         
@@ -290,11 +360,18 @@ namespace dd::learn {
         
         command_buffer->SetUniformBuffer(0, vk::ShaderStage_Vertex, util::GetReference(vk_uniform_buffer).GetGpuAddress());
 
+        command_buffer->SetTextureAndSampler(0, vk::ShaderStage_Fragment, texture_view0_slot, sampler_slot);
+        command_buffer->SetTextureAndSampler(1, vk::ShaderStage_Fragment, texture_view1_slot, sampler_slot);
+
         VkViewport viewport {
             .width = 1.0f,
             .height = 1.0f
         };
         command_buffer->SetViewports(1, std::addressof(viewport));
+        VkRect2D scissor = {
+            
+        };
+        command_buffer->SetScissors(1, std::addressof(scissor));
 
         /* Draw */
         command_buffer->DrawIndexed(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_INDEX_TYPE_UINT32, util::GetPointer(vk_index_buffer), 0, 6);
@@ -305,5 +382,47 @@ namespace dd::learn {
 
         util::GetReference(vk_shader).Finalize(context);
         dd::util::DestructAt(vk_shader);
+
+        util::GetReference(vk_pipeline).Finalize(context);
+        dd::util::DestructAt(vk_pipeline);
+        
+        util::GetReference(vk_texture_descriptor_pool).Finalize(context);
+        dd::util::DestructAt(vk_texture_descriptor_pool);
+        
+        util::GetReference(vk_sampler_descriptor_pool).Finalize(context);
+        dd::util::DestructAt(vk_sampler_descriptor_pool);
+        
+        util::GetReference(vk_texture_view0).Finalize(context);
+        dd::util::DestructAt(vk_texture_view0);
+        
+        util::GetReference(vk_texture_view1).Finalize(context);
+        dd::util::DestructAt(vk_texture_view1);
+        
+        util::GetReference(vk_texture0).Finalize(context);
+        dd::util::DestructAt(vk_texture0);
+        
+        util::GetReference(vk_texture1).Finalize(context);
+        dd::util::DestructAt(vk_texture1);
+        
+        util::GetReference(vk_sampler).Finalize(context);
+        dd::util::DestructAt(vk_sampler);
+        
+        util::GetReference(vk_uniform_buffer).Finalize(context);
+        dd::util::DestructAt(vk_uniform_buffer);
+        
+        util::GetReference(vk_index_buffer).Finalize(context);
+        dd::util::DestructAt(vk_index_buffer);
+        
+        util::GetReference(vk_vertex_buffer).Finalize(context);
+        dd::util::DestructAt(vk_vertex_buffer);
+        
+        util::GetReference(vk_image_memory).Finalize(context);
+        dd::util::DestructAt(vk_image_memory);
+        
+        util::GetReference(vk_buffer_memory).Finalize(context);
+        dd::util::DestructAt(vk_buffer_memory);
+        
+        delete[] memory_buffer;
+        delete[] memory_image;
     }
 }
