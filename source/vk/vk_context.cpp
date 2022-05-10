@@ -121,10 +121,20 @@ namespace dd::vk {
                 return 0;
             } else if (message == WM_PAINT) {
                 return 0;
+            } else if (message == WM_SIZING) {
+                //RECT *resize = reinterpret_cast<RECT*>(l_param);
+                //const u32 width = LOWORD(resize->top - resize->bottom);
+                //const u32 height = HIWORD(resize->top - resize->bottom);
+                //dd::vk::GetGlobalContext()->SetWindowDimensions(width, height);
             } else if (message == WM_SIZE) {
-                const u32 width = LOWORD(l_param);
-                const u32 height = HIWORD(l_param);
+                
+                /* Set new window size values */
+                const s32 width = LOWORD(l_param);
+                const s32 height = HIWORD(l_param);
                 dd::vk::GetGlobalContext()->SetWindowDimensions(width, height);
+
+                /* Wait for framebuffer to resize */
+                dd::vk::GetGlobalContext()->WaitResizeEvent();
             }
 
             return ::DefWindowProc(window_handle, message, w_param, l_param);
@@ -404,8 +414,10 @@ namespace dd::vk {
         const u32 result0 = ::RegisterClass(std::addressof(wc));
         DD_ASSERT(result0 != 0);
 
-        m_hwnd = ::CreateWindow("VkDDWindow", "Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, 1280, 720, 0, 0, ::GetModuleHandle(nullptr), 0);
+        m_hwnd = ::CreateWindow("VkDDWindow", "Window", WS_OVERLAPPEDWINDOW, 0, 0, 1280, 720, 0, 0, ::GetModuleHandle(nullptr), 0);
         DD_ASSERT(m_hwnd != nullptr);
+        
+        ::ShowWindow(m_hwnd, SW_SHOW);
 
         /* Create Surface */
         const VkWin32SurfaceCreateInfoKHR win32_info = {
@@ -636,6 +648,10 @@ namespace dd::vk {
         
         const u32 result9 = ::vkCreatePipelineLayout(m_vk_device, std::addressof(pipeline_layout_info), nullptr, std::addressof(m_vk_pipeline_layout));
         DD_ASSERT(result9 == VK_SUCCESS);
+        
+        /* Create resize event */
+        m_window_resize_event = ::CreateEvent(nullptr, true, false, nullptr);
+        DD_ASSERT(m_window_resize_event != nullptr);
     }
 
     Context::~Context() {

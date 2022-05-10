@@ -30,8 +30,8 @@ struct DummyAddress {
 #define ADDRESS_PADDING(count) DummyAddress _addresspadding[count]
 #define UBO_PADDING(count) DummyAddress _ubopadding[count]
 #define SBO_PADDING(count) DummyAddress _sbopadding[count]
-#define TEXTURE_PADDING(count) uint _texturepadding[count]
-#define SAMPLER_PADDING(count) uint _samplerpadding[count]
+#define TEXTURE_PADDING uint texture_ids[32]
+#define SAMPLER_PADDING uint sampler_ids[32]
 
 #if defined(DD_VERTEX_SHADER)
     #define DD_RESOURCE_BUFFER_BINDING set = 2, binding = 0 

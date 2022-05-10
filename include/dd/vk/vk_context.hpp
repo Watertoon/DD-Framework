@@ -82,9 +82,11 @@ namespace dd::vk {
 
             HWND                                m_hwnd;
 
-            u32                                 m_window_width;
-            u32                                 m_window_height;
+            s32                                 m_window_width;
+            s32                                 m_window_height;
             util::CriticalSection               m_window_cs;
+            bool                                m_has_resized;
+            HANDLE                              m_window_resize_event;
 
             VkPhysicalDevice                   *m_vk_physical_device_array;
             u32                                 m_vk_physical_device_count;
@@ -165,6 +167,24 @@ namespace dd::vk {
 
                 m_window_width  = width;
                 m_window_height = height;
+                m_has_resized   = true;
+            }
+
+            bool HasWindowResized() const {
+                std::scoped_lock(m_window_cs);
+
+                return m_has_resized;
+            }
+            
+            void ResizeHandles() { m_has_resized = false; }
+
+            void WaitResizeEvent() {
+                ::WaitForSingleObject(m_window_resize_event, INFINITE);
+                ::ResetEvent(m_window_resize_event);
+            }
+
+            void FinishResizeEvent() {
+                ::SetEvent(m_window_resize_event);
             }
     };
 

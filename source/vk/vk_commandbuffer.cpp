@@ -569,13 +569,26 @@ namespace dd::vk {
         m_are_new_targets = true;
     }
 
-    void CommandBuffer::SetVertexBuffer(u32 binding, const Buffer *buffer, size_t stride, size_t size) {
-        const VkBuffer vk_buffer = buffer->GetBuffer();
+    void CommandBuffer::SetVertexBuffer(u32 binding, Buffer *vertex_buffer, size_t stride, size_t size) {
+
+        /* Relocate memory pool to device memory if required */
+        if (vertex_buffer->RequiresRelocation() == true) {
+            this->EndRenderingIfRendering();
+            vertex_buffer->Relocate(m_vk_command_buffer);
+        }
+
+        const VkBuffer vk_buffer = vertex_buffer->GetBuffer();
         const VkDeviceSize offset = 0;
         ::vkCmdBindVertexBuffers2(m_vk_command_buffer, binding, 1, std::addressof(vk_buffer), std::addressof(offset), std::addressof(size), std::addressof(stride));
     }
 
     void CommandBuffer::SetBufferStateTransition(Buffer *buffer, const BufferBarrierCmdState *barrier_state) {
+
+        /* Relocate memory pool to device memory if required */
+        if (buffer->RequiresRelocation() == true) {
+            this->EndRenderingIfRendering();
+            buffer->Relocate(m_vk_command_buffer);
+        }
 
         /* Buffer memory barrier */
         const VkBufferMemoryBarrier2 buffer_barrier = {
@@ -599,7 +612,7 @@ namespace dd::vk {
     }
 
     void CommandBuffer::SetTextureStateTransition(Texture *texture, const TextureBarrierCmdState *barrier_state, VkImageAspectFlagBits aspect_mask) {
-        
+
         if (barrier_state->vk_dst_stage_mask == VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT) {
             this->EndRenderingIfRendering();
         }

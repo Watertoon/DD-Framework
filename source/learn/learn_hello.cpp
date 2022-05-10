@@ -133,7 +133,7 @@ namespace dd::learn {
         res::LoadStbImage("resources/woodcrate.jpg", 4, std::addressof(texture0), std::addressof(width0), std::addressof(height0), std::addressof(channels0));
         res::LoadStbImage("resources/awesomeface.png", 0, std::addressof(texture1), std::addressof(width1), std::addressof(height1), std::addressof(channels1));
 
-        const s64 texture0_size = width0 * height0 * channels0;
+        const s64 texture0_size = width0 * height0 * 4;
         const s64 texture1_size = width1 * height1 * channels1;
 
         /* Create resource infos */
@@ -162,8 +162,9 @@ namespace dd::learn {
             .vk_image_layout      = VK_IMAGE_LAYOUT_PREINITIALIZED,
             .vk_image_type        = VK_IMAGE_TYPE_2D,
             .vk_sample_count_flag = VK_SAMPLE_COUNT_1_BIT,
-            .vk_tiling            = VK_IMAGE_TILING_OPTIMAL,
-            .array_layers         = 1
+            .vk_tiling            = VK_IMAGE_TILING_LINEAR,
+            .array_layers         = 1,
+            .memory_offset        = 0
         };
         
         vk::TextureInfo texture1_info = {
@@ -176,7 +177,7 @@ namespace dd::learn {
             .vk_image_layout      = VK_IMAGE_LAYOUT_PREINITIALIZED,
             .vk_image_type        = VK_IMAGE_TYPE_2D,
             .vk_sample_count_flag = VK_SAMPLE_COUNT_1_BIT,
-            .vk_tiling            = VK_IMAGE_TILING_OPTIMAL,
+            .vk_tiling            = VK_IMAGE_TILING_LINEAR,
             .array_layers         = 1
         };
         
@@ -300,7 +301,7 @@ namespace dd::learn {
         vk::DescriptorPool *sampler_descriptor_pool = util::GetPointer(vk_sampler_descriptor_pool);
 
         util::ConstructAt(vk_sampler_descriptor_pool);
-        sampler_descriptor_pool->Initialize(context, VK_DESCRIPTOR_TYPE_SAMPLER, 32);
+        sampler_descriptor_pool->Initialize(context, VK_DESCRIPTOR_TYPE_SAMPLER, 16);
 
         /* Register our textures */
         sampler_slot = sampler_descriptor_pool->RegisterSampler(util::GetPointer(vk_sampler));
@@ -326,6 +327,8 @@ namespace dd::learn {
         
         /* Ensure textures are transistioned */
         if (util::GetPointer(vk_texture_view0)->GetTexture()->GetImageLayout() == VK_IMAGE_LAYOUT_PREINITIALIZED) {
+            
+            util::GetReference(vk_image_memory).Relocate(command_buffer->GetCommandBuffer());
 
             const dd::vk::TextureBarrierCmdState texture_barrier_state = {
                 .vk_dst_stage_mask  = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,

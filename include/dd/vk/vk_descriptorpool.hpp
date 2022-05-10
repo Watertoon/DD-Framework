@@ -86,6 +86,10 @@ namespace dd::vk {
 
             void Finalize(const Context *context) {
                 ::vkDestroyDescriptorPool(context->GetDevice(), m_vk_descriptor_pool, nullptr);
+                
+                if (m_free_id_stack != nullptr) {
+                    delete[] m_free_id_stack;
+                }
             }
 
             DescriptorSlot RegisterTexture(const TextureView *texture_view) {
@@ -100,7 +104,7 @@ namespace dd::vk {
                 const VkWriteDescriptorSet write_set = {
                     .sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                     .dstSet          = m_vk_descriptor_set,
-                    .dstBinding      = Context::TargetSamplerDescriptorBinding,
+                    .dstBinding      = Context::TargetTextureDescriptorBinding,
                     .dstArrayElement = new_id,
                     .descriptorCount = 1,
                     .descriptorType  = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,

@@ -27,8 +27,8 @@
     struct ResourceBuffer {
         VertexUbo ubo;
         ADDRESS_PADDING(29);
-        TEXTURE_PADDING(32);
-        SAMPLER_PADDING(32);
+        TEXTURE_PADDING;
+        SAMPLER_PADDING;
     };
     
     DECLARE_RESOURCE_BUFFER(ResourceBuffer);
@@ -60,8 +60,12 @@
     layout(location = 0) out vec4 oFragmentColor;
 
     void main() {
-        //oFragmentColor = mix(texture(sampler2D(texture2DIndex(0), samplerIndex(0)), ovTexCoord), texture(sampler2D(texture2DIndex(1), samplerIndex(0)), ovTexCoord), 0.2);
-        oFragmentColor = texture(SAMPLER2D(0), ovTexCoord);
+        /* Sampler2d */
+        uint _a0 = 0;
+        uint _a1 = 1;
+    
+        //oFragmentColor = mix(texture(SAMPLER2D(_a0), ovTexCoord), texture(SAMPLER2D(_a1), ovTexCoord), 0.2);
+        oFragmentColor = texture(SAMPLER2D(_a1), ovTexCoord);
         //oFragmentColor = vec4(ovColor,1.0);
     }
 

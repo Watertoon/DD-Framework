@@ -1,3 +1,18 @@
+ /*
+ *  Copyright (C) W. Michael Knudson
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License along with this program; 
+ *  if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ */
 #include <dd.hpp>
 
 namespace dd::hid {
@@ -8,7 +23,7 @@ namespace dd::hid {
         RAWINPUTDEVICELIST *mouse_handle;
         HWND                hid_hwnd;
         HANDLE              hid_thread;
-        
+
         bool CheckRealKeyboard(HANDLE keyboard) {
             RID_DEVICE_INFO info = {};
             u32 size = sizeof(RID_DEVICE_INFO);
@@ -19,7 +34,7 @@ namespace dd::hid {
             }
             return (info.keyboard.dwNumberOfKeysTotal >= 30);
         }
-        
+
         LRESULT CALLBACK HidWndProc(HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param) {
             switch (message) {
                 case WM_DESTROY:
@@ -38,9 +53,7 @@ namespace dd::hid {
         }
 
         long unsigned int HidThreadMain(void *arg) {
-            
-            HWND parent_hwnd = *reinterpret_cast<HWND*>(arg);
-            delete reinterpret_cast<HWND*>(arg);
+            DD_ASSERT(arg == nullptr);
 
             /* Create input window */
             const HINSTANCE process_handle = ::GetModuleHandle(nullptr);
@@ -54,7 +67,7 @@ namespace dd::hid {
             const u32 result0 = ::RegisterClass(std::addressof(wc));
             DD_ASSERT(result0 != 0);
 
-            hid_hwnd = ::CreateWindowEx(0 ,"HidDDWindow", "InputWindow", WS_CHILD | WS_DISABLED, 0, 0, 1280, 720, parent_hwnd, 0, ::GetModuleHandle(nullptr), 0);
+            hid_hwnd = ::CreateWindowEx(0 ,"HidDDWindow", "InputWindow", 0, 0, 0, 1280, 720, HWND_MESSAGE, 0, ::GetModuleHandle(nullptr), 0);
             DD_ASSERT(hid_hwnd != nullptr);
             
             //::EnableWindow(parent_hwnd, true);
@@ -95,13 +108,13 @@ namespace dd::hid {
                 {
                     .usUsagePage = 1,
                     .usUsage = 2,
-                    .dwFlags = RIDEV_NOLEGACY | RIDEV_INPUTSINK | RIDEV_DEVNOTIFY,
+                    .dwFlags = RIDEV_INPUTSINK | RIDEV_DEVNOTIFY,
                     .hwndTarget = hid_hwnd
                 }, 
                 {
                     .usUsagePage = 1,
                     .usUsage = 6,
-                    .dwFlags = RIDEV_NOLEGACY | RIDEV_INPUTSINK | RIDEV_DEVNOTIFY,
+                    .dwFlags = RIDEV_INPUTSINK | RIDEV_DEVNOTIFY,
                     .hwndTarget = hid_hwnd
                 }
             };
@@ -120,12 +133,11 @@ namespace dd::hid {
         }
     }
 
-    void InitializeRawInputThread(HWND hwnd) {
-        HWND *arg = new HWND(hwnd);
-        hid_thread = ::CreateThread(nullptr, 0x1000, HidThreadMain, arg, 0, nullptr);
+    void InitializeRawInputThread() {
+        hid_thread = ::CreateThread(nullptr, 0x1000, HidThreadMain, nullptr, 0, nullptr);
         DD_ASSERT(hid_thread != nullptr);
     }
-    
+
     void FinalizeRawInputThread() {
         ::SendMessage(hid_hwnd, WM_DESTROY, 0, 0);
         ::WaitForSingleObject(hid_thread, INFINITE);

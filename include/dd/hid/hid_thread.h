@@ -17,7 +17,7 @@
 
 namespace dd::hid {
 
-    void InitializeRawInputThread(HWND hwnd);
+    void InitializeRawInputThread();
 
     void FinalizeRawInputThread();
 }

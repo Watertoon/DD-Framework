@@ -232,7 +232,7 @@ namespace dd::vk {
 
             void SetRenderTargets(s32 color_target_count, ColorTargetView **color_targets, DepthStencilTargetView *depth_stencil_target);
 
-            void SetVertexBuffer(u32 binding, const Buffer *buffer, size_t stride, size_t size);
+            void SetVertexBuffer(u32 binding, Buffer *vertex_buffer, size_t stride, size_t size);
 
             void SetBufferStateTransition(Buffer *buffer, const BufferBarrierCmdState *barrier_state);
             void SetTextureStateTransition(Texture *texture, const TextureBarrierCmdState *barrier_state, VkImageAspectFlagBits aspect_mask);

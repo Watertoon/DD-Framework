@@ -1,9 +1,24 @@
+ /*
+ *  Copyright (C) W. Michael Knudson
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License along with this program; 
+ *  if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ */
 #include <dd.hpp>
 
 namespace {
     dd::util::TypeStorage<dd::vk::Context>       context;
     dd::util::TypeStorage<dd::vk::FrameBuffer>   framebuffer;
-    dd::util::TypeStorage<dd::vk::CommandBuffer> command_buffer;
+    dd::util::TypeStorage<dd::vk::CommandBuffer> command_buffers[dd::vk::FrameBuffer::FramesInFlight];
     
     struct ContextInitState {
         bool    is_ready_for_exit;
@@ -15,12 +30,19 @@ namespace {
 long unsigned int ContextMain(void *arg) {
     
     /* Create Vulkan Context */
+    dd::hid::InitializeRawInputThread();
+
     ContextInitState *context_state = reinterpret_cast<ContextInitState*>(arg);
+
     dd::util::ConstructAt(context);
+
     dd::util::ConstructAt(framebuffer);
     dd::util::GetReference(framebuffer).Initialize(dd::util::GetPointer(context));
-    dd::util::ConstructAt(command_buffer);
-    dd::util::GetReference(command_buffer).Initialize(dd::util::GetPointer(context));
+    
+    for (u32 i = 0; i < dd::vk::FrameBuffer::FramesInFlight; ++i) {
+        dd::util::ConstructAt(command_buffers[i]);
+        dd::util::GetReference(command_buffers[i]).Initialize(dd::util::GetPointer(context));
+    }
 
     dd::vk::SetGlobalContext(dd::util::GetPointer(context));
 
@@ -44,12 +66,19 @@ long unsigned int ContextMain(void *arg) {
     
     /* Cleanup */
     ::vkDeviceWaitIdle(dd::util::GetPointer(context)->GetDevice());
+
     dd::util::GetReference(framebuffer).Finalize(dd::util::GetPointer(context));
     dd::util::DestructAt(framebuffer);
-    dd::util::GetReference(command_buffer).Finalize(dd::util::GetPointer(context));
-    dd::util::DestructAt(command_buffer);
+
+    for (u32 i = 0; i < dd::vk::FrameBuffer::FramesInFlight; ++i) {
+        dd::util::GetReference(command_buffers[i]).Finalize(dd::util::GetPointer(context));
+        dd::util::DestructAt(command_buffers[i]);
+    }
+
     dd::vk::SetGlobalContext(nullptr);
     dd::util::DestructAt(context);
+
+    dd::hid::FinalizeRawInputThread();
     return 0;
 }
 
@@ -75,7 +104,7 @@ int main() {
     
     /* Setup for main loop */
     dd::vk::Context         *global_context = dd::vk::GetGlobalContext();
-    dd::vk::CommandBuffer   *global_command_buffer = dd::util::GetPointer(command_buffer);
+    dd::vk::CommandBuffer   *global_command_buffer = dd::util::GetPointer(command_buffers[dd::util::GetPointer(framebuffer)->GetCurrentFrame()]);
     dd::vk::FrameBuffer     *global_frame_buffer = dd::util::GetPointer(framebuffer);
     const VkClearColorValue clear_color = {
         .float32 = { 0.0f, 1.0f, 0.0f, 1.0f }
@@ -87,7 +116,6 @@ int main() {
     };
     
     /* Calc And Draw */
-    //dd::hid::InitializeRawInputThread(global_context->GetWindowHandle());
     while (true) {
 
         /* Check for user exit */
@@ -96,7 +124,8 @@ int main() {
             break;
         }
         ::ReleaseSRWLockExclusive(std::addressof(context_init_state.context_lock));
-
+        
+        /* Wait for resize */
         dd::vk::ColorTargetView *current_color_target = global_frame_buffer->GetCurrentColorTarget();
         dd::vk::Texture *color_target_texture = current_color_target->GetTexture();
 
@@ -104,7 +133,7 @@ int main() {
         dd::util::BeginFrame();
         dd::hid::BeginFrame();
         global_command_buffer->Begin();
-        
+
         /* Transition render target to attachment */
         const dd::vk::TextureBarrierCmdState clear_barrier_state = {
             .vk_src_stage_mask  = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
@@ -123,7 +152,7 @@ int main() {
 
         /* Draw */
         dd::learn::DrawTriangle(global_command_buffer);
-        
+
         /* Transition render target to present */
         const dd::vk::TextureBarrierCmdState present_barrier_state = {
             .vk_src_stage_mask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
@@ -147,12 +176,12 @@ int main() {
             .semaphore = wait_semaphore,
             .stageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
         };
-        
+
         const VkCommandBufferSubmitInfo command_submit_infos = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
             .commandBuffer = vk_command_buffer
         };
-        
+
         const VkSemaphoreSubmitInfo signal_semaphores = {
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
             .semaphore = signal_semaphore,
@@ -173,20 +202,21 @@ int main() {
 
         const u32 result1 = ::vkQueueSubmit2(global_context->GetGraphicsQueue(), 1, std::addressof(submit_info), submit_fence);
         DD_ASSERT(result1 == VK_SUCCESS);
-        
+
         const u32 result2 = ::vkWaitForFences(global_context->GetDevice(), 1, std::addressof(submit_fence), VK_TRUE, UINT64_MAX);
         DD_ASSERT(result2 == VK_SUCCESS);
-        
+
         const u32 result3 = ::vkResetFences(global_context->GetDevice(), 1, std::addressof(submit_fence));
         DD_ASSERT(result3 == VK_SUCCESS);
-        
+
         /* Present */
         global_frame_buffer->PresentTextureAndAcquireNext(global_context);
+
+        global_command_buffer = dd::util::GetPointer(command_buffers[dd::util::GetPointer(framebuffer)->GetCurrentFrame()]);
 
         /* Calc */
         dd::learn::CalcTriangle();
     }
-    //dd::hid::FinalizeRawInputThread();
 
     /* Cleanup */
     dd::learn::CleanTriangle();

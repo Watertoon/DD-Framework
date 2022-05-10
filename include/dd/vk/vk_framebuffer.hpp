@@ -137,7 +137,7 @@ namespace dd::vk {
                 ::vkDestroySwapchainKHR(context->GetDevice(), m_vk_swapchain, nullptr);
             }
 
-            void PresentTextureAndAcquireNext(const Context *context) {
+            void PresentTextureAndAcquireNext(Context *context) {
                 /* Present */
                 const VkPresentInfoKHR present_info = {
                     .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
@@ -148,7 +148,13 @@ namespace dd::vk {
                     .pImageIndices = std::addressof(m_current_target_index)
                 };
                 const u32 result0 = ::vkQueuePresentKHR(context->GetGraphicsQueue(), std::addressof(present_info));
-                DD_ASSERT(result0 == VK_SUCCESS);
+                
+                
+                if (result0 == VK_ERROR_OUT_OF_DATE_KHR || result0 == VK_SUBOPTIMAL_KHR || context->HasWindowResized() == true) {
+                    this->OnResize(context);
+                } else {
+                    DD_ASSERT(result0 == VK_SUCCESS);
+                }
                 
                 m_current_frame = (m_current_frame + 1) % FramesInFlight;
 
@@ -157,8 +163,16 @@ namespace dd::vk {
                 DD_ASSERT(result1 == VK_SUCCESS);
             }
 
-            void OnResize() {
-                
+            void OnResize(Context *context) {
+
+                /* Wait for previous frames to run their course */
+                ::vkDeviceWaitIdle(context->GetDevice());
+
+                /* Recreate swapchain */
+                this->Finalize(context);
+                this->Initialize(context);
+
+                context->FinishResizeEvent();
             }
             
             constexpr ColorTargetView *GetCurrentColorTarget()         { return std::addressof(m_vk_swapchain_targets[m_current_target_index]); }
@@ -168,5 +182,7 @@ namespace dd::vk {
             constexpr VkSemaphore GetCurrentQueueCompleteSemaphore()   { return m_vk_present_semaphore[m_current_frame]; }
 
             constexpr VkFence GetCurrentQueueSubmitFence()             { return m_vk_queue_submit_fence[m_current_frame]; }
+
+            constexpr u32 GetCurrentFrame() const                      { return m_current_frame; }
     };
 }

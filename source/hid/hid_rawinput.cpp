@@ -16,7 +16,7 @@
 #include <dd.hpp>
 
 namespace dd::hid {
-    
+
     namespace {
         union MouseData {
             struct {
@@ -31,11 +31,11 @@ namespace dd::hid {
         MouseState  interim_mouse_state = {};
         MouseState  frame_mouse_state = {};
         SRWLOCK     state_lock = {};
-        
+
         void SetMouseState() {
             const RAWMOUSE *last_mouse = std::addressof(last_raw_mouse.raw_input.data.mouse);
             const RAWMOUSE *mouse = std::addressof(raw_mouse.raw_input.data.mouse);
-        
+
             /* Get monitor dimensions */
             s32 width = 0, height = 0;
             if ((last_mouse->usFlags & MOUSE_VIRTUAL_DESKTOP) == MOUSE_VIRTUAL_DESKTOP) {
@@ -45,7 +45,7 @@ namespace dd::hid {
                 width = ::GetSystemMetrics(SM_CXSCREEN);
                 height = ::GetSystemMetrics(SM_CYSCREEN);
             }
-            
+
             /* Set Mouse State*/
             ::AcquireSRWLockExclusive(std::addressof(state_lock));
 
@@ -59,7 +59,7 @@ namespace dd::hid {
             } else if ((last_mouse->usFlags & MOUSE_MOVE_RELATIVE) == MOUSE_MOVE_RELATIVE) {
                 interim_mouse_state.delta_x += mouse->lLastX;
                 interim_mouse_state.delta_y += mouse->lLastY;
-                
+
                 /* Assume we stay RELATIVE */
                 interim_mouse_state.absolute_x += static_cast<s32>(((mouse->lLastX / 65535.0f) * width));
                 interim_mouse_state.absolute_y += static_cast<s32>(((mouse->lLastY / 65535.0f) * height));
@@ -80,7 +80,7 @@ namespace dd::hid {
 
         ::ReleaseSRWLockExclusive(std::addressof(state_lock));
     }
-    
+
     void SetLastRawInput(HRAWINPUT input_handle) {
 
         /* Get raw input header */
