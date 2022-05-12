@@ -15,7 +15,6 @@
  *  if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-
 #include "resource_buffer.shinc"
 
 #if defined (DD_VERTEX_SHADER)
@@ -29,6 +28,10 @@
         ADDRESS_PADDING(29);
         TEXTURE_PADDING;
         SAMPLER_PADDING;
+        uint reserve0;
+        uint reserve1;
+        uint reserve2;
+        uint reserve3;
     };
     
     DECLARE_RESOURCE_BUFFER(ResourceBuffer);
@@ -61,12 +64,10 @@
 
     void main() {
         /* Sampler2d */
-        uint _a0 = 0;
-        uint _a1 = 1;
+        uint a0 = 0;
+        uint a1 = 1;
     
-        //oFragmentColor = mix(texture(SAMPLER2D(_a0), ovTexCoord), texture(SAMPLER2D(_a1), ovTexCoord), 0.2);
-        oFragmentColor = texture(SAMPLER2D(_a1), ovTexCoord);
-        //oFragmentColor = vec4(ovColor,1.0);
+        oFragmentColor = mix(texture(SAMPLER2D(a0), ovTexCoord), texture(SAMPLER2D(a1), ovTexCoord), 0.2);
     }
 
 #endif

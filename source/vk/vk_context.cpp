@@ -70,7 +70,9 @@ namespace dd::vk {
             .descriptorBindingPartiallyBound = VK_TRUE,
             .descriptorBindingVariableDescriptorCount = VK_TRUE,
             .runtimeDescriptorArray = VK_TRUE,
-            .bufferDeviceAddress = VK_TRUE
+            .scalarBlockLayout = VK_TRUE,
+            .bufferDeviceAddress = VK_TRUE,
+            .bufferDeviceAddressCaptureReplay = VK_TRUE,
         };
         constinit VkPhysicalDeviceVulkan11Features TargetDeviceFeatures11 = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES,
@@ -230,7 +232,7 @@ namespace dd::vk {
 
                 VkPresentModeKHR *present_modes = new VkPresentModeKHR[present_mode_count];
                 DD_ASSERT(present_modes != nullptr);
-                
+
                 const u32 result1 = ::vkGetPhysicalDeviceSurfacePresentModesKHR(m_vk_physical_device_array[i], m_vk_surface, std::addressof(present_mode_count), present_modes);
                 DD_ASSERT(result1 == VK_SUCCESS);
 
@@ -306,7 +308,9 @@ namespace dd::vk {
             if (m_vk_physical_device_supported_features_12.descriptorBindingPartiallyBound == false)               { DD_ASSERT(false); continue; }
             if (m_vk_physical_device_supported_features_12.descriptorBindingVariableDescriptorCount == false)      { DD_ASSERT(false); continue; }
             if (m_vk_physical_device_supported_features_12.runtimeDescriptorArray == false)                        { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features_12.scalarBlockLayout == false)                             { DD_ASSERT(false); continue; }
             if (m_vk_physical_device_supported_features_12.bufferDeviceAddress == false)                           { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features_12.bufferDeviceAddressCaptureReplay == false)              { DD_ASSERT(false); continue; }
 
             if (m_vk_physical_device_supported_features_13.synchronization2 == false)                              { DD_ASSERT(false); continue; }
             if (m_vk_physical_device_supported_features_13.dynamicRendering == false)                              { DD_ASSERT(false); continue; }

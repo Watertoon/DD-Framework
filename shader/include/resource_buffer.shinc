@@ -1,4 +1,20 @@
+ /*
+ *  Copyright (C) W. Michael Knudson
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License along with this program; 
+ *  if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ */
 #extension GL_EXT_nonuniform_qualifier : enable
+#extension GL_EXT_scalar_block_layout : enable
 #extension GL_EXT_buffer_reference : enable
 #extension GL_EXT_buffer_reference2 : enable
 
@@ -14,11 +30,18 @@ layout (set = 1, binding = 0) uniform sampler        sampler_location[];
 #define texture3DIndex(idx) texture3D_location[nonuniformEXT(idx)]
 #define samplerIndex(idx)   sampler_location[nonuniformEXT(idx)]
 
-#define SAMPLER2D(idx) sampler2D(texture2DIndex(rb[resource_index].texture_ids[idx]), samplerIndex(rb[resource_index].sampler_ids[idx]))
+#define TEXTURE2D(idx) texture2DIndex(rb[resource_index].texture_ids[idx])
+#define SAMPLER(idx) samplerIndex(rb[resource_index].sampler_ids[idx])
+
+#define SAMPLER2D(idx) sampler2D(TEXTURE2D(idx), SAMPLER(idx))
+
+layout(buffer_reference) buffer _DummyBufferRef {
+    uint reserve0;
+};
 
 struct DummyAddress {
-    uint reserve0;
-    uint reserve2;
+    uint _ref0;
+    uint _ref1;
 };
 
 #define MAX_UNIFORM_BUFFERS 14
@@ -30,8 +53,8 @@ struct DummyAddress {
 #define ADDRESS_PADDING(count) DummyAddress _addresspadding[count]
 #define UBO_PADDING(count) DummyAddress _ubopadding[count]
 #define SBO_PADDING(count) DummyAddress _sbopadding[count]
-#define TEXTURE_PADDING uint texture_ids[32]
-#define SAMPLER_PADDING uint sampler_ids[32]
+#define TEXTURE_PADDING uint texture_ids[MAX_TEXTURES]
+#define SAMPLER_PADDING uint sampler_ids[MAX_SAMPLERS]
 
 #if defined(DD_VERTEX_SHADER)
     #define DD_RESOURCE_BUFFER_BINDING set = 2, binding = 0 
@@ -46,11 +69,15 @@ layout (push_constant) uniform ResourceIndex {
 };
 
 struct DefaultResourceBuffer {
-    ADDRESS_PADDING(MAX_ADDRESSES);
+    ADDRESS_PADDING(30);
     uint texture_ids[MAX_TEXTURES];
     uint sampler_ids[MAX_SAMPLERS];
+    uint reserve0;
+    uint reserve1;
+    uint reserve2;
+    uint reserve3;
 };
 
-#define DECLARE_DEFAULT_RESOURCE_BUFFER layout (DD_RESOURCE_BUFFER_BINDING) uniform _RB { DefaultResourceBuffer rb[128]; }
+#define DECLARE_DEFAULT_RESOURCE_BUFFER layout (DD_RESOURCE_BUFFER_BINDING, scalar) uniform _RB { DefaultResourceBuffer rb[120]; }
 
-#define DECLARE_RESOURCE_BUFFER(structure) layout (DD_RESOURCE_BUFFER_BINDING) uniform _RB { structure rb[128]; }
+#define DECLARE_RESOURCE_BUFFER(structure) layout (DD_RESOURCE_BUFFER_BINDING, scalar) uniform _RB { structure rb[120]; }

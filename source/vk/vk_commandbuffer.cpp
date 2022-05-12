@@ -173,7 +173,7 @@ namespace dd::vk {
             m_compute_resource_update_count += 1;
         }
     }
-    
+
     void CommandBuffer::PushResourceBufferIndices() {
         if (m_vertex_resource_update_count != 0) {
             const u32 resource_index = m_vertex_resource_update_count - 1;
@@ -240,10 +240,10 @@ namespace dd::vk {
             .descriptorSetCount = 1,
             .pSetLayouts        = std::addressof(vk_buffer_descriptor_set_layout)
         };
-        
+
         const u32 result2 = ::vkAllocateDescriptorSets(context->GetDevice(), std::addressof(buffer_set_info), std::addressof(m_vk_resource_buffer_descriptor_set));
         DD_ASSERT(result2 == VK_SUCCESS);
-        
+
         /* Allocate resource buffer memory */
         const s32 device_memory_type = context->FindMemoryHeapIndex(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
         DD_ASSERT(device_memory_type != -1);
@@ -305,7 +305,7 @@ namespace dd::vk {
         DD_ASSERT(result15 == VK_SUCCESS);
 
         /* Update resource buffer descriptor */
-        const VkDescriptorBufferInfo descriptor_buffer_info[] = {
+        const VkDescriptorBufferInfo descriptor_buffer_info[Context::TargetShaderStages] = {
             {
                 .buffer = m_vk_resource_buffer_per_stage_array[ShaderStage_Vertex],
                 .offset = 0,
@@ -337,7 +337,7 @@ namespace dd::vk {
                 .range  = VK_WHOLE_SIZE
             }
         };
-        const VkWriteDescriptorSet write_set[] = {
+        const VkWriteDescriptorSet write_set[Context::TargetShaderStages] = {
             {
                 .sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                 .dstSet          = m_vk_resource_buffer_descriptor_set,
@@ -398,8 +398,9 @@ namespace dd::vk {
     }
 
     void CommandBuffer::Finalize(const Context *context) {
+
         ::vkFreeCommandBuffers(context->GetDevice(), context->GetGraphicsCommandPool(), 1, std::addressof(m_vk_command_buffer));
-        
+
         for (u32 i = 0; i < Context::TargetShaderStages; ++i) {
             ::vkDestroyBuffer(context->GetDevice(), m_vk_resource_buffer_per_stage_array[i], nullptr);
         }
@@ -408,6 +409,7 @@ namespace dd::vk {
     }
 
     void CommandBuffer::Begin() {
+
         /* Begin Command buffer */
         const VkCommandBufferBeginInfo begin_info = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -419,6 +421,13 @@ namespace dd::vk {
 
         /* Bind Resource buffer */
         ::vkCmdBindDescriptorSets(m_vk_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetGlobalContext()->GetPipelineLayout(), 2, 1, std::addressof(m_vk_resource_buffer_descriptor_set), 0, nullptr);
+
+        m_resource_buffer_per_stage_array[ShaderStage_Vertex].SetDefaults();
+        m_resource_buffer_per_stage_array[ShaderStage_TessellationControl].SetDefaults();
+        m_resource_buffer_per_stage_array[ShaderStage_TessellationEvaluation].SetDefaults();
+        m_resource_buffer_per_stage_array[ShaderStage_Geometry].SetDefaults();
+        m_resource_buffer_per_stage_array[ShaderStage_Fragment].SetDefaults();
+        m_resource_buffer_per_stage_array[ShaderStage_Compute].SetDefaults();
         m_vertex_resource_update_count = 0;
         m_tessellation_evaluation_resource_update_count = 0;
         m_tessellation_control_resource_update_count = 0;
@@ -439,7 +448,7 @@ namespace dd::vk {
         this->EndRenderingIfRendering();
 
         ::vkCmdClearColorImage(m_vk_command_buffer, color_target->GetImage(), VK_IMAGE_LAYOUT_GENERAL, color, 1, sub_range);
-        
+
         /* Barrier the clear */
         const dd::vk::TextureBarrierCmdState clear_barrier_state = {
             .vk_src_stage_mask  = VK_PIPELINE_STAGE_TRANSFER_BIT,
@@ -471,15 +480,15 @@ namespace dd::vk {
         ::vkCmdSetPrimitiveTopology(m_vk_command_buffer, vk_primitive_topology);
         ::vkCmdDraw(m_vk_command_buffer, vertex_count, 1, base_vertex, 0);
     }
-    
+
     void CommandBuffer::DrawIndexed(VkPrimitiveTopology vk_primitive_topology, VkIndexType index_format, Buffer *index_buffer, u32 index_count, u32 base_index) {
-        
+
         /* Relocate memory pool to device memory if required */
         if (index_buffer->RequiresRelocation() == true) {
             this->EndRenderingIfRendering();
             index_buffer->Relocate(m_vk_command_buffer);
         }
-        
+    
         this->UpdateResourceBufferIfNecessary();
         this->BeginRenderingIfNotRendering();
 

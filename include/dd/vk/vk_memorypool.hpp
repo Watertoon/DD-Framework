@@ -199,7 +199,7 @@ namespace dd::vk {
                     };
                     ::vkCmdCopyBuffer(vk_command_buffer, m_vk_host_buffer, m_vk_device_buffer, 1, std::addressof(copy_info));
 
-                    /* Barrier */
+                    /* Barrier copy operation */
                     const VkBufferMemoryBarrier2 buffer_barrier = {
                         .sType         = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2,
                         .dstStageMask  = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,

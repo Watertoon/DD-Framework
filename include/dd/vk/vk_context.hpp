@@ -30,13 +30,13 @@ namespace dd::vk {
             static constexpr size_t TargetStorageBufferAlignment     = 0x100;
             static constexpr size_t TargetTexelBufferAlignment       = 0x100;
 
-            static constexpr size_t TargetMaxUniformBufferSize = 0xFA00;
+            static constexpr size_t TargetMaxUniformBufferSize       = 0xFA00;
 
             /* Decide our global descriptor resource limits */
-            static constexpr size_t TargetMaxTextureDescriptors   = 0x412c;
-            static constexpr size_t TargetMaxSamplerDescriptors   = 0x1000;
-            static constexpr size_t TargetMaxBufferDescriptors    = 6;
-            static constexpr size_t TargetDescriptors             = TargetMaxTextureDescriptors + TargetMaxSamplerDescriptors + TargetMaxBufferDescriptors;
+            static constexpr size_t TargetMaxTextureDescriptors      = 0x412c;
+            static constexpr size_t TargetMaxSamplerDescriptors      = 0x1000;
+            static constexpr size_t TargetMaxBufferDescriptors       = 6;
+            static constexpr size_t TargetDescriptors                = TargetMaxTextureDescriptors + TargetMaxSamplerDescriptors + TargetMaxBufferDescriptors;
 
             /* Decide our global descriptor type bindings */
             static constexpr size_t TargetTextureDescriptorBinding                              = 0;

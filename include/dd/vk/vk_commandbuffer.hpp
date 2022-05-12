@@ -159,10 +159,16 @@ namespace dd::vk {
                 VkDeviceAddress storage_buffers[Context::TargetMaxPerStageStorageBufferCount];
                 u32             texture_ids    [Context::TargetMaxPerStageTextureCount];
                 u32             sampler_ids    [Context::TargetMaxPerStageTextureCount];
+                u64             reserve0;
+                u64             reserve1;
+
+                constexpr void SetDefaults() {
+                    ::memset(this, 0, sizeof(ResourceBuffer));
+                }
             };
-            static_assert(sizeof(ResourceBuffer) == 496);
+            static_assert(sizeof(ResourceBuffer) == 0x200);
         public:
-            static constexpr size_t TargetMaxResourceUpdatesPerSubmission    = 128;
+            static constexpr size_t TargetMaxResourceUpdatesPerSubmission    = 120;
             static constexpr size_t TargetResourceBufferPerStageSize         = util::AlignUp(sizeof(ResourceBuffer) * TargetMaxResourceUpdatesPerSubmission, Context::TargetConstantBufferAlignment);
             static_assert(TargetResourceBufferPerStageSize <= Context::TargetMaxUniformBufferSize);
             static constexpr size_t TargetResourceBufferMemorySize           = util::AlignUp(TargetResourceBufferPerStageSize * 6, Context::TargetMemoryPoolAlignment);
