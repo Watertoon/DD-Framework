@@ -18,25 +18,38 @@
 namespace dd::util {
 
     class CriticalSection {
+        public:
+            friend class ConditionVariable;
         private:
             SRWLOCK m_srwlock;
-            u32     m_locked_thread_id;
+            size_t  m_locked_thread_id;
+        private:
+            size_t UnsetId() {
+                const size_t id = m_locked_thread_id;
+                m_locked_thread_id = 0;
+                return id;
+            }
+
+            void SetId(size_t manual_id) {
+                m_locked_thread_id = manual_id;
+            }
         public:
             constexpr ALWAYS_INLINE CriticalSection() : m_srwlock{0}, m_locked_thread_id(0) {/*...*/}
 
             void lock() {
                 ::AcquireSRWLockExclusive(std::addressof(m_srwlock));
-                m_locked_thread_id = ::GetCurrentThreadId();
+                m_locked_thread_id = static_cast<size_t>(::GetCurrentThreadId());
             }
 
             void unlock() {
                 ::ReleaseSRWLockExclusive(std::addressof(m_srwlock));
+                m_locked_thread_id = 0;
             }
 
             bool try_lock() {
                 const bool result = ::TryAcquireSRWLockExclusive(std::addressof(m_srwlock));
                 if (result == true) {
-                    m_locked_thread_id = ::GetCurrentThreadId();;
+                    m_locked_thread_id = static_cast<size_t>(::GetCurrentThreadId());
                 }
             }
 
@@ -52,8 +65,10 @@ namespace dd::util {
                 return this->try_lock();
             }
 
-            bool IsLockOwnedByCurrentThread() {
-                return ::GetCurrentThreadId() == m_locked_thread_id;
+            bool IsLockedByCurrentThread() {
+                return static_cast<size_t>(::GetCurrentThreadId()) == m_locked_thread_id;
             }
+
+            SRWLOCK *GetSRWLOCK() { return std::addressof(m_srwlock); }
     };
 }

@@ -28,7 +28,7 @@ namespace dd::hid {
             RID_DEVICE_INFO info = {};
             u32 size = sizeof(RID_DEVICE_INFO);
             s32 result = ::GetRawInputDeviceInfo(keyboard, RIDI_DEVICEINFO, std::addressof(info), std::addressof(size));
-            
+
             if (result != -1 || static_cast<u32>(result) < sizeof(RID_DEVICE_INFO) || info.dwType != RIM_TYPEKEYBOARD) {
                 return false;
             }
@@ -126,7 +126,7 @@ namespace dd::hid {
                 ::TranslateMessage(std::addressof(msg));
                 ::DispatchMessage(std::addressof(msg));
             }
-            
+
             /* Cleanup */
             delete[] device_list;
             return 0;

@@ -24,7 +24,9 @@
 { \
     const auto _temp_result = (expression); \
     if (DD_UNLIKELY(!_temp_result)) { \
-        std::cout << __LINE__ << ", " <<  __FILE__ << std::endl;\
+        char buffer[0x200] = { '\0' }; \
+        std::snprintf(buffer, sizeof(buffer), "%d, %s", __LINE__, __FILE__); \
+        ::puts(buffer);\
     } \
 }
 
@@ -32,9 +34,10 @@
 { \
     const auto _temp_result = (expression); \
     if (DD_UNLIKELY(!_temp_result)) { \
-        char buffer[0x200] = { '\0' }; \
-        std::snprintf(buffer, sizeof(buffer), __VA_ARGS__); \
-        std::cout << __LINE__ << ", " <<  __FILE__ << std::endl;\
-        std::cout << buffer << std::endl;\
+        char buffer0[0x100] = { '\0' }; \
+        char buffer1[0x200] = { '\0' }; \
+        std::snprintf(buffer0, sizeof(buffer0), __VA_ARGS__); \
+        std::snprintf(buffer1, sizeof(buffer1), "%s/n%d, %s",  buffer0, __LINE__, __FILE__); \
+        ::puts(buffer1);\
     } \
 }

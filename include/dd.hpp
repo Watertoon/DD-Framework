@@ -19,5 +19,4 @@
 #include <dd/res.h>
 #include <dd/hid.h>
 #include <dd/vk.h>
-#include <dd/ogl.h>
 #include <dd/learn.h>

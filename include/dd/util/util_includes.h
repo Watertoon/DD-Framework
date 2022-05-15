@@ -19,7 +19,6 @@
 #include <cmath>
 
 /* STD */
-#include <iostream>
 #include <memory>
 #include <type_traits>
 #include <mutex>

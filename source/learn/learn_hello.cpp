@@ -190,14 +190,6 @@ namespace dd::learn {
         /* Determine memory size */
         const u64 buffer_memory_size = util::AlignUp(uniform_buffer_info.offset + sizeof(base_transform), vk::Context::TargetMemoryPoolAlignment);
         const u64 image_memory_size = util::AlignUp(texture1_info.memory_offset + texture1_size, vk::Context::TargetMemoryPoolAlignment);
-        
-        std::cout << index_buffer_info.offset << std::endl;
-        std::cout << uniform_buffer_info.offset << std::endl;
-        
-        std::cout << texture1_info.memory_offset << std::endl;
-        std::cout << buffer_memory_size << std::endl;
-        std::cout << image_memory_size << std::endl;
-        
 
         /* Copy host memory */
         memory_buffer = new(std::align_val_t(vk::Context::TargetMemoryPoolAlignment)) char[buffer_memory_size];
@@ -305,7 +297,6 @@ namespace dd::learn {
 
         /* Register our textures */
         sampler_slot = sampler_descriptor_pool->RegisterSampler(util::GetPointer(vk_sampler));
-        std::cout << "slot: " << sampler_slot << std::endl;
     }
     
     void CalcTriangle() {
@@ -340,7 +331,6 @@ namespace dd::learn {
             command_buffer->SetTextureStateTransition(util::GetPointer(vk_texture_view0)->GetTexture(), std::addressof(texture_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
             
             texture_view0_slot = util::GetPointer(vk_texture_descriptor_pool)->RegisterTexture(util::GetPointer(vk_texture_view0));
-            std::cout << "slot: " << texture_view0_slot << std::endl;
         }
         if (util::GetPointer(vk_texture_view1)->GetTexture()->GetImageLayout() == VK_IMAGE_LAYOUT_PREINITIALIZED) {
 
@@ -354,7 +344,6 @@ namespace dd::learn {
             command_buffer->SetTextureStateTransition(util::GetPointer(vk_texture_view1)->GetTexture(), std::addressof(texture_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
             
             texture_view1_slot = util::GetPointer(vk_texture_descriptor_pool)->RegisterTexture(util::GetPointer(vk_texture_view1));
-            std::cout << "slot: " << texture_view1_slot << std::endl;
         }
 
         /* Bind */

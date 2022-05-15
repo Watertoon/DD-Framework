@@ -111,8 +111,8 @@ namespace dd::vk {
             DD_ASSERT(0xffff > message_severity);
             DD_ASSERT(message_type > 0);
             DD_ASSERT(user_data == nullptr);
-            
-            std::cout << "validation layer: " << callback_data->pMessage << std::endl;
+
+            ::puts(callback_data->pMessage);
 
             return VK_FALSE;
         }
@@ -122,6 +122,7 @@ namespace dd::vk {
                 ::PostQuitMessage(0);
                 return 0;
             } else if (message == WM_PAINT) {
+                ::ValidateRect(window_handle, nullptr);
                 return 0;
             } else if (message == WM_SIZING) {
                 //RECT *resize = reinterpret_cast<RECT*>(l_param);
@@ -129,14 +130,12 @@ namespace dd::vk {
                 //const u32 height = HIWORD(resize->top - resize->bottom);
                 //dd::vk::GetGlobalContext()->SetWindowDimensions(width, height);
             } else if (message == WM_SIZE) {
-                
+
                 /* Set new window size values */
                 const s32 width = LOWORD(l_param);
                 const s32 height = HIWORD(l_param);
-                dd::vk::GetGlobalContext()->SetWindowDimensions(width, height);
-
-                /* Wait for framebuffer to resize */
-                dd::vk::GetGlobalContext()->WaitResizeEvent();
+                dd::vk::GetGlobalContext()->BeginResize();
+                dd::vk::GetGlobalContext()->SetWindowDimensionsUnsafe(width, height);
             }
 
             return ::DefWindowProc(window_handle, message, w_param, l_param);
@@ -356,7 +355,7 @@ namespace dd::vk {
         return false;
     }
 
-    Context::Context() {
+    Context::Context() : m_window_cs(), m_present_cs() {
         
         dd::vk::SetGlobalContext(this);
 
@@ -649,13 +648,9 @@ namespace dd::vk {
             .pushConstantRangeCount = 6,
             .pPushConstantRanges = resource_index_push_constant_ranges
         };
-        
+
         const u32 result9 = ::vkCreatePipelineLayout(m_vk_device, std::addressof(pipeline_layout_info), nullptr, std::addressof(m_vk_pipeline_layout));
         DD_ASSERT(result9 == VK_SUCCESS);
-        
-        /* Create resize event */
-        m_window_resize_event = ::CreateEvent(nullptr, true, false, nullptr);
-        DD_ASSERT(m_window_resize_event != nullptr);
     }
 
     Context::~Context() {
@@ -681,5 +676,90 @@ namespace dd::vk {
         if (m_vk_physical_device_array != nullptr) {
             delete[] m_vk_physical_device_array;
         }
+    }
+
+    /* Presentation */
+    void Context::PresentAsync(util::DelegateThread *thread, size_t message) {
+        DD_ASSERT(thread->GetExitCode() != message);
+
+        this->Present(reinterpret_cast<CommandBuffer*>(message));
+    }
+
+    void Context::Present(CommandBuffer *submit_command_buffer) {
+        DD_ASSERT(submit_command_buffer != nullptr && m_bound_frame_buffer != nullptr);
+
+        std::scoped_lock l(m_present_cs);
+        m_entered_present = true;
+
+        /* Submit command buffer */
+        VkCommandBuffer vk_command_buffer = submit_command_buffer->GetCommandBuffer();
+
+        const VkCommandBufferSubmitInfo command_submit_infos = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+            .commandBuffer = vk_command_buffer
+        };
+
+        const VkSemaphoreSubmitInfo semaphore_info = {
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+            .semaphore = m_bound_frame_buffer->GetCurrentQueuePresentSemaphore(),
+            .stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT
+        };
+
+        const VkSubmitInfo2 submit_info = {
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+            .commandBufferInfoCount = 1,
+            .pCommandBufferInfos = std::addressof(command_submit_infos),
+            .signalSemaphoreInfoCount = 1,
+            .pSignalSemaphoreInfos = std::addressof(semaphore_info)
+        };
+
+        VkFence submit_fence = m_bound_frame_buffer->GetCurrentQueueSubmitFence();
+
+        const u32 result1 = ::vkQueueSubmit2(m_vk_graphics_queue, 1, std::addressof(submit_info), submit_fence);
+        DD_ASSERT(result1 == VK_SUCCESS);
+
+        /* Present */
+        m_bound_frame_buffer->PresentTextureAndAcquireNext(global_context);
+    }
+
+    void Context::WaitForGpu() {
+
+        /* Wait until we have presented */
+        while (m_entered_present == false) {
+            ::Sleep(0);
+        }
+
+        std::scoped_lock l(m_present_cs);
+
+        /* Wait for image acquire */
+        VkFence acquire_fence = m_bound_frame_buffer->GetImageAcquireFence();
+
+        const u32 result0 = ::vkWaitForFences(m_vk_device, 1, std::addressof(acquire_fence), VK_TRUE, UINT64_MAX);
+        DD_ASSERT(result0 == VK_SUCCESS);
+
+        const u32 result1 = ::vkResetFences(m_vk_device, 1, std::addressof(acquire_fence));
+        DD_ASSERT(result1 == VK_SUCCESS);
+
+        /* Wait for Queue submission to finish */
+        VkFence submit_fence = m_bound_frame_buffer->GetCurrentQueueSubmitFence();
+
+        const u32 result2 = ::vkWaitForFences(m_vk_device, 1, std::addressof(submit_fence), VK_TRUE, UINT64_MAX);
+        DD_ASSERT(result2 == VK_SUCCESS);
+
+        const u32 result3 = ::vkResetFences(m_vk_device, 1, std::addressof(submit_fence));
+        DD_ASSERT(result3 == VK_SUCCESS);
+
+        /* Apply our window resize */
+        m_bound_frame_buffer->ApplyResize(this);
+    }
+
+    util::DelegateThread *Context::InitializePresentationThread(FrameBuffer *framebuffer) {
+
+        m_bound_frame_buffer = framebuffer;
+
+        util::ConstructAt(m_present_delegate, this, PresentAsync);
+        size_t exit_code = 0;
+        util::ConstructAt(m_delegate_thread, util::GetPointer(m_present_delegate), 0x1000, exit_code, 32);
+        return util::GetPointer(m_delegate_thread);
     }
 }

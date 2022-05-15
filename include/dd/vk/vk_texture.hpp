@@ -80,7 +80,7 @@ namespace dd::vk {
 
                 m_vk_image_layout = texture_info->vk_image_layout;
             }
-            
+
             void ImportExisting(VkImage image) {
                 m_vk_image = image;
                 m_import = true;
@@ -106,7 +106,7 @@ namespace dd::vk {
             constexpr ALWAYS_INLINE VkImageLayout GetImageLayout() const { return static_cast<VkImageLayout>(m_vk_image_layout); }
 
             void SetImageLayout(VkImageLayout new_layout) { m_vk_image_layout = static_cast<u32>(new_layout); }
-            
+
             static u64 GetAlignment(const Context *context, const TextureInfo *texture_info) { 
 
                 /* Create staging Image */
@@ -140,7 +140,7 @@ namespace dd::vk {
                 ::vkGetImageMemoryRequirements(context->GetDevice(), vk_image, std::addressof(memory_requirements));
 
                 ::vkDestroyImage(context->GetDevice(), vk_image, nullptr);
-                
+
                 return memory_requirements.alignment;
             }
     };

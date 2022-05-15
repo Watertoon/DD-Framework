@@ -20,7 +20,7 @@ CXX_FLAGS := -std=gnu++20 -m64 -msse4.1 -ffunction-sections -fdata-sections -fno
 CXX_WARNS := -Wall -Wno-format-truncation -Wno-format-zero-length -Wno-stringop-truncation -Wno-invalid-offsetof -Wno-format-truncation -Wno-format-zero-length -Wno-stringop-truncation -Wextra -Werror -Wno-missing-field-initializers
 
 # Release and Debug mode options 
-RELEASE_FLAGS := -Og -flto -g -gdwarf-4
+RELEASE_FLAGS := -O3 -flto -g -gdwarf-4
 DEBUG_FLAGS   := -g -Og -flto -gdwarf-4
 
 # Source input file iteration methods
@@ -108,8 +108,6 @@ lib/$(TARGET).a: lib release_deps $(SOURCE_DIRS) $(INCLUDES)
 	DEPSDIR=$(CURDIR)/release_deps \
 	-C release_deps \
 	-f $(CURDIR)/Makefile
-
-
 
 build/$(EXE_NAME).exe: copy_resources release_deps build $(SOURCE_DIRS) $(INCLUDES)
 	@$(MAKE) BUILD=release_deps OUTPUTEXE=$(CURDIR)/$@ \

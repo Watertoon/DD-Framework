@@ -16,13 +16,13 @@
 #pragma once
 
 namespace dd::vk {
-    
+
     struct MemoryPoolInfo {
         VkDeviceSize size;
         u32          vk_memory_property_flags;
         void        *import_memory;
     };
-    
+
     class MemoryPool {
         private:
             friend class Buffer;
@@ -67,11 +67,11 @@ namespace dd::vk {
                     host_memory_type = context->FindMemoryHeapIndex(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
                     m_requires_relocation = true;
                     m_is_device_memory = true;
-                    
+
                     /* Allocate our device memory */
                     const s32 device_memory_type = context->FindMemoryHeapIndex(pool_properties);
                     DD_ASSERT(device_memory_type != -1);
-                    
+
                     const VkMemoryAllocateFlagsInfo device_allocate_flags = {
                         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO,
                         .flags = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT
@@ -127,7 +127,7 @@ namespace dd::vk {
                     m_vk_device_memory = 0;
                 }
             }
-            
+
             void *Map() {
                 if (m_mapped_memory == nullptr) {
                     const u32 result0 = ::vkMapMemory(GetGlobalContext()->GetDevice(), this->GetDeviceMemory(), 0, VK_WHOLE_SIZE, 0, std::addressof(m_mapped_memory));
@@ -136,7 +136,7 @@ namespace dd::vk {
                 m_map_count += 1;
                 return m_mapped_memory;
             }
-            
+
             void Unmap() {
                 m_map_count -= 1;
                 if (m_map_count == 0) {

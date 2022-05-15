@@ -228,10 +228,10 @@ namespace dd::vk {
             .poolSizeCount = 1,
             .pPoolSizes    = std::addressof(pool_size)
         };
-        
+
         const u32 result1 = ::vkCreateDescriptorPool(context->GetDevice(), std::addressof(buffer_pool_info), nullptr, std::addressof(m_vk_resource_buffer_descriptor_pool));
         DD_ASSERT(result1 == VK_SUCCESS);
-        
+
         /* Create resource buffer descriptor set */
         VkDescriptorSetLayout vk_buffer_descriptor_set_layout = context->GetResourceBufferDescriptorSetLayout();
         const VkDescriptorSetAllocateInfo buffer_set_info = {

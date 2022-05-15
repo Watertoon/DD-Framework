@@ -1,7 +1,22 @@
+ /*
+ *  Copyright (C) W. Michael Knudson
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License along with this program; 
+ *  if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ */
 #pragma once
 
 namespace dd::vk {
-    
+
     struct SamplerInfo {
         u32   vk_filter_min;
         u32   vk_filter_mag;
@@ -15,7 +30,7 @@ namespace dd::vk {
         float max_anisotropy_clamp;
         u32   vk_compare_op;
         u32   vk_border_color;
-        
+
         constexpr void SetDefaults() {
             vk_filter_min        = VK_FILTER_NEAREST;
             vk_filter_mag        = VK_FILTER_NEAREST;
@@ -31,15 +46,15 @@ namespace dd::vk {
             vk_border_color      = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
         }  
     };
-    
+
     class Sampler {
         private:
             VkSampler m_vk_sampler;
         public:
             constexpr Sampler() {/*...*/}
-            
+
             void Initialize(const Context *context, const SamplerInfo *sampler_info) {
-                
+
                 /* Create sampler */
                 const VkSamplerCreateInfo vk_sampler_info = {
                     .sType            = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
@@ -58,15 +73,15 @@ namespace dd::vk {
                     .maxLod           = sampler_info->max_lod_clamp,
                     .borderColor      = static_cast<VkBorderColor>(sampler_info->vk_border_color)
                 };
-                
+
                 const u32 result0 = ::vkCreateSampler(context->GetDevice(), std::addressof(vk_sampler_info), nullptr, std::addressof(m_vk_sampler));
                 DD_ASSERT(result0 == VK_SUCCESS);
             }
-            
+
             void Finalize(const Context *context) {
                 ::vkDestroySampler(context->GetDevice(), m_vk_sampler, nullptr);
             }
-            
+
             constexpr ALWAYS_INLINE VkSampler GetSampler() const { return m_vk_sampler; }
     };
 }

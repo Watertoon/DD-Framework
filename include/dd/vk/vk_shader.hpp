@@ -16,7 +16,7 @@
 #pragma once
 
 namespace dd::vk {
-    
+
     enum ShaderStage {
         ShaderStage_Vertex                 = 0,
         ShaderStage_TessellationEvaluation = 1,
@@ -129,17 +129,17 @@ namespace dd::vk {
                     ::vkDestroyShaderModule(context->GetDevice(), m_vk_compute_module, nullptr);
                 }
             }
-            
+
             constexpr ALWAYS_INLINE VkShaderModule GetVertexModule() const { return m_vk_vertex_module; }
-            
+
             constexpr ALWAYS_INLINE VkShaderModule GetTessellationControlModule() const { return m_vk_tessellation_control_module; }
-            
+
             constexpr ALWAYS_INLINE VkShaderModule GetTessellationEvaluationModule() const { return m_vk_tessellation_evaluation_module; }
-            
+
             constexpr ALWAYS_INLINE VkShaderModule GetGeometryModule() const { return m_vk_geometry_module; }
-            
+
             constexpr ALWAYS_INLINE VkShaderModule GetFragmentModule() const { return m_vk_fragment_module; }
-            
+
             constexpr ALWAYS_INLINE VkShaderModule GetComputeModule() const { return m_vk_compute_module; }
     };
 }

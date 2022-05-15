@@ -35,6 +35,7 @@ long unsigned int ContextMain(void *arg) {
     ContextInitState *context_state = reinterpret_cast<ContextInitState*>(arg);
 
     dd::util::ConstructAt(context);
+    dd::util::GetReference(context).EndResizeManuel();
 
     dd::util::ConstructAt(framebuffer);
     dd::util::GetReference(framebuffer).Initialize(dd::util::GetPointer(context));
@@ -51,8 +52,8 @@ long unsigned int ContextMain(void *arg) {
     /* Process Vulkan Window */
     MSG msg = {};
     while (::GetMessage(std::addressof(msg), nullptr, 0, 0) != 0) {
-        ::TranslateMessage(std::addressof(msg));
         ::DispatchMessage(std::addressof(msg));
+        dd::vk::GetGlobalContext()->WaitSwapchainResize();
     }
     
     /* End main loop in main thread */
@@ -114,6 +115,7 @@ int main() {
         .levelCount = 1,
         .layerCount = 1,
     };
+    dd::util::DelegateThread *present_thread = global_context->InitializePresentationThread(global_frame_buffer);
     
     /* Calc And Draw */
     while (true) {
@@ -133,6 +135,7 @@ int main() {
         dd::util::BeginFrame();
         dd::hid::BeginFrame();
         global_command_buffer->Begin();
+        global_context->EnterDraw();
 
         /* Transition render target to attachment */
         const dd::vk::TextureBarrierCmdState clear_barrier_state = {
@@ -150,7 +153,7 @@ int main() {
         /* Set render target */
         global_command_buffer->SetRenderTargets(1 , std::addressof(current_color_target), nullptr);
 
-        /* Draw */
+        /* Draw Frame */
         dd::learn::DrawTriangle(global_command_buffer);
 
         /* Transition render target to present */
@@ -166,57 +169,19 @@ int main() {
         /* End draw */
         global_command_buffer->End();
 
-        /* Submit command buffer */
-        VkCommandBuffer vk_command_buffer = global_command_buffer->GetCommandBuffer();
-        VkSemaphore wait_semaphore   = dd::util::GetReference(framebuffer).GetCurrentAcquireCompleteSemaphore();
-        VkSemaphore signal_semaphore = dd::util::GetReference(framebuffer).GetCurrentQueueCompleteSemaphore();
+        /* Send present message */
+        present_thread->SendMessage(reinterpret_cast<size_t>(global_command_buffer));
 
-        const VkSemaphoreSubmitInfo wait_semaphores = {
-            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-            .semaphore = wait_semaphore,
-            .stageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
-        };
-
-        const VkCommandBufferSubmitInfo command_submit_infos = {
-            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
-            .commandBuffer = vk_command_buffer
-        };
-
-        const VkSemaphoreSubmitInfo signal_semaphores = {
-            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-            .semaphore = signal_semaphore,
-            .stageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
-        };
-
-        const VkSubmitInfo2 submit_info = {
-            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
-            .waitSemaphoreInfoCount = 1,
-            .pWaitSemaphoreInfos = std::addressof(wait_semaphores),
-            .commandBufferInfoCount = 1,
-            .pCommandBufferInfos = std::addressof(command_submit_infos),
-            .signalSemaphoreInfoCount = 1,
-            .pSignalSemaphoreInfos = std::addressof(signal_semaphores)
-        };
-
-        VkFence submit_fence = dd::util::GetReference(framebuffer).GetCurrentQueueSubmitFence();
-
-        const u32 result1 = ::vkQueueSubmit2(global_context->GetGraphicsQueue(), 1, std::addressof(submit_info), submit_fence);
-        DD_ASSERT(result1 == VK_SUCCESS);
-
-        const u32 result2 = ::vkWaitForFences(global_context->GetDevice(), 1, std::addressof(submit_fence), VK_TRUE, UINT64_MAX);
-        DD_ASSERT(result2 == VK_SUCCESS);
-
-        const u32 result3 = ::vkResetFences(global_context->GetDevice(), 1, std::addressof(submit_fence));
-        DD_ASSERT(result3 == VK_SUCCESS);
-
-        /* Present */
-        global_frame_buffer->PresentTextureAndAcquireNext(global_context);
+        /* Calc Frame */
+        dd::learn::CalcTriangle();
+        
+        /* Wait for presentation */
+        global_context->WaitForGpu();
 
         global_command_buffer = dd::util::GetPointer(command_buffers[dd::util::GetPointer(framebuffer)->GetCurrentFrame()]);
-
-        /* Calc */
-        dd::learn::CalcTriangle();
     }
+    
+    present_thread->FinalizeThread();
 
     /* Cleanup */
     dd::learn::CleanTriangle();
@@ -225,7 +190,7 @@ int main() {
     ::SetEvent(context_init_state.context_event);
 
     /* Wait For Window thread to close */
-    std::cout << "waiting for window exit" << std::endl;
+    ::puts("waiting for window exit\n");
     ::WaitForSingleObject(window_thread, INFINITE);
 
     /* Cleanup*/

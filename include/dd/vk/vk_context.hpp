@@ -17,7 +17,12 @@
 
 namespace dd::vk {
 
+    class CommandBuffer;
+    class FrameBuffer;
+
     class Context {
+        public:
+            friend class FrameBuffer;
         public:
             /* Support Vulkan 1.3 */
             static constexpr u32 TargetMinimumApiVersion = VK_MAKE_API_VERSION(0, 1, 3, 0);
@@ -66,49 +71,57 @@ namespace dd::vk {
             static constexpr size_t TargetColorAttachmentCount = 8;
 
             /* Decide we are using the Mailbox present mode */
-            static constexpr VkPresentModeKHR TargetPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+            static constexpr VkPresentModeKHR TargetPresentMode = VK_PRESENT_MODE_FIFO_KHR;
         private:
-            VkInstance                          m_vk_instance;
-            VkPhysicalDevice                    m_vk_physical_device;
-            VkDevice                            m_vk_device;
-            VkQueue                             m_vk_graphics_queue;
-            u32                                 m_graphics_queue_family_index;
-            VkCommandPool                       m_vk_graphics_command_pool;
-            VkSurfaceKHR                        m_vk_surface;
-            VkDescriptorSetLayout               m_vk_resource_buffer_descriptor_set_layout;
-            VkDescriptorSetLayout               m_vk_texture_descriptor_set_layout;
-            VkDescriptorSetLayout               m_vk_sampler_descriptor_set_layout;
-            VkPipelineLayout                    m_vk_pipeline_layout;
+            /* Vulkan objects */
+            VkInstance                                          m_vk_instance;
+            VkPhysicalDevice                                    m_vk_physical_device;
+            VkDevice                                            m_vk_device;
+            VkQueue                                             m_vk_graphics_queue;
+            u32                                                 m_graphics_queue_family_index;
+            VkCommandPool                                       m_vk_graphics_command_pool;
+            VkSurfaceKHR                                        m_vk_surface;
+            VkDescriptorSetLayout                               m_vk_resource_buffer_descriptor_set_layout;
+            VkDescriptorSetLayout                               m_vk_texture_descriptor_set_layout;
+            VkDescriptorSetLayout                               m_vk_sampler_descriptor_set_layout;
+            VkPipelineLayout                                    m_vk_pipeline_layout;
 
-            HWND                                m_hwnd;
+            VkPhysicalDevice                                   *m_vk_physical_device_array;
+            u32                                                 m_vk_physical_device_count;
+            u32                                                 m_physical_device_index;
 
-            s32                                 m_window_width;
-            s32                                 m_window_height;
-            util::CriticalSection               m_window_cs;
-            bool                                m_has_resized;
-            HANDLE                              m_window_resize_event;
+            VkPhysicalDeviceProperties2                         m_vk_physical_device_properties;
+            VkPhysicalDeviceVulkan11Properties                  m_vk_physical_device_properties_11;
+            VkPhysicalDeviceVulkan12Properties                  m_vk_physical_device_properties_12;
+            VkPhysicalDeviceVulkan13Properties                  m_vk_physical_device_properties_13;
 
-            VkPhysicalDevice                   *m_vk_physical_device_array;
-            u32                                 m_vk_physical_device_count;
-            u32                                 m_physical_device_index;
+            VkPhysicalDeviceFeatures2                           m_vk_physical_device_supported_features;
+            VkPhysicalDeviceVulkan11Features                    m_vk_physical_device_supported_features_11;
+            VkPhysicalDeviceVulkan12Features                    m_vk_physical_device_supported_features_12;
+            VkPhysicalDeviceVulkan13Features                    m_vk_physical_device_supported_features_13;
+            VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT  m_vk_physical_device_vertex_input_dynamic_state_features;
+            VkPhysicalDeviceExtendedDynamicState2FeaturesEXT    m_vk_physical_device_extended_dynamic_state_features;
 
-            VkPhysicalDeviceProperties2         m_vk_physical_device_properties;
-            VkPhysicalDeviceVulkan11Properties  m_vk_physical_device_properties_11;
-            VkPhysicalDeviceVulkan12Properties  m_vk_physical_device_properties_12;
-            VkPhysicalDeviceVulkan13Properties  m_vk_physical_device_properties_13;
+            VkPhysicalDeviceMemoryProperties                    m_vk_physical_device_memory_properties;
 
-            VkPhysicalDeviceFeatures2                          m_vk_physical_device_supported_features;
-            VkPhysicalDeviceVulkan11Features                   m_vk_physical_device_supported_features_11;
-            VkPhysicalDeviceVulkan12Features                   m_vk_physical_device_supported_features_12;
-            VkPhysicalDeviceVulkan13Features                   m_vk_physical_device_supported_features_13;
-            VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT m_vk_physical_device_vertex_input_dynamic_state_features;
-            VkPhysicalDeviceExtendedDynamicState2FeaturesEXT   m_vk_physical_device_extended_dynamic_state_features;
+            #if defined(DD_DEBUG)                               
+                VkDebugUtilsMessengerEXT                        m_debug_messenger;
+            #endif                                                                      
 
-            VkPhysicalDeviceMemoryProperties    m_vk_physical_device_memory_properties;
+            /* Window objects */                                                        
+            HWND                    m_hwnd;
+            s32                     m_window_width;
+            s32                     m_window_height;
+            util::CriticalSection   m_window_cs;
+            util::ConditionVariable m_window_cv;
+            bool                    m_has_resized;
 
-            #if defined(DD_DEBUG)
-                VkDebugUtilsMessengerEXT        m_debug_messenger;
-            #endif
+            /* Presentation objects */
+            FrameBuffer                                                                *m_bound_frame_buffer;
+            util::CriticalSection                                                       m_present_cs;
+            util::TypeStorage<util::DelegateThread>                                     m_delegate_thread;
+            util::TypeStorage<util::Delegate2<Context, util::DelegateThread*, size_t>>  m_present_delegate;
+            bool                                                                        m_entered_present;
         private:
 
             bool PickValidPhysicalDevice();
@@ -154,38 +167,71 @@ namespace dd::vk {
             constexpr ALWAYS_INLINE HWND GetWindowHandle() const                                       { return m_hwnd; }
 
             constexpr ALWAYS_INLINE const VkPhysicalDeviceProperties2 *GetPhysicalDeviceProperties() const { return std::addressof(m_vk_physical_device_properties); }
+        
+        public:
 
-            void GetWindowDimensions(u32 *out_width, u32 *out_height) const {
-                std::scoped_lock(m_window_cs);
+            void GetWindowDimensions(u32 *out_width, u32 *out_height) {
+                std::scoped_lock l(m_window_cs);
 
                 *out_width = m_window_width; 
                 *out_height = m_window_height;
             }
-            
-            void SetWindowDimensions(u32 width, u32 height) {
-                std::scoped_lock(m_window_cs);
 
+            void BeginResize() {
+                if (m_window_cs.IsLockedByCurrentThread() == false) {
+                    m_window_cs.Enter();
+                }
+            }
+            
+            void EndResizeManuel() {
+                m_window_cv.Broadcast();
+                m_window_cs.Leave();
+                m_has_resized = false;
+            }
+
+            void SetWindowDimensionsUnsafe(u32 width, u32 height) {
                 m_window_width  = width;
                 m_window_height = height;
                 m_has_resized   = true;
             }
-
-            bool HasWindowResized() const {
-                std::scoped_lock(m_window_cs);
-
-                return m_has_resized;
-            }
             
-            void ResizeHandles() { m_has_resized = false; }
-
-            void WaitResizeEvent() {
-                ::WaitForSingleObject(m_window_resize_event, INFINITE);
-                ::ResetEvent(m_window_resize_event);
+            void SetResize() {
+                std::scoped_lock l(m_window_cs);
+                m_has_resized   = true;
             }
 
-            void FinishResizeEvent() {
-                ::SetEvent(m_window_resize_event);
+            bool HasWindowResized() {
+                std::scoped_lock l(m_window_cs);
+
+                return m_has_resized == true;
             }
+
+            void WaitSwapchainResize() {
+
+                if (m_window_cs.IsLockedByCurrentThread() == true) {
+                    while (m_has_resized == true) {
+                        m_window_cv.Wait(std::addressof(m_window_cs));
+                    }
+
+                    m_window_cs.Leave();
+                }
+            }
+
+            void FinishSwapchainResize() {
+                m_has_resized = false;
+                m_window_cv.Broadcast();
+            }
+
+        private:
+            void PresentAsync(util::DelegateThread *thread, size_t message);
+        public:
+            void EnterDraw() { m_entered_present = false; }
+
+            void Present(CommandBuffer *submit_command_buffer);
+
+            void WaitForGpu();
+
+            util::DelegateThread *InitializePresentationThread(FrameBuffer *framebuffer);
     };
 
     void SetGlobalContext(Context *context);

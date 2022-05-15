@@ -68,7 +68,6 @@ namespace dd::res {
             long unsigned int size_read = 0;
             result = ::ReadFile(file, buffer, file_size.LowPart - 1, std::addressof(size_read), nullptr);
             DD_ASSERT(result != false && file_size.LowPart - 1 == size_read);
-            std::cout << size_read << std::endl;
 
             buffer[file_size.LowPart - 1] = '\0';
             *out_file = buffer;
