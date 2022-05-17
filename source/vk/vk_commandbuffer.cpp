@@ -39,13 +39,13 @@ namespace dd::vk {
 
             color_attachments[color_target_count].sType              = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
             color_attachments[color_target_count].imageView          = color_target->GetImageView();
-            color_attachments[color_target_count].imageLayout        = VK_IMAGE_LAYOUT_GENERAL;
+            color_attachments[color_target_count].imageLayout        = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
             color_attachments[color_target_count].resolveMode        = VK_RESOLVE_MODE_NONE;
             color_attachments[color_target_count].resolveImageView   = 0;
             color_attachments[color_target_count].resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            color_attachments[color_target_count].loadOp             = VK_ATTACHMENT_LOAD_OP_CLEAR;
+            color_attachments[color_target_count].loadOp             = (m_fast_clear == true) ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             color_attachments[color_target_count].storeOp            = VK_ATTACHMENT_STORE_OP_STORE;
-            color_attachments[color_target_count].clearValue         = {1.0f,1.0f,0.5f,1.0f};
+            color_attachments[color_target_count].clearValue         = { m_vk_clear_color.float32[0], m_vk_clear_color.float32[1],  m_vk_clear_color.float32[2], m_vk_clear_color.float32[3] };
             color_target_count += 1;
         }
 
@@ -466,6 +466,14 @@ namespace dd::vk {
         this->EndRenderingIfRendering();
 
         ::vkCmdClearDepthStencilImage(m_vk_command_buffer, depth_stencil_target->GetImage(), VK_IMAGE_LAYOUT_GENERAL, std::addressof(clear_value), 1, sub_range);
+    }
+
+    void CommandBuffer::SetFastClearColor(const VkClearColorValue& color) {
+        m_vk_clear_color.float32[0] = color.float32[0];
+        m_vk_clear_color.float32[1] = color.float32[1];
+        m_vk_clear_color.float32[2] = color.float32[2];
+        m_vk_clear_color.float32[3] = color.float32[3];
+        m_fast_clear = true;
     }
 
     void CommandBuffer::Draw(VkPrimitiveTopology vk_primitive_topology, u32 vertex_count, u32 base_vertex) {

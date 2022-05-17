@@ -21,7 +21,7 @@ namespace dd::util {
         private:
             CONDITION_VARIABLE m_condition_variable;
         public:
-            constexpr ConditionVariable() : m_condition_variable(CONDITION_VARIABLE_INIT) {/*...*/}
+            constexpr ConditionVariable() : m_condition_variable{0} {/*...*/}
 
             void Wait(CriticalSection *cs) {
                 const size_t thread_id = cs->UnsetId();
@@ -30,7 +30,9 @@ namespace dd::util {
             }
 
             void TimedWait(CriticalSection *cs, u32 timeout_ms) {
+                const size_t thread_id = cs->UnsetId();
                 ::SleepConditionVariableSRW(std::addressof(m_condition_variable), cs->GetSRWLOCK(), timeout_ms, 0);
+                cs->SetId(thread_id);
             }
 
             void Signal() {

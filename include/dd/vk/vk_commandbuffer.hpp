@@ -202,6 +202,8 @@ namespace dd::vk {
             u32                     m_geometry_resource_update_count;
             u32                     m_fragment_resource_update_count;
             u32                     m_compute_resource_update_count;
+            VkClearColorValue       m_vk_clear_color;
+            bool                    m_fast_clear;
         private:
             void BeginRenderingIfNotRendering();
 
@@ -221,6 +223,7 @@ namespace dd::vk {
 
             void ClearColorTarget(ColorTargetView *color_target, const VkClearColorValue* color, const VkImageSubresourceRange *sub_range);
             void ClearDepthStencilTarget(DepthStencilTargetView *depth_stencil_target, const VkClearDepthStencilValue clear_value, const VkImageSubresourceRange *sub_range);
+            void SetFastClearColor(const VkClearColorValue& color);
 
             void Draw(VkPrimitiveTopology vk_primitive_topology, u32 vertex_count, u32 base_vertex);
             void DrawIndexed(VkPrimitiveTopology vk_primitive_topology, VkIndexType index_format, Buffer *index_buffer, u32 index_count, u32 base_index);

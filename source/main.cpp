@@ -53,18 +53,18 @@ long unsigned int ContextMain(void *arg) {
     MSG msg = {};
     while (::GetMessage(std::addressof(msg), nullptr, 0, 0) != 0) {
         ::DispatchMessage(std::addressof(msg));
-        dd::vk::GetGlobalContext()->WaitSwapchainResize();
+        dd::vk::GetGlobalContext()->WaitSwapchainChange();
     }
-    
+
     /* End main loop in main thread */
     ::AcquireSRWLockExclusive(std::addressof(context_state->context_lock));
     context_state->is_ready_for_exit = true;
     ::ReleaseSRWLockExclusive(std::addressof(context_state->context_lock));
-    
+
     /* Wait for main thread to finish */
     ::WaitForSingleObject(context_state->context_event, INFINITE);
     ::ResetEvent(context_state->context_event);
-    
+
     /* Cleanup */
     ::vkDeviceWaitIdle(dd::util::GetPointer(context)->GetDevice());
 
@@ -87,7 +87,7 @@ int main() {
     /* Initialize System Time */
     dd::util::InitializeTime();
     dd::util::SetFrameFrequency(60);
-    
+
     /* Set flush denormals to 0 */
     _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
 
@@ -102,7 +102,7 @@ int main() {
     ::ResetEvent(context_init_state.context_event);
 
     dd::learn::SetupTriangle();
-    
+
     /* Setup for main loop */
     dd::vk::Context         *global_context = dd::vk::GetGlobalContext();
     dd::vk::CommandBuffer   *global_command_buffer = dd::util::GetPointer(command_buffers[dd::util::GetPointer(framebuffer)->GetCurrentFrame()]);
@@ -116,7 +116,7 @@ int main() {
         .layerCount = 1,
     };
     dd::util::DelegateThread *present_thread = global_context->InitializePresentationThread(global_frame_buffer);
-    
+
     /* Calc And Draw */
     while (true) {
 
@@ -126,7 +126,7 @@ int main() {
             break;
         }
         ::ReleaseSRWLockExclusive(std::addressof(context_init_state.context_lock));
-        
+
         /* Wait for resize */
         dd::vk::ColorTargetView *current_color_target = global_frame_buffer->GetCurrentColorTarget();
         dd::vk::Texture *color_target_texture = current_color_target->GetTexture();
@@ -146,10 +146,10 @@ int main() {
             .vk_dst_layout      = VK_IMAGE_LAYOUT_GENERAL
         };
         global_command_buffer->SetTextureStateTransition(color_target_texture, std::addressof(clear_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
-        
+
         /* Clear render target */
         global_command_buffer->ClearColorTarget(current_color_target, std::addressof(clear_color), std::addressof(clear_sub_range));
-        
+
         /* Set render target */
         global_command_buffer->SetRenderTargets(1 , std::addressof(current_color_target), nullptr);
 
@@ -165,7 +165,7 @@ int main() {
             .vk_dst_layout      = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
         };
         global_command_buffer->SetTextureStateTransition(color_target_texture, std::addressof(present_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
-        
+
         /* End draw */
         global_command_buffer->End();
 

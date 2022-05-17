@@ -177,12 +177,17 @@ namespace dd::vk {
                 *out_height = m_window_height;
             }
 
+            void GetWindowDimensionsUnsafe(u32 *out_width, u32 *out_height) const {
+                *out_width = m_window_width; 
+                *out_height = m_window_height;
+            }
+
             void BeginResize() {
                 if (m_window_cs.IsLockedByCurrentThread() == false) {
                     m_window_cs.Enter();
                 }
             }
-            
+
             void EndResizeManuel() {
                 m_window_cv.Broadcast();
                 m_window_cs.Leave();
@@ -194,9 +199,21 @@ namespace dd::vk {
                 m_window_height = height;
                 m_has_resized   = true;
             }
-            
+
             void SetResize() {
                 std::scoped_lock l(m_window_cs);
+                m_has_resized   = true;
+            }
+
+            void LockWindowResize() {
+                m_window_cs.Enter();
+            }
+
+            void UnlockWindowResize() {
+                m_window_cs.Leave();
+            }
+
+            void SetResizeUnsafe() {
                 m_has_resized   = true;
             }
 
@@ -206,7 +223,11 @@ namespace dd::vk {
                 return m_has_resized == true;
             }
 
-            void WaitSwapchainResize() {
+            bool HasWindowResizedUnsafe() const {
+                return m_has_resized == true;
+            }
+
+            void WaitSwapchainChange() {
 
                 if (m_window_cs.IsLockedByCurrentThread() == true) {
                     while (m_has_resized == true) {
@@ -216,9 +237,12 @@ namespace dd::vk {
                     m_window_cs.Leave();
                 }
             }
-
-            void FinishSwapchainResize() {
+            
+            void ClearResizeUnsafe() {
                 m_has_resized = false;
+            }
+
+            void SignalWindowSwapchainChanged() {
                 m_window_cv.Broadcast();
             }
 

@@ -25,40 +25,42 @@ namespace dd::util {
             size_t  m_locked_thread_id;
         private:
             size_t UnsetId() {
-                const size_t id = m_locked_thread_id;
-                m_locked_thread_id = 0;
+                const size_t id = ::InterlockedExchange64(reinterpret_cast<volatile LONG64*>(std::addressof(m_locked_thread_id)), 0);
                 return id;
             }
 
             void SetId(size_t manual_id) {
-                m_locked_thread_id = manual_id;
+                ::InterlockedExchange64(reinterpret_cast<volatile LONG64*>(std::addressof(m_locked_thread_id)), manual_id);
             }
         public:
             constexpr ALWAYS_INLINE CriticalSection() : m_srwlock{0}, m_locked_thread_id(0) {/*...*/}
 
             void lock() {
+                DD_ASSERT(IsLockedByCurrentThread() == false);
                 ::AcquireSRWLockExclusive(std::addressof(m_srwlock));
-                m_locked_thread_id = static_cast<size_t>(::GetCurrentThreadId());
+                ::InterlockedExchange64(reinterpret_cast<volatile LONG64*>(std::addressof(m_locked_thread_id)), static_cast<size_t>(::GetCurrentThreadId()));
             }
 
             void unlock() {
+                DD_ASSERT(IsLockedByCurrentThread() == true);
+                ::InterlockedExchange64(reinterpret_cast<volatile LONG64*>(std::addressof(m_locked_thread_id)), 0);
                 ::ReleaseSRWLockExclusive(std::addressof(m_srwlock));
-                m_locked_thread_id = 0;
             }
 
             bool try_lock() {
                 const bool result = ::TryAcquireSRWLockExclusive(std::addressof(m_srwlock));
                 if (result == true) {
-                    m_locked_thread_id = static_cast<size_t>(::GetCurrentThreadId());
+                    ::InterlockedExchange64(reinterpret_cast<volatile LONG64*>(std::addressof(m_locked_thread_id)), static_cast<size_t>(::GetCurrentThreadId()));
                 }
+                return result;
             }
 
             void Enter() {
-                return this->lock();
+                this->lock();
             }
 
             void Leave() {
-                return this->unlock();
+                this->unlock();
             }
 
             bool TryEnter() {
@@ -66,7 +68,8 @@ namespace dd::util {
             }
 
             bool IsLockedByCurrentThread() {
-                return static_cast<size_t>(::GetCurrentThreadId()) == m_locked_thread_id;
+                const size_t thread_id = static_cast<size_t>(::GetCurrentThreadId());
+                return thread_id == ::InterlockedCompareExchange(reinterpret_cast<volatile size_t*>(std::addressof(m_locked_thread_id)), m_locked_thread_id, thread_id);
             }
 
             SRWLOCK *GetSRWLOCK() { return std::addressof(m_srwlock); }
