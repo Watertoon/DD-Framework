@@ -44,7 +44,7 @@ namespace dd::util::sse4 {
             return __builtin_ia32_addps(a.s, b.s);
         }
     }
-    
+
     constexpr ALWAYS_INLINE __m128 subps(const v4f& a, const v4f& b) {
         if(std::is_constant_evaluated()) {
             return a.s - b.s;

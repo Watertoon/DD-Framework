@@ -140,7 +140,8 @@ namespace dd::util::math {
                 return !(*this == rhs);
             }
             
-            template<typename A = T> requires std::is_floating_point<A>::value && (sizeof(Vector3Type<A>) == sizeof(float) * 3)
+            template<typename A = T> 
+                requires std::is_floating_point<A>::value && (sizeof(Vector3Type<A>) == sizeof(float) * 3)
             constexpr ALWAYS_INLINE Vector3Type Cross(const Vector3Type& rhs) {
                 const v3 a = sse4::shufps(this->GetVectorType(), this->GetVectorType(), sse4::ShuffleToOrder(1,2,0,3));
                 const v3 b = sse4::shufps(rhs.GetVectorType(), rhs.GetVectorType(), sse4::ShuffleToOrder(2,0,1,3));
@@ -150,7 +151,8 @@ namespace dd::util::math {
                 return Vector3Type(sse4::subps(d, e));
             }
 
-            template<typename A = T> requires std::is_floating_point<A>::value && (sizeof(Vector3Type<A>) == sizeof(float) * 3)
+            template<typename A = T> 
+                requires std::is_floating_point<A>::value && (sizeof(Vector3Type<A>) == sizeof(float) * 3)
             constexpr ALWAYS_INLINE Vector3Type Cross(const Vector3Type& rhs) const {
                 const v3 a = sse4::shufps(this->GetVectorType(), this->GetVectorType(), sse4::ShuffleToOrder(1,2,0,3));
                 const v3 b = sse4::shufps(rhs.GetVectorType(), rhs.GetVectorType(), sse4::ShuffleToOrder(2,0,1,3));
@@ -188,6 +190,18 @@ namespace dd::util::math {
             constexpr ALWAYS_INLINE const T Dot(const Vector3Type& rhs) const {
                 const v3 temp = this->GetVectorType() * rhs.GetVectorType();
                 return temp[0] + temp[1] + temp[2];
+            }
+
+            template<typename A = T> 
+                requires std::is_floating_point<A>::value && (sizeof(Vector3Type<A>) == sizeof(float) * 3)
+            constexpr ALWAYS_INLINE T Magnitude() {
+                return ::sqrtf(m_vec[0] * m_vec[0] + m_vec[1] * m_vec[1] + m_vec[2] * m_vec[2]);
+            }
+
+            template<typename A = T> 
+                requires std::is_floating_point<A>::value && (sizeof(Vector3Type<A>) == sizeof(float) * 3)
+            constexpr ALWAYS_INLINE const T Magnitude() const {
+                return ::sqrtf(m_vec[0] * m_vec[0] + m_vec[1] * m_vec[1] + m_vec[2] * m_vec[2]);
             }
     };
 

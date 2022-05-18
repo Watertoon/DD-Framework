@@ -16,7 +16,7 @@
 #pragma once
 
 namespace dd::util::math {
-    
+
     typedef float v4f __attribute__((vector_size(16)));
     typedef int v4si __attribute__((vector_size(16)));
     typedef unsigned int v4ui __attribute__((vector_size(16)));
@@ -111,7 +111,7 @@ namespace dd::util::math {
             constexpr bool operator!=(const Vector4Type& rhs) {
                 return !(m_vec[0] == rhs.m_vec[0] && m_vec[1] == rhs.m_vec[1] && m_vec[2] == rhs.m_vec[2] && m_vec[3] == rhs.m_vec[3]);
             }
-            
+
             template<typename A = T> requires std::is_floating_point<A>::value && (sizeof(Vector3Type<A>) == sizeof(float) * 3)
             constexpr Vector4Type Cross(const Vector4Type& rhs) {
                 const v4 a = sse4::shufps(this->GetVectorType(), this->GetVectorType(), sse4::ShuffleToOrder(1,2,0,3));

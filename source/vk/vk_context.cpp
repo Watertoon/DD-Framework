@@ -41,7 +41,6 @@ namespace dd::vk {
             VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME,
             VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME,
             VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME
-            
         };
         constexpr u32 DeviceExtensionCount = sizeof(DeviceExtensions) / sizeof(const char*);
         
@@ -106,6 +105,7 @@ namespace dd::vk {
             }
         };
         
+        #if defined(DD_DEBUG)
         static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity, VkDebugUtilsMessageTypeFlagsEXT message_type, const VkDebugUtilsMessengerCallbackDataEXT* callback_data, void* user_data) {
             /* Meme */
             DD_ASSERT(0xffff > message_severity);
@@ -116,6 +116,7 @@ namespace dd::vk {
 
             return VK_FALSE;
         }
+        #endif
         
         static LRESULT CALLBACK WndProc(HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param) {
             if (message == WM_DESTROY) {

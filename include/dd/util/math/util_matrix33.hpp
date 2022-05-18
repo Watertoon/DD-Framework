@@ -16,7 +16,7 @@
 #pragma once
 
 namespace dd::util::math {
-    
+
     template<typename T> requires std::is_floating_point<T>::value
     class Matrix33RowMajorType {
         public:
@@ -30,7 +30,7 @@ namespace dd::util::math {
                 T m_arr[9];
                 T m_arr2d[3][3];
             };
-            
+
         public:
             constexpr Matrix33RowMajorType() : m_arr{} {/*...*/}
             constexpr Matrix33RowMajorType(const T m11, const T m21 = 0, const T m31 = 0, const T m12 = 0, const T m22 = 0, const T m32 = 0, const T m13 = 0, const T m23 = 0, const T m33 = 0) : m_arr{ m11, m21, m31, m12, m22, m32, m13, m23, m33 } {/*...*/}
@@ -45,14 +45,14 @@ namespace dd::util::math {
             constexpr ALWAYS_INLINE Matrix33RowMajorType operator-(const Matrix33RowMajorType& rhs) const {
                 return { m_r1 - rhs.m_r1, m_r2 - rhs.m_r2, m_r3 - rhs.m_r3 };
             }
-            
+
             constexpr ALWAYS_INLINE Matrix33RowMajorType operator*(const Matrix33RowMajorType& rhs) const {
                 const Vector3Type<T> t_adg(rhs.m_arr2d[0][0], rhs.m_arr2d[1][0], rhs.m_arr2d[2][0]); 
                 const Vector3Type<T> t_beh(rhs.m_arr2d[0][1], rhs.m_arr2d[1][1], rhs.m_arr2d[2][1]); 
                 const Vector3Type<T> t_cfi(rhs.m_arr2d[0][2], rhs.m_arr2d[1][2], rhs.m_arr2d[2][2]); 
                 return { m_r1 * t_adg, m_r2 * t_beh, m_r3 * t_cfi};
             }
-            
+
             constexpr ALWAYS_INLINE T Determinent() const {
                 const T d_eifh = (m_arr2d[1][1] * m_arr2d[2][2]) - (m_arr2d[1][2] * m_arr2d[2][1]);
                 const T d_fgid = (m_arr2d[1][2] * m_arr2d[2][0]) - (m_arr2d[1][0] * m_arr2d[2][2]);
@@ -61,9 +61,9 @@ namespace dd::util::math {
                 return determinent;
             }
     };
-    
+
     using Matrix33f = Matrix33RowMajorType<float>;
-    
+
     /*namespace Matrix33Calc {
         
         constexpr ALWAYS_INLINE bool Inverse(Matrix33f *out_inverse, Matrix33f *in_matrix) {

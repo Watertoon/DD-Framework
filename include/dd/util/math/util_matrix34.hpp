@@ -44,7 +44,6 @@ namespace dd::util::math {
                 m_row3.m_vec = rhs.m_row3.m_vec;
                 return *this;
             }
-            
     };
 
     using Matrix34f = Matrix34RowMajorType<float>;
@@ -86,7 +85,7 @@ namespace dd::util::math {
 
         return true;
     }
-    
+
     /*void MakeSRTIndex(Matrix34f *out_srt_matrix, const Vector3f& scale, const Vector3f& rotation, const Vector3f& translation) {
         const float sin_x = SampleSin(rotation.m_vec[0]);
         const float cos_x = SampleCos(rotation.m_vec[0]);

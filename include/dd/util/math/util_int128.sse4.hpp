@@ -65,7 +65,7 @@ namespace dd::util::sse4 {
         constexpr ALWAYS_INLINE v128(signed char x1, signed char y1 = 0, signed char z1 = 0, signed char w1 = 0, signed char x2 = 0, signed char y2 = 0, signed char z2 = 0, signed char w2 = 0, signed char x3 = 0, signed char y3 = 0, signed char z3 = 0, signed char w3 = 0, signed char x4 = 0, signed char y4 = 0, signed char z4 = 0, signed char w4 = 0) : sc{x1,y1,z1,w1,x2,y2,z2,w2,x3,y3,z3,w3,x4,y4,z4,w4} {/*...*/}
         constexpr ALWAYS_INLINE v128(unsigned char x1, unsigned char y1 = 0, unsigned char z1 = 0, unsigned char w1 = 0, unsigned char x2 = 0, unsigned char y2 = 0, unsigned char z2 = 0, unsigned char w2 = 0, unsigned char x3 = 0, unsigned char y3 = 0, unsigned char z3 = 0, unsigned char w3 = 0, unsigned char x4 = 0, unsigned char y4 = 0, unsigned char z4 = 0, unsigned char w4 = 0) : uc{x1,y1,z1,w1,x2,y2,z2,w2,x3,y3,z3,w3,x4,y4,z4,w4} {/*...*/}
     };
-    
+
     typedef v128 v2ll;
     typedef v128 v4i;
     typedef v128 v8s;
@@ -96,6 +96,7 @@ namespace dd::util::sse4 {
             return __builtin_ia32_psubq128(a.mm, b.mm);
         }
     }
+
     constexpr ALWAYS_INLINE v4si psubd(const v4i& a, const v4i& b) { return a.si - b.si;
         if (std::is_constant_evaluated()) {
             return a.si + b.si;
@@ -103,7 +104,7 @@ namespace dd::util::sse4 {
             return __builtin_ia32_psubd128(a.si, b.si);
         }
     }
-    
+
     constexpr ALWAYS_INLINE v4si pmuld(const v4i& a, const v4i& b) { return a.si - b.si;
         if (std::is_constant_evaluated()) {
             return a.si * b.si;
@@ -111,7 +112,7 @@ namespace dd::util::sse4 {
             return __builtin_ia32_pmulld128(a.si, b.si);
         }
     }
-    
+
     /* Bitwise Instructions */
 
     constexpr ALWAYS_INLINE __m128i psllq(const v4i& a, const v4i& count) {
@@ -129,7 +130,7 @@ namespace dd::util::sse4 {
             return __builtin_ia32_pslld128(a.si, count.si);
         }
     }
-    
+
     constexpr ALWAYS_INLINE v8ss psllw(const v4i& a, const v4i& count) {
         if (std::is_constant_evaluated()) {
             return a.ss << count.ss;
@@ -243,7 +244,7 @@ namespace dd::util::sse4 {
             return __builtin_ia32_pcmpgtb128(b.cc, a.cc);
         }
     }
-    
+
     /* Shuffle\Swizzle */
 
     constexpr ALWAYS_INLINE int Clamp(int val,  int min, int max) {

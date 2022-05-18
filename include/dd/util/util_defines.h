@@ -20,15 +20,28 @@
 #define DD_UNLIKELY(expression) __builtin_expect((expression), 0)
 #define DD_LIKELY(expression)   __builtin_expect((expression), 1)
 
-#define DD_ASSERT(expression) \
-{ \
-    const auto _temp_result = (expression); \
-    if (DD_UNLIKELY(!_temp_result)) { \
-        char buffer[0x200] = { '\0' }; \
-        std::snprintf(buffer, sizeof(buffer), "%d, %s", __LINE__, __FILE__); \
-        ::puts(buffer);\
-    } \
-}
+#if defined(DD_DEBUG)
+
+    #define DD_ASSERT(expression) \
+    { \
+        const auto _temp_result = (expression); \
+        if (DD_UNLIKELY(!_temp_result)) { \
+            char buffer[0x200] = { '\0' }; \
+            std::snprintf(buffer, sizeof(buffer), "%d, %s", __LINE__, __FILE__); \
+            ::puts(buffer);\
+        } \
+    }
+
+#else
+
+    #define DD_ASSERT(expression) \
+    { \
+        const auto _temp_result = (expression); \
+        if (DD_UNLIKELY(!_temp_result)) { \
+        } \
+    }
+
+#endif
 
 #define DD_ASSERT_PRINT(expression, ...) \
 { \

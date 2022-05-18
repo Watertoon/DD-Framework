@@ -132,8 +132,8 @@ namespace dd::vk {
 
             ~Context();
             
-            constexpr ALWAYS_INLINE s32 FindMemoryHeapIndex(u32 memory_properties) const {
-                for (s32 i = 0; i < m_vk_physical_device_memory_properties.memoryTypeCount; ++i) {
+            constexpr ALWAYS_INLINE u32 FindMemoryHeapIndex(u32 memory_properties) const {
+                for (u32 i = 0; i < m_vk_physical_device_memory_properties.memoryTypeCount; ++i) {
                     if ((m_vk_physical_device_memory_properties.memoryTypes[i].propertyFlags & memory_properties) == memory_properties) {
                         return i;
                     }
