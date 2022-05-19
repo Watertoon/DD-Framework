@@ -43,7 +43,7 @@ namespace dd::vk {
 
                 this->SetVirtualCanvasSize(static_cast<float>(window_width), static_cast<float>(window_height));
                 this->SetDimensions(static_cast<float>(window_width), static_cast<float>(window_height));
-
+            
                 const u32 family_index = context->GetGraphicsQueueFamilyIndex();
                 const VkSwapchainCreateInfoKHR swapchain_info = {
                     .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,

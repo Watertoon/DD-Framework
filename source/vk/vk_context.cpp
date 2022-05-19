@@ -737,7 +737,7 @@ namespace dd::vk {
     }
 
     void Context::WaitForGpu() {
-        
+
         /* Bail if draw is skipped */
         if (this->IsSkipDraw() == true) {
             bool result = this->TryRecreateFramebuffer();
@@ -746,11 +746,12 @@ namespace dd::vk {
                 this->ClearSkipDrawUnsafe();
                 this->ClearResizeUnsafe();
                 this->UnlockWindowResize();
+
                 VkFence submit_fence = m_bound_frame_buffer->GetCurrentQueueSubmitFence();
                 const u32 result0 = pfn_vkWaitForFences(m_vk_device, 1, std::addressof(submit_fence), VK_TRUE, UINT64_MAX);
                 DD_ASSERT(result0 == VK_SUCCESS);
-                VkFence acquire_fence = m_bound_frame_buffer->GetImageAcquireFence();
 
+                VkFence acquire_fence = m_bound_frame_buffer->GetImageAcquireFence();
                 const u32 result1 = pfn_vkWaitForFences(m_vk_device, 1, std::addressof(acquire_fence), VK_TRUE, 16000000);
                 DD_ASSERT(result1 == VK_SUCCESS);
             }
@@ -767,13 +768,6 @@ namespace dd::vk {
 
         m_entered_present = false;
 
-        /* Apply our window resize */
-        if (m_bound_frame_buffer->ApplyResize(this) == true) {
-            this->SetSkipDraw();
-            m_present_cs.Leave();
-            return;
-        }
-
         /* Wait for Queue submission to finish */
         VkFence submit_fence = m_bound_frame_buffer->GetCurrentQueueSubmitFence();
 
@@ -788,7 +782,7 @@ namespace dd::vk {
 
         m_present_cs.Leave();
     }
-    
+
     bool Context::TryRecreateFramebuffer() {
 
         m_present_cs.Enter();

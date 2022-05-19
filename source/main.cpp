@@ -16,10 +16,11 @@
 #include <dd.hpp>
 
 namespace {
+
     dd::util::TypeStorage<dd::vk::Context>       context;
     dd::util::TypeStorage<dd::vk::FrameBuffer>   framebuffer;
     dd::util::TypeStorage<dd::vk::CommandBuffer> command_buffers[dd::vk::FrameBuffer::FramesInFlight];
-    
+
     struct ContextInitState {
         bool    is_ready_for_exit;
         HANDLE  context_event;
@@ -95,7 +96,7 @@ void Draw(dd::vk::Context *global_context, dd::vk::CommandBuffer *global_command
 
     dd::vk::FrameBuffer *global_frame_buffer = dd::util::GetPointer(framebuffer);
     const VkClearColorValue clear_color = {
-        .float32 = { 0.0f, 1.0f, 0.0f, 1.0f }
+        .float32 = { 0.5f, 0.5f, 0.5f, 1.0f }
     };
     const VkImageSubresourceRange clear_sub_range = {
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
