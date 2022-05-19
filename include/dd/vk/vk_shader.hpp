@@ -59,7 +59,7 @@ namespace dd::vk {
                         .codeSize = shader_info->vertex_code_size,
                         .pCode = shader_info->vertex_code
                     };
-                    const u32 result = ::vkCreateShaderModule(context->GetDevice(), std::addressof(shader_module_info), nullptr, std::addressof(m_vk_vertex_module));
+                    const u32 result = ::pfn_vkCreateShaderModule(context->GetDevice(), std::addressof(shader_module_info), nullptr, std::addressof(m_vk_vertex_module));
                     DD_ASSERT(result == VK_SUCCESS);
                 }
                 if (shader_info->tessellation_control_code != nullptr) {
@@ -68,7 +68,7 @@ namespace dd::vk {
                         .codeSize = shader_info->tessellation_control_code_size,
                         .pCode = shader_info->tessellation_control_code
                     };
-                    const u32 result = ::vkCreateShaderModule(context->GetDevice(), std::addressof(shader_module_info), nullptr, std::addressof(m_vk_tessellation_control_module));
+                    const u32 result = ::pfn_vkCreateShaderModule(context->GetDevice(), std::addressof(shader_module_info), nullptr, std::addressof(m_vk_tessellation_control_module));
                     DD_ASSERT(result == VK_SUCCESS);
                 }
                 if (shader_info->tessellation_evaluation_code != nullptr) {
@@ -77,7 +77,7 @@ namespace dd::vk {
                         .codeSize = shader_info->tessellation_evaluation_code_size,
                         .pCode = shader_info->tessellation_evaluation_code
                     };
-                    const u32 result = ::vkCreateShaderModule(context->GetDevice(), std::addressof(shader_module_info), nullptr, std::addressof(m_vk_tessellation_evaluation_module));
+                    const u32 result = ::pfn_vkCreateShaderModule(context->GetDevice(), std::addressof(shader_module_info), nullptr, std::addressof(m_vk_tessellation_evaluation_module));
                     DD_ASSERT(result == VK_SUCCESS);
                 }
                 if (shader_info->geometry_code != nullptr) {
@@ -86,7 +86,7 @@ namespace dd::vk {
                         .codeSize = shader_info->geometry_code_size,
                         .pCode = shader_info->geometry_code
                     };
-                    const u32 result = ::vkCreateShaderModule(context->GetDevice(), std::addressof(shader_module_info), nullptr, std::addressof(m_vk_geometry_module));
+                    const u32 result = ::pfn_vkCreateShaderModule(context->GetDevice(), std::addressof(shader_module_info), nullptr, std::addressof(m_vk_geometry_module));
                     DD_ASSERT(result == VK_SUCCESS);
                 }
                 if (shader_info->fragment_code != nullptr) {
@@ -95,7 +95,7 @@ namespace dd::vk {
                         .codeSize = shader_info->fragment_code_size,
                         .pCode = shader_info->fragment_code
                     };
-                    const u32 result = ::vkCreateShaderModule(context->GetDevice(), std::addressof(shader_module_info), nullptr, std::addressof(m_vk_fragment_module));
+                    const u32 result = ::pfn_vkCreateShaderModule(context->GetDevice(), std::addressof(shader_module_info), nullptr, std::addressof(m_vk_fragment_module));
                     DD_ASSERT(result == VK_SUCCESS);
                 }
                 if (shader_info->compute_code != nullptr) {
@@ -104,29 +104,29 @@ namespace dd::vk {
                         .codeSize = shader_info->compute_code_size,
                         .pCode = shader_info->compute_code
                     };
-                    const u32 result = ::vkCreateShaderModule(context->GetDevice(), std::addressof(shader_module_info), nullptr, std::addressof(m_vk_compute_module));
+                    const u32 result = ::pfn_vkCreateShaderModule(context->GetDevice(), std::addressof(shader_module_info), nullptr, std::addressof(m_vk_compute_module));
                     DD_ASSERT(result == VK_SUCCESS);
                 }
             }
 
             void Finalize(const Context *context) {
                 if (m_vk_vertex_module != 0) {
-                    ::vkDestroyShaderModule(context->GetDevice(), m_vk_vertex_module, nullptr);
+                    ::pfn_vkDestroyShaderModule(context->GetDevice(), m_vk_vertex_module, nullptr);
                 }
                 if (m_vk_tessellation_control_module != 0) {
-                    ::vkDestroyShaderModule(context->GetDevice(), m_vk_tessellation_control_module, nullptr);
+                    ::pfn_vkDestroyShaderModule(context->GetDevice(), m_vk_tessellation_control_module, nullptr);
                 }
                 if (m_vk_tessellation_evaluation_module != 0) {
-                    ::vkDestroyShaderModule(context->GetDevice(), m_vk_tessellation_evaluation_module, nullptr);
+                    ::pfn_vkDestroyShaderModule(context->GetDevice(), m_vk_tessellation_evaluation_module, nullptr);
                 }
                 if (m_vk_geometry_module != 0) {
-                    ::vkDestroyShaderModule(context->GetDevice(), m_vk_geometry_module, nullptr);
+                    ::pfn_vkDestroyShaderModule(context->GetDevice(), m_vk_geometry_module, nullptr);
                 }
                 if (m_vk_fragment_module != 0) {
-                    ::vkDestroyShaderModule(context->GetDevice(), m_vk_fragment_module, nullptr);
+                    ::pfn_vkDestroyShaderModule(context->GetDevice(), m_vk_fragment_module, nullptr);
                 }
                 if (m_vk_compute_module != 0) {
-                    ::vkDestroyShaderModule(context->GetDevice(), m_vk_compute_module, nullptr);
+                    ::pfn_vkDestroyShaderModule(context->GetDevice(), m_vk_compute_module, nullptr);
                 }
             }
 

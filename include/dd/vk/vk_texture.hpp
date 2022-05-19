@@ -68,11 +68,11 @@ namespace dd::vk {
                     .initialLayout = static_cast<VkImageLayout>(texture_info->vk_image_layout)
                 };
 
-                const u32 result0 = ::vkCreateImage(context->GetDevice(), std::addressof(image_info), nullptr, std::addressof(m_vk_image));
+                const u32 result0 = ::pfn_vkCreateImage(context->GetDevice(), std::addressof(image_info), nullptr, std::addressof(m_vk_image));
                 DD_ASSERT(result0 == VK_SUCCESS);
 
                 /* Bind image memory */
-                const u32 result1 = ::vkBindImageMemory(context->GetDevice(), m_vk_image, memory_pool->GetDeviceMemory(), texture_info->memory_offset);
+                const u32 result1 = ::pfn_vkBindImageMemory(context->GetDevice(), m_vk_image, memory_pool->GetDeviceMemory(), texture_info->memory_offset);
                 DD_ASSERT(result1 == VK_SUCCESS);
 
                 m_requires_relocation = memory_pool->RequiresRelocation();
@@ -88,7 +88,7 @@ namespace dd::vk {
 
             void Finalize(const Context *context) {
                 if (m_import == false) {
-                    ::vkDestroyImage(context->GetDevice(), m_vk_image, nullptr);
+                    ::pfn_vkDestroyImage(context->GetDevice(), m_vk_image, nullptr);
                 }
             }
 
@@ -133,13 +133,13 @@ namespace dd::vk {
                     .initialLayout = static_cast<VkImageLayout>(texture_info->vk_image_layout)
                 };
 
-                const u32 result0 = ::vkCreateImage(context->GetDevice(), std::addressof(image_info), nullptr, std::addressof(vk_image));
+                const u32 result0 = ::pfn_vkCreateImage(context->GetDevice(), std::addressof(image_info), nullptr, std::addressof(vk_image));
                 DD_ASSERT(result0 == VK_SUCCESS);
 
                 VkMemoryRequirements memory_requirements = {};
-                ::vkGetImageMemoryRequirements(context->GetDevice(), vk_image, std::addressof(memory_requirements));
+                ::pfn_vkGetImageMemoryRequirements(context->GetDevice(), vk_image, std::addressof(memory_requirements));
 
-                ::vkDestroyImage(context->GetDevice(), vk_image, nullptr);
+                ::pfn_vkDestroyImage(context->GetDevice(), vk_image, nullptr);
 
                 return memory_requirements.alignment;
             }

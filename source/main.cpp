@@ -66,7 +66,7 @@ long unsigned int ContextMain(void *arg) {
     ::ResetEvent(context_state->context_event);
 
     /* Cleanup */
-    ::vkDeviceWaitIdle(dd::util::GetPointer(context)->GetDevice());
+    ::pfn_vkDeviceWaitIdle(dd::util::GetPointer(context)->GetDevice());
 
     dd::util::GetReference(framebuffer).Finalize(dd::util::GetPointer(context));
     dd::util::DestructAt(framebuffer);

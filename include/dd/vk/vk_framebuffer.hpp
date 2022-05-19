@@ -17,7 +17,7 @@
 
 namespace dd::vk {
 
-    class FrameBuffer {
+    class FrameBuffer : public dd::util::LogicalFramebuffer {
         public:
             static constexpr u32 FramesInFlight = 2;
             static constexpr u32 BufferedFrames = 3;
@@ -41,6 +41,9 @@ namespace dd::vk {
                 u32 window_width = 0, window_height = 0;
                 context->GetWindowDimensionsUnsafe(std::addressof(window_width), std::addressof(window_height));
                 
+                this->SetVirtualCanvasSize(static_cast<float>(window_width), static_cast<float>(window_height));
+                this->SetDimensions(static_cast<float>(window_width), static_cast<float>(window_height));
+                
                 const u32 family_index = context->GetGraphicsQueueFamilyIndex();
                 const VkSwapchainCreateInfoKHR swapchain_info = {
                     .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -63,13 +66,13 @@ namespace dd::vk {
                     .clipped = VK_TRUE
                 };
 
-                const u32 result0 = ::vkCreateSwapchainKHR(context->GetDevice(), std::addressof(swapchain_info), nullptr, std::addressof(m_vk_swapchain));
+                const u32 result0 = ::pfn_vkCreateSwapchainKHR(context->GetDevice(), std::addressof(swapchain_info), nullptr, std::addressof(m_vk_swapchain));
                 DD_ASSERT(result0 == VK_SUCCESS);
 
                 /* Initialize textures */
                 VkImage images[BufferedFrames] = {};
                 u32 image_count = BufferedFrames;
-                const u32 result1 = ::vkGetSwapchainImagesKHR(context->GetDevice(), m_vk_swapchain, std::addressof(image_count), images);
+                const u32 result1 = ::pfn_vkGetSwapchainImagesKHR(context->GetDevice(), m_vk_swapchain, std::addressof(image_count), images);
                 DD_ASSERT(result1 == VK_SUCCESS);
 
                 for (u32 i = 0; i < BufferedFrames; ++i) {
@@ -105,34 +108,34 @@ namespace dd::vk {
                 };
 
                 for (u32 i = 0; i < FramesInFlight; ++i) {
-                    const u32 result10 = ::vkCreateSemaphore(context->GetDevice(), std::addressof(semaphore_info), nullptr, std::addressof(m_vk_queue_present_semaphore[i]));
+                    const u32 result10 = ::pfn_vkCreateSemaphore(context->GetDevice(), std::addressof(semaphore_info), nullptr, std::addressof(m_vk_queue_present_semaphore[i]));
                     DD_ASSERT(result10 == VK_SUCCESS);
                 }
 
-                const u32 result3 = ::vkCreateFence(context->GetDevice(), std::addressof(fence_info), nullptr, std::addressof(m_vk_image_acquire_fence));
+                const u32 result3 = ::pfn_vkCreateFence(context->GetDevice(), std::addressof(fence_info), nullptr, std::addressof(m_vk_image_acquire_fence));
                 DD_ASSERT(result3 == VK_SUCCESS);
 
                 fence_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
                 for (u32 i = 0; i < FramesInFlight; ++i) {
-                    const u32 result6 = ::vkCreateFence(context->GetDevice(), std::addressof(fence_info), nullptr, std::addressof(m_vk_queue_submit_fence[i]));
+                    const u32 result6 = ::pfn_vkCreateFence(context->GetDevice(), std::addressof(fence_info), nullptr, std::addressof(m_vk_queue_submit_fence[i]));
                     DD_ASSERT(result6 == VK_SUCCESS);
                 }
 
                 /* Acquire first image index */
-                const u32 result7 = ::vkAcquireNextImageKHR(context->GetDevice(), m_vk_swapchain, 0, VK_NULL_HANDLE, m_vk_image_acquire_fence, std::addressof(m_current_target_index));
+                const u32 result7 = ::pfn_vkAcquireNextImageKHR(context->GetDevice(), m_vk_swapchain, 0, VK_NULL_HANDLE, m_vk_image_acquire_fence, std::addressof(m_current_target_index));
                 DD_ASSERT(result7 == VK_SUCCESS);
 
-                const u32 result8 = ::vkWaitForFences(context->GetDevice(), 1, std::addressof(m_vk_image_acquire_fence), VK_TRUE, UINT64_MAX);
+                const u32 result8 = ::pfn_vkWaitForFences(context->GetDevice(), 1, std::addressof(m_vk_image_acquire_fence), VK_TRUE, UINT64_MAX);
                 DD_ASSERT(result8 == VK_SUCCESS);
             }
 
             void Finalize(const Context *context) {
 
-                ::vkDestroyFence(context->GetDevice(), m_vk_image_acquire_fence, nullptr);
+                ::pfn_vkDestroyFence(context->GetDevice(), m_vk_image_acquire_fence, nullptr);
                 for (u32 i = 0; i < FramesInFlight; ++i) {
-                    ::vkDestroySemaphore(context->GetDevice(), m_vk_queue_present_semaphore[i], nullptr);
-                    ::vkDestroyFence(context->GetDevice(), m_vk_queue_submit_fence[i], nullptr);
+                    ::pfn_vkDestroySemaphore(context->GetDevice(), m_vk_queue_present_semaphore[i], nullptr);
+                    ::pfn_vkDestroyFence(context->GetDevice(), m_vk_queue_submit_fence[i], nullptr);
                 }
 
                 for (u32 i = 0; i < BufferedFrames; ++i) {
@@ -174,11 +177,11 @@ namespace dd::vk {
                 };
 
                 const VkDevice vk_device = context->GetDevice();
-                const u32 result0 = ::vkCreateSwapchainKHR(vk_device, std::addressof(swapchain_info), nullptr, std::addressof(m_vk_swapchain));
+                const u32 result0 = ::pfn_vkCreateSwapchainKHR(vk_device, std::addressof(swapchain_info), nullptr, std::addressof(m_vk_swapchain));
                 DD_ASSERT(result0 == VK_SUCCESS);
 
                 /* Reset state */
-                ::vkDestroySwapchainKHR(vk_device, old_swapchain, nullptr);
+                ::pfn_vkDestroySwapchainKHR(vk_device, old_swapchain, nullptr);
                 
                 for (u32 i = 0; i < BufferedFrames; ++i) {
                     m_vk_swapchain_targets[i].Finalize(context);
@@ -190,7 +193,7 @@ namespace dd::vk {
                 /* Reinitialize textures */
                 VkImage images[BufferedFrames] = {};
                 u32 image_count = BufferedFrames;
-                const u32 result1 = ::vkGetSwapchainImagesKHR(vk_device, m_vk_swapchain, std::addressof(image_count), images);
+                const u32 result1 = ::pfn_vkGetSwapchainImagesKHR(vk_device, m_vk_swapchain, std::addressof(image_count), images);
                 DD_ASSERT(result1 == VK_SUCCESS);
 
                 for (u32 i = 0; i < BufferedFrames; ++i) {
@@ -218,14 +221,14 @@ namespace dd::vk {
                 }
 
                 /* Acquire first image index */
-                const u32 result9 = ::vkResetFences(vk_device, 1, std::addressof(m_vk_image_acquire_fence));
+                const u32 result9 = ::pfn_vkResetFences(vk_device, 1, std::addressof(m_vk_image_acquire_fence));
                 DD_ASSERT(result9 == VK_SUCCESS);
 
-                const u32 result7 = ::vkAcquireNextImageKHR(vk_device, m_vk_swapchain, 0, VK_NULL_HANDLE, m_vk_image_acquire_fence, std::addressof(m_current_target_index));
+                const u32 result7 = ::pfn_vkAcquireNextImageKHR(vk_device, m_vk_swapchain, 0, VK_NULL_HANDLE, m_vk_image_acquire_fence, std::addressof(m_current_target_index));
                 DD_ASSERT(result7 == VK_SUCCESS);
                 
                 for (u32 i = 0; i < FramesInFlight; ++i) {
-                    ::vkDestroySemaphore(vk_device, m_vk_queue_present_semaphore[i], nullptr);
+                    ::pfn_vkDestroySemaphore(vk_device, m_vk_queue_present_semaphore[i], nullptr);
                 }
                 
                 /* Recreate Semaphores */
@@ -234,7 +237,7 @@ namespace dd::vk {
                 };
                 
                 for (u32 i = 0; i < FramesInFlight; ++i) {
-                    const u32 result10 = ::vkCreateSemaphore(vk_device, std::addressof(semaphore_info), nullptr, std::addressof(m_vk_queue_present_semaphore[i]));
+                    const u32 result10 = ::pfn_vkCreateSemaphore(vk_device, std::addressof(semaphore_info), nullptr, std::addressof(m_vk_queue_present_semaphore[i]));
                     DD_ASSERT(result10 == VK_SUCCESS);
                 }
             }
@@ -251,15 +254,15 @@ namespace dd::vk {
                     .pSwapchains = std::addressof(m_vk_swapchain),
                     .pImageIndices = std::addressof(m_current_target_index)
                 };
-                const u32 result0 = ::vkQueuePresentKHR(context->GetGraphicsQueue(), std::addressof(present_info));
+                const u32 result0 = ::pfn_vkQueuePresentKHR(context->GetGraphicsQueue(), std::addressof(present_info));
                 DD_ASSERT(result0 == VK_SUCCESS);
 
                 /* Acquire next image index */
                 const VkDevice vk_device = context->GetDevice();
-                const u32 result1 = ::vkResetFences(vk_device, 1, std::addressof(m_vk_image_acquire_fence));
+                const u32 result1 = ::pfn_vkResetFences(vk_device, 1, std::addressof(m_vk_image_acquire_fence));
                 DD_ASSERT(result1 == VK_SUCCESS);
                 
-                const u32 result2 = ::vkAcquireNextImageKHR(vk_device, m_vk_swapchain, 0, VK_NULL_HANDLE, m_vk_image_acquire_fence, std::addressof(m_current_target_index));
+                const u32 result2 = ::pfn_vkAcquireNextImageKHR(vk_device, m_vk_swapchain, 0, VK_NULL_HANDLE, m_vk_image_acquire_fence, std::addressof(m_current_target_index));
                 DD_ASSERT(result2 == VK_SUCCESS);
 
                 m_current_frame = (m_current_frame + 1) % FramesInFlight;
@@ -277,8 +280,8 @@ namespace dd::vk {
                 const VkDevice vk_device = context->GetDevice();
 
                 /* Wait for previous frames to run their course */
-                ::vkQueueWaitIdle(context->GetGraphicsQueue());
-                ::vkDeviceWaitIdle(vk_device);
+                ::pfn_vkQueueWaitIdle(context->GetGraphicsQueue());
+                ::pfn_vkDeviceWaitIdle(vk_device);
 
                 /* Recreate swapchain */
                 this->Recreate(context);
@@ -297,7 +300,7 @@ namespace dd::vk {
             constexpr VkSemaphore GetCurrentQueuePresentSemaphore()    { return m_vk_queue_present_semaphore[m_current_frame]; }
 
             void ResetCurrentQueueSubmitFence() {
-                const u32 result0 = ::vkResetFences(GetGlobalContext()->GetDevice(), 1, std::addressof(m_vk_queue_submit_fence[m_current_frame]));
+                const u32 result0 = ::pfn_vkResetFences(GetGlobalContext()->GetDevice(), 1, std::addressof(m_vk_queue_submit_fence[m_current_frame]));
                 DD_ASSERT(result0 == VK_SUCCESS);
             }
 

@@ -51,11 +51,11 @@ namespace dd::vk {
                     .pQueueFamilyIndices = std::addressof(queue_family_index)
                 };
 
-                const u32 result0 = ::vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(m_vk_buffer));
+                const u32 result0 = ::pfn_vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(m_vk_buffer));
                 DD_ASSERT(result0 == VK_SUCCESS);
 
                 /* Bind buffer memory */
-                const u32 result1 = ::vkBindBufferMemory(context->GetDevice(), m_vk_buffer, memory_pool->GetDeviceMemory(), buffer_info->offset);
+                const u32 result1 = ::pfn_vkBindBufferMemory(context->GetDevice(), m_vk_buffer, memory_pool->GetDeviceMemory(), buffer_info->offset);
                 DD_ASSERT(result1 == VK_SUCCESS);
 
                 m_requires_relocation = memory_pool->RequiresRelocation();
@@ -64,7 +64,7 @@ namespace dd::vk {
             }
 
             void Finalize(const Context *context) {
-                ::vkDestroyBuffer(context->GetDevice(), m_vk_buffer, nullptr);
+                ::pfn_vkDestroyBuffer(context->GetDevice(), m_vk_buffer, nullptr);
                 m_vk_buffer = 0;
             }
 
@@ -82,7 +82,7 @@ namespace dd::vk {
                     .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
                     .buffer = m_vk_buffer
                 };
-                return ::vkGetBufferDeviceAddress(GetGlobalContext()->GetDevice(), std::addressof(device_address_info));
+                return ::pfn_vkGetBufferDeviceAddress(GetGlobalContext()->GetDevice(), std::addressof(device_address_info));
             }
             
             constexpr ALWAYS_INLINE VkBuffer GetBuffer() const { return m_vk_buffer; }
@@ -110,13 +110,13 @@ namespace dd::vk {
                     .pQueueFamilyIndices = std::addressof(queue_family_index)
                 };
 
-                const u32 result0 = ::vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(vk_buffer));
+                const u32 result0 = ::pfn_vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(vk_buffer));
                 DD_ASSERT(result0 == VK_SUCCESS);
 
                 VkMemoryRequirements memory_requirements = {};
-                ::vkGetBufferMemoryRequirements(context->GetDevice(), vk_buffer, std::addressof(memory_requirements));
+                ::pfn_vkGetBufferMemoryRequirements(context->GetDevice(), vk_buffer, std::addressof(memory_requirements));
 
-                ::vkDestroyBuffer(context->GetDevice(), vk_buffer, nullptr);
+                ::pfn_vkDestroyBuffer(context->GetDevice(), vk_buffer, nullptr);
                 
                 return memory_requirements.alignment;
             }

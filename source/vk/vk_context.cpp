@@ -179,8 +179,8 @@ namespace dd::vk {
         
         for (u32 i = 0; i < m_vk_physical_device_count; ++i) {
             /* Query Physical Device */
-            ::vkGetPhysicalDeviceProperties2(m_vk_physical_device_array[i], std::addressof(m_vk_physical_device_properties));
-            ::vkGetPhysicalDeviceFeatures2(m_vk_physical_device_array[i], std::addressof(m_vk_physical_device_supported_features));
+            pfn_vkGetPhysicalDeviceProperties2(m_vk_physical_device_array[i], std::addressof(m_vk_physical_device_properties));
+            pfn_vkGetPhysicalDeviceFeatures2(m_vk_physical_device_array[i], std::addressof(m_vk_physical_device_supported_features));
 
             /*  Ensure Vulkan 1.3 support */
             if (!(TargetMinimumApiVersion <= m_vk_physical_device_properties.properties.apiVersion)) { DD_ASSERT(false); continue; }
@@ -195,7 +195,7 @@ namespace dd::vk {
                 bool b_result1 = this->FindGraphicsQueueFamily(std::addressof(graphics_queue_family_index));
                 DD_ASSERT(b_result1 == true);
 
-                const u32 result = ::vkGetPhysicalDeviceWin32PresentationSupportKHR(m_vk_physical_device_array[i], graphics_queue_family_index);
+                const u32 result = pfn_vkGetPhysicalDeviceWin32PresentationSupportKHR(m_vk_physical_device_array[i], graphics_queue_family_index);
                 DD_ASSERT(result == VK_TRUE);
 
                 m_vk_physical_device = 0;
@@ -204,11 +204,11 @@ namespace dd::vk {
             /* Ensure support for targeted surface format */
             {
                 u32 surface_format_count = 0;
-                const u32 result0 = ::vkGetPhysicalDeviceSurfaceFormatsKHR(m_vk_physical_device_array[i], m_vk_surface, std::addressof(surface_format_count), nullptr);
+                const u32 result0 = pfn_vkGetPhysicalDeviceSurfaceFormatsKHR(m_vk_physical_device_array[i], m_vk_surface, std::addressof(surface_format_count), nullptr);
                 DD_ASSERT(result0 == VK_SUCCESS);
 
                 VkSurfaceFormatKHR *surface_formats = new VkSurfaceFormatKHR[surface_format_count];
-                const u32 result1 = ::vkGetPhysicalDeviceSurfaceFormatsKHR(m_vk_physical_device_array[i], m_vk_surface, std::addressof(surface_format_count), surface_formats);
+                const u32 result1 = pfn_vkGetPhysicalDeviceSurfaceFormatsKHR(m_vk_physical_device_array[i], m_vk_surface, std::addressof(surface_format_count), surface_formats);
                 DD_ASSERT(result1 == VK_SUCCESS);
 
                 for (u32 i = 0; i < surface_format_count; ++i) {
@@ -227,13 +227,13 @@ namespace dd::vk {
             /* Ensure support for targeted present mode */
             {
                 u32 present_mode_count = 0;
-                const u32 result0 = ::vkGetPhysicalDeviceSurfacePresentModesKHR(m_vk_physical_device_array[i], m_vk_surface, std::addressof(present_mode_count), nullptr);
+                const u32 result0 = pfn_vkGetPhysicalDeviceSurfacePresentModesKHR(m_vk_physical_device_array[i], m_vk_surface, std::addressof(present_mode_count), nullptr);
                 DD_ASSERT(result0 == VK_SUCCESS);
 
                 VkPresentModeKHR *present_modes = new VkPresentModeKHR[present_mode_count];
                 DD_ASSERT(present_modes != nullptr);
 
-                const u32 result1 = ::vkGetPhysicalDeviceSurfacePresentModesKHR(m_vk_physical_device_array[i], m_vk_surface, std::addressof(present_mode_count), present_modes);
+                const u32 result1 = pfn_vkGetPhysicalDeviceSurfacePresentModesKHR(m_vk_physical_device_array[i], m_vk_surface, std::addressof(present_mode_count), present_modes);
                 DD_ASSERT(result1 == VK_SUCCESS);
 
                 for (u32 i = 0; i < present_mode_count; ++i) {
@@ -329,10 +329,10 @@ namespace dd::vk {
 
     bool Context::FindGraphicsQueueFamily(u32 *queue_family_index) {
         u32 queue_family_count = 0;
-        ::vkGetPhysicalDeviceQueueFamilyProperties(m_vk_physical_device, std::addressof(queue_family_count), nullptr);
+        pfn_vkGetPhysicalDeviceQueueFamilyProperties(m_vk_physical_device, std::addressof(queue_family_count), nullptr);
 
         VkQueueFamilyProperties *queue_properties = new VkQueueFamilyProperties[queue_family_count];
-        ::vkGetPhysicalDeviceQueueFamilyProperties(m_vk_physical_device, std::addressof(queue_family_count), queue_properties);
+        pfn_vkGetPhysicalDeviceQueueFamilyProperties(m_vk_physical_device, std::addressof(queue_family_count), queue_properties);
 
         for (u32 i = 0; i < queue_family_count; ++i) {
 
@@ -341,7 +341,7 @@ namespace dd::vk {
 
             {
                 u32 supports_present = false;
-                const u32 result0 = ::vkGetPhysicalDeviceSurfaceSupportKHR(m_vk_physical_device, i, m_vk_surface, std::addressof(supports_present));
+                const u32 result0 = pfn_vkGetPhysicalDeviceSurfaceSupportKHR(m_vk_physical_device, i, m_vk_surface, std::addressof(supports_present));
                 DD_ASSERT(result0 == VK_SUCCESS);
 
                 if (supports_present == VK_FALSE) { continue; }
@@ -359,10 +359,11 @@ namespace dd::vk {
     Context::Context() : m_window_cs(), m_present_cs() {
         
         dd::vk::SetGlobalContext(this);
+        ::LoadInitialVkCProcs();
 
         /* Check supported Vulkan Api version */
         u32 api_version = 0;
-        ::vkEnumerateInstanceVersion(std::addressof(api_version));
+        pfn_vkEnumerateInstanceVersion(std::addressof(api_version));
         DD_ASSERT(TargetMinimumApiVersion <= api_version);
 
         /* Create instance */
@@ -386,11 +387,11 @@ namespace dd::vk {
             .ppEnabledExtensionNames = InstanceExtensions
         };
 
-        s32 result = ::vkCreateInstance(std::addressof(instance_info), nullptr, std::addressof(m_vk_instance));
+        s32 result = pfn_vkCreateInstance(std::addressof(instance_info), nullptr, std::addressof(m_vk_instance));
         DD_ASSERT(result == VK_SUCCESS);
 
         /* Load instance procs */
-        LoadCProcsInstance(m_vk_instance);
+        ::LoadCProcsInstance(m_vk_instance);
 
         #if defined(DD_DEBUG)
             /* Create debug messenger */
@@ -430,18 +431,18 @@ namespace dd::vk {
             .hwnd = m_hwnd
         };
 
-        const u32 result1 = ::vkCreateWin32SurfaceKHR(m_vk_instance, std::addressof(win32_info), nullptr, std::addressof(m_vk_surface));
+        const u32 result1 = pfn_vkCreateWin32SurfaceKHR(m_vk_instance, std::addressof(win32_info), nullptr, std::addressof(m_vk_surface));
         DD_ASSERT(result1 == VK_SUCCESS);
 
         /* Enumerate Physical Devices into list */
-        const u32 result2 = ::vkEnumeratePhysicalDevices(m_vk_instance, std::addressof(m_vk_physical_device_count), nullptr);
+        const u32 result2 = pfn_vkEnumeratePhysicalDevices(m_vk_instance, std::addressof(m_vk_physical_device_count), nullptr);
         DD_ASSERT(result2 == VK_SUCCESS);
         DD_ASSERT(m_vk_physical_device_count != 0);
 
         m_vk_physical_device_array = new VkPhysicalDevice[m_vk_physical_device_count];
         DD_ASSERT(m_vk_physical_device_array != nullptr);
 
-        const u32 result3 = ::vkEnumeratePhysicalDevices(m_vk_instance, std::addressof(m_vk_physical_device_count), m_vk_physical_device_array);
+        const u32 result3 = pfn_vkEnumeratePhysicalDevices(m_vk_instance, std::addressof(m_vk_physical_device_count), m_vk_physical_device_array);
         DD_ASSERT(result3 == VK_SUCCESS);
 
         /* Pick our first valid Physical Device */
@@ -474,14 +475,14 @@ namespace dd::vk {
             .pEnabledFeatures = nullptr
         };
 
-        result = ::vkCreateDevice(m_vk_physical_device, std::addressof(device_info), nullptr, std::addressof(m_vk_device));
+        result = pfn_vkCreateDevice(m_vk_physical_device, std::addressof(device_info), nullptr, std::addressof(m_vk_device));
         DD_ASSERT(result == VK_SUCCESS);
 
         /* Load device procs */
-        LoadCProcsDevice(m_vk_device);
+        ::LoadCProcsDevice(m_vk_device);
 
         /* Obtain graphics queue */
-        ::vkGetDeviceQueue(m_vk_device, graphics_queue_family_index, 0, std::addressof(m_vk_graphics_queue));
+        pfn_vkGetDeviceQueue(m_vk_device, graphics_queue_family_index, 0, std::addressof(m_vk_graphics_queue));
 
         /* Create graphics Command Pool */
         const VkCommandPoolCreateInfo graphics_command_pool_info = {
@@ -490,11 +491,11 @@ namespace dd::vk {
             .queueFamilyIndex = graphics_queue_family_index
         };
 
-        result = ::vkCreateCommandPool(m_vk_device, std::addressof(graphics_command_pool_info), nullptr, std::addressof(m_vk_graphics_command_pool));
+        result = pfn_vkCreateCommandPool(m_vk_device, std::addressof(graphics_command_pool_info), nullptr, std::addressof(m_vk_graphics_command_pool));
         DD_ASSERT(result == VK_SUCCESS);
 
         /* Query physical device memory properties */
-        ::vkGetPhysicalDeviceMemoryProperties(m_vk_physical_device, std::addressof(m_vk_physical_device_memory_properties));
+        pfn_vkGetPhysicalDeviceMemoryProperties(m_vk_physical_device, std::addressof(m_vk_physical_device_memory_properties));
 
         /* Create resource buffer descriptor layout */
         const VkDescriptorSetLayoutBinding buffer_set_binding[] = { 
@@ -541,7 +542,7 @@ namespace dd::vk {
             .bindingCount = sizeof(buffer_set_binding) / sizeof(VkDescriptorSetLayoutBinding),
             .pBindings = buffer_set_binding
         };
-        const u32 result4 = ::vkCreateDescriptorSetLayout(m_vk_device, std::addressof(buffer_set_layout_info), nullptr, std::addressof(m_vk_resource_buffer_descriptor_set_layout));
+        const u32 result4 = pfn_vkCreateDescriptorSetLayout(m_vk_device, std::addressof(buffer_set_layout_info), nullptr, std::addressof(m_vk_resource_buffer_descriptor_set_layout));
         DD_ASSERT(result4 == VK_SUCCESS);
 
         /* Create texture descriptor layout */
@@ -570,7 +571,7 @@ namespace dd::vk {
             .bindingCount = sizeof(texture_set_bindings) / sizeof(VkDescriptorSetLayoutBinding),
             .pBindings = texture_set_bindings
         };
-        const u32 result7 = ::vkCreateDescriptorSetLayout(m_vk_device, std::addressof(texture_set_layout_info), nullptr, std::addressof(m_vk_texture_descriptor_set_layout));
+        const u32 result7 = pfn_vkCreateDescriptorSetLayout(m_vk_device, std::addressof(texture_set_layout_info), nullptr, std::addressof(m_vk_texture_descriptor_set_layout));
         DD_ASSERT(result7 == VK_SUCCESS);
 
         /* Create texture descriptor layout */
@@ -599,7 +600,7 @@ namespace dd::vk {
             .bindingCount = sizeof(sampler_set_bindings) / sizeof(VkDescriptorSetLayoutBinding),
             .pBindings = sampler_set_bindings
         };
-        const u32 result6 = ::vkCreateDescriptorSetLayout(m_vk_device, std::addressof(sampler_set_layout_info), nullptr, std::addressof(m_vk_sampler_descriptor_set_layout));
+        const u32 result6 = pfn_vkCreateDescriptorSetLayout(m_vk_device, std::addressof(sampler_set_layout_info), nullptr, std::addressof(m_vk_sampler_descriptor_set_layout));
         DD_ASSERT(result6 == VK_SUCCESS);
 
         /* Create global pipeline */
@@ -650,28 +651,28 @@ namespace dd::vk {
             .pPushConstantRanges = resource_index_push_constant_ranges
         };
 
-        const u32 result9 = ::vkCreatePipelineLayout(m_vk_device, std::addressof(pipeline_layout_info), nullptr, std::addressof(m_vk_pipeline_layout));
+        const u32 result9 = pfn_vkCreatePipelineLayout(m_vk_device, std::addressof(pipeline_layout_info), nullptr, std::addressof(m_vk_pipeline_layout));
         DD_ASSERT(result9 == VK_SUCCESS);
     }
 
     Context::~Context() {
 
         /* Finalize Vulkan context */
-        ::vkQueueWaitIdle(m_vk_graphics_queue);
-        ::vkDeviceWaitIdle(m_vk_device);
+        pfn_vkQueueWaitIdle(m_vk_graphics_queue);
+        pfn_vkDeviceWaitIdle(m_vk_device);
 
-        ::vkDestroyPipelineLayout(m_vk_device, m_vk_pipeline_layout, nullptr);
-        ::vkDestroyDescriptorSetLayout(m_vk_device, m_vk_resource_buffer_descriptor_set_layout, nullptr);
-        ::vkDestroyDescriptorSetLayout(m_vk_device, m_vk_texture_descriptor_set_layout, nullptr);
-        ::vkDestroyDescriptorSetLayout(m_vk_device, m_vk_sampler_descriptor_set_layout, nullptr);
+        pfn_vkDestroyPipelineLayout(m_vk_device, m_vk_pipeline_layout, nullptr);
+        pfn_vkDestroyDescriptorSetLayout(m_vk_device, m_vk_resource_buffer_descriptor_set_layout, nullptr);
+        pfn_vkDestroyDescriptorSetLayout(m_vk_device, m_vk_texture_descriptor_set_layout, nullptr);
+        pfn_vkDestroyDescriptorSetLayout(m_vk_device, m_vk_sampler_descriptor_set_layout, nullptr);
 
-        ::vkDestroyCommandPool(m_vk_device, m_vk_graphics_command_pool, nullptr);
-        ::vkDestroyDevice(m_vk_device, nullptr);
+        pfn_vkDestroyCommandPool(m_vk_device, m_vk_graphics_command_pool, nullptr);
+        pfn_vkDestroyDevice(m_vk_device, nullptr);
         #if defined(DD_DEBUG)
             pfn_vkDestroyDebugUtilsMessengerEXT(m_vk_instance, m_debug_messenger, nullptr);
         #endif
-        ::vkDestroySurfaceKHR(m_vk_instance, m_vk_surface, nullptr);
-        ::vkDestroyInstance(m_vk_instance, nullptr);
+        pfn_vkDestroySurfaceKHR(m_vk_instance, m_vk_surface, nullptr);
+        pfn_vkDestroyInstance(m_vk_instance, nullptr);
 
         /* Free dynamic lists */
         if (m_vk_physical_device_array != nullptr) {
@@ -724,7 +725,7 @@ namespace dd::vk {
         m_bound_frame_buffer->ResetCurrentQueueSubmitFence();
         VkFence submit_fence = m_bound_frame_buffer->GetCurrentQueueSubmitFence();
 
-        const u32 result1 = ::vkQueueSubmit2(m_vk_graphics_queue, 1, std::addressof(submit_info), submit_fence);
+        const u32 result1 = pfn_vkQueueSubmit2(m_vk_graphics_queue, 1, std::addressof(submit_info), submit_fence);
         DD_ASSERT(result1 == VK_SUCCESS);
 
         /* Present */
@@ -754,13 +755,13 @@ namespace dd::vk {
         /* Wait for Queue submission to finish */
         VkFence submit_fence = m_bound_frame_buffer->GetCurrentQueueSubmitFence();
 
-        const u32 result2 = ::vkWaitForFences(m_vk_device, 1, std::addressof(submit_fence), VK_TRUE, UINT64_MAX);
+        const u32 result2 = pfn_vkWaitForFences(m_vk_device, 1, std::addressof(submit_fence), VK_TRUE, UINT64_MAX);
         DD_ASSERT(result2 == VK_SUCCESS);
 
         /* Wait for image acquire */
         VkFence acquire_fence = m_bound_frame_buffer->GetImageAcquireFence();
 
-        const u32 result0 = ::vkWaitForFences(m_vk_device, 1, std::addressof(acquire_fence), VK_TRUE, 16000000);
+        const u32 result0 = pfn_vkWaitForFences(m_vk_device, 1, std::addressof(acquire_fence), VK_TRUE, 16000000);
         DD_ASSERT(result0 == VK_SUCCESS);
 
         m_present_cs.Leave();

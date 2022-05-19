@@ -63,14 +63,14 @@ namespace dd::vk {
                     }
                 };
 
-                const u32 result0 = ::vkCreateImageView(context->GetDevice(), std::addressof(view_info), nullptr, std::addressof(m_vk_color_image_view));
+                const u32 result0 = ::pfn_vkCreateImageView(context->GetDevice(), std::addressof(view_info), nullptr, std::addressof(m_vk_color_image_view));
                 DD_ASSERT(result0 == VK_SUCCESS);
 
                 m_texture = target_info->color_attachment;
             }
 
             void Finalize(const Context *context) {
-                ::vkDestroyImageView(context->GetDevice(), m_vk_color_image_view, nullptr);
+                ::pfn_vkDestroyImageView(context->GetDevice(), m_vk_color_image_view, nullptr);
                 m_vk_color_image_view = 0;
             }
             

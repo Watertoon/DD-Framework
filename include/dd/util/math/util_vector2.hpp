@@ -30,12 +30,17 @@ namespace dd::util::math {
             v2 m_vec;
         public:
             constexpr Vector2Type() : m_vec() {/*...*/}
+            constexpr Vector2Type(T x, T y) : m_vec{x, y} {/*...*/}
             constexpr Vector2Type(v2& copy) : m_vec(copy) {/*...*/}
             constexpr Vector2Type(const v2& copy) : m_vec(copy) {/*...*/}
 
             constexpr Vector2Type(const Vector2Type& rhs) : m_vec(rhs.m_vec) {/*...*/}
 
             constexpr T operator[](int index) {
+                return m_vec[index];
+            }
+
+            constexpr T operator[](int index) const {
                 return m_vec[index];
             }
 

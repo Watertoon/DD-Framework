@@ -67,7 +67,7 @@ namespace dd::vk {
                     .pPoolSizes = std::addressof(pool_size)
                 };
 
-                const u32 result0 = ::vkCreateDescriptorPool(context->GetDevice(), std::addressof(pool_info), nullptr, std::addressof(m_vk_descriptor_pool));
+                const u32 result0 = ::pfn_vkCreateDescriptorPool(context->GetDevice(), std::addressof(pool_info), nullptr, std::addressof(m_vk_descriptor_pool));
                 DD_ASSERT(result0 == VK_SUCCESS);
 
                 /* Create Descriptor Set */
@@ -85,7 +85,7 @@ namespace dd::vk {
                     .pSetLayouts = std::addressof(vk_descriptor_set_layout)
                 };
 
-                const u32 result1 = ::vkAllocateDescriptorSets(context->GetDevice(), std::addressof(set_info), std::addressof(m_vk_descriptor_set));
+                const u32 result1 = ::pfn_vkAllocateDescriptorSets(context->GetDevice(), std::addressof(set_info), std::addressof(m_vk_descriptor_set));
                 DD_ASSERT(result1 == VK_SUCCESS);
 
                 /* Initalize default free list size */
@@ -100,7 +100,7 @@ namespace dd::vk {
             }
 
             void Finalize(const Context *context) {
-                ::vkDestroyDescriptorPool(context->GetDevice(), m_vk_descriptor_pool, nullptr);
+                ::pfn_vkDestroyDescriptorPool(context->GetDevice(), m_vk_descriptor_pool, nullptr);
                 
                 if (m_free_id_stack != nullptr) {
                     delete[] m_free_id_stack;
@@ -126,7 +126,7 @@ namespace dd::vk {
                     .pImageInfo      = std::addressof(image_info)
                 };
 
-                ::vkUpdateDescriptorSets(GetGlobalContext()->GetDevice(), 1, std::addressof(write_set), 0, nullptr);
+                ::pfn_vkUpdateDescriptorSets(GetGlobalContext()->GetDevice(), 1, std::addressof(write_set), 0, nullptr);
 
                 return new_id;
             }
@@ -149,7 +149,7 @@ namespace dd::vk {
                     .pImageInfo      = std::addressof(image_info)
                 };
 
-                ::vkUpdateDescriptorSets(GetGlobalContext()->GetDevice(), 1, std::addressof(write_set), 0, nullptr);
+                ::pfn_vkUpdateDescriptorSets(GetGlobalContext()->GetDevice(), 1, std::addressof(write_set), 0, nullptr);
 
                 return new_id;
             }

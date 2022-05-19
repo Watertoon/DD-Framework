@@ -210,12 +210,12 @@ namespace dd::vk {
                     .layout = context->GetPipelineLayout()
                 };
 
-                const u32 result2 = ::vkCreateGraphicsPipelines(context->GetDevice(), 0, 1, std::addressof(graphics_pipeline_info), nullptr, std::addressof(m_vk_pipeline));
+                const u32 result2 = ::pfn_vkCreateGraphicsPipelines(context->GetDevice(), 0, 1, std::addressof(graphics_pipeline_info), nullptr, std::addressof(m_vk_pipeline));
                 DD_ASSERT(result2 == VK_SUCCESS);
             }
 
             void Finalize(const Context *context) {
-                ::vkDestroyPipeline(context->GetDevice(), m_vk_pipeline, nullptr);
+                ::pfn_vkDestroyPipeline(context->GetDevice(), m_vk_pipeline, nullptr);
             }
 
             constexpr ALWAYS_INLINE VkPipeline GetPipeline() { return m_vk_pipeline; } 

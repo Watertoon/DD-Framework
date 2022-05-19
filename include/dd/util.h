@@ -39,5 +39,8 @@
 #include <dd/util/math/util_matrix34.hpp>
 #include <dd/util/math/util_matrix34calc.h>
 #include <dd/util/math/util_matrix44.hpp>
+#include <dd/util/math/util_clamp.hpp>
+
+#include <dd/util/util_logicalframebuffer.hpp>
 
 #include <dd/util/util_time.hpp>

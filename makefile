@@ -60,7 +60,7 @@ export LIBINC     := $(foreach dir,$(LIBDIRS),-L$(dir)/lib) \
 export INCLUDE_DIRS := -I$(CURDIR)/include -I$(CURDIR)/third_party/include $(INCLUDE)
 
 # Libs
-export LIBS := -lstdc++ -lgdi32 -luser32 -lkernel32 -lvulkan-1
+export LIBS := -lstdc++ -lgdi32 -luser32 -lkernel32
 
 # Compiler Flags
 export COMPILER_FLAGS :=  $(RELEASE_FLAGS) $(CXX_FLAGS) $(CXX_WARNS) $(INCLUDE_DIRS) $(LIBINC)

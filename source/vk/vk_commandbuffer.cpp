@@ -86,14 +86,14 @@ namespace dd::vk {
             .pStencilAttachment   = depth_stencil_ref
         };
 
-        ::vkCmdBeginRendering(m_vk_command_buffer, std::addressof(rendering_info));
+        ::pfn_vkCmdBeginRendering(m_vk_command_buffer, std::addressof(rendering_info));
         m_is_rendering = true;
     }
 
     void CommandBuffer::EndRenderingIfRendering() {
         if (m_is_rendering == true) {
             m_is_rendering = false;
-            ::vkCmdEndRendering(m_vk_command_buffer);
+            ::pfn_vkCmdEndRendering(m_vk_command_buffer);
         }
     }
 
@@ -103,72 +103,72 @@ namespace dd::vk {
         if (m_need_vertex_resource_update == true) {
 
             void *memory_address = nullptr;
-            const u32 result0 = ::vkMapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory, VertexBufferMemoryOffset + (sizeof(ResourceBuffer) * m_vertex_resource_update_count), sizeof(ResourceBuffer), 0, std::addressof(memory_address));
+            const u32 result0 = ::pfn_vkMapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory, VertexBufferMemoryOffset + (sizeof(ResourceBuffer) * m_vertex_resource_update_count), sizeof(ResourceBuffer), 0, std::addressof(memory_address));
             DD_ASSERT(result0 == VK_SUCCESS);
 
             ::memcpy(memory_address, std::addressof(m_resource_buffer_per_stage_array[ShaderStage_Vertex]), sizeof(ResourceBuffer));
 
-            ::vkUnmapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory);
+            ::pfn_vkUnmapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory);
 
             m_vertex_resource_update_count += 1;
         }
         if (m_need_tessellation_evaluation_resource_update == true) {
 
             void *memory_address = nullptr;
-            const u32 result0 = ::vkMapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory, TessellationEvaluationBufferMemoryOffset + (sizeof(ResourceBuffer) * m_tessellation_evaluation_resource_update_count), sizeof(ResourceBuffer), 0, std::addressof(memory_address));
+            const u32 result0 = ::pfn_vkMapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory, TessellationEvaluationBufferMemoryOffset + (sizeof(ResourceBuffer) * m_tessellation_evaluation_resource_update_count), sizeof(ResourceBuffer), 0, std::addressof(memory_address));
             DD_ASSERT(result0 == VK_SUCCESS);
 
             ::memcpy(memory_address, std::addressof(m_resource_buffer_per_stage_array[ShaderStage_TessellationEvaluation]), sizeof(ResourceBuffer));
 
-            ::vkUnmapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory);
+            ::pfn_vkUnmapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory);
 
             m_tessellation_evaluation_resource_update_count += 1;
         }
         if (m_need_tessellation_control_resource_update == true) {
 
             void *memory_address = nullptr;
-            const u32 result0 = ::vkMapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory, TessellationControlBufferMemoryOffset + (sizeof(ResourceBuffer) * m_tessellation_control_resource_update_count), sizeof(ResourceBuffer), 0, std::addressof(memory_address));
+            const u32 result0 = ::pfn_vkMapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory, TessellationControlBufferMemoryOffset + (sizeof(ResourceBuffer) * m_tessellation_control_resource_update_count), sizeof(ResourceBuffer), 0, std::addressof(memory_address));
             DD_ASSERT(result0 == VK_SUCCESS);
 
             ::memcpy(memory_address, std::addressof(m_resource_buffer_per_stage_array[ShaderStage_TessellationControl]), sizeof(ResourceBuffer));
 
-            ::vkUnmapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory);
+            ::pfn_vkUnmapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory);
 
             m_tessellation_control_resource_update_count += 1;
         }
         if (m_need_geometry_resource_update == true) {
 
             void *memory_address = nullptr;
-            const u32 result0 = ::vkMapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory, GeometryBufferMemoryOffset + (sizeof(ResourceBuffer) * m_geometry_resource_update_count), sizeof(ResourceBuffer), 0, std::addressof(memory_address));
+            const u32 result0 = ::pfn_vkMapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory, GeometryBufferMemoryOffset + (sizeof(ResourceBuffer) * m_geometry_resource_update_count), sizeof(ResourceBuffer), 0, std::addressof(memory_address));
             DD_ASSERT(result0 == VK_SUCCESS);
 
             ::memcpy(memory_address, std::addressof(m_resource_buffer_per_stage_array[ShaderStage_Geometry]), sizeof(ResourceBuffer));
 
-            ::vkUnmapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory);
+            ::pfn_vkUnmapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory);
 
             m_geometry_resource_update_count += 1;
         }
         if (m_need_fragment_resource_update == true) {
 
             void *memory_address = nullptr;
-            const u32 result0 = ::vkMapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory, FragmentBufferMemoryOffset + (sizeof(ResourceBuffer) * m_fragment_resource_update_count), sizeof(ResourceBuffer), 0, std::addressof(memory_address));
+            const u32 result0 = ::pfn_vkMapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory, FragmentBufferMemoryOffset + (sizeof(ResourceBuffer) * m_fragment_resource_update_count), sizeof(ResourceBuffer), 0, std::addressof(memory_address));
             DD_ASSERT(result0 == VK_SUCCESS);
 
             ::memcpy(memory_address, std::addressof(m_resource_buffer_per_stage_array[ShaderStage_Fragment]), sizeof(ResourceBuffer));
 
-            ::vkUnmapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory);
+            ::pfn_vkUnmapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory);
 
             m_fragment_resource_update_count += 1;
         }
         if (m_need_compute_resource_update == true) {
 
             void *memory_address = nullptr;
-            const u32 result0 = ::vkMapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory, ComputeBufferMemoryOffset + (sizeof(ResourceBuffer) * m_compute_resource_update_count), sizeof(ResourceBuffer), 0, std::addressof(memory_address));
+            const u32 result0 = ::pfn_vkMapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory, ComputeBufferMemoryOffset + (sizeof(ResourceBuffer) * m_compute_resource_update_count), sizeof(ResourceBuffer), 0, std::addressof(memory_address));
             DD_ASSERT(result0 == VK_SUCCESS);
 
             ::memcpy(memory_address, std::addressof(m_resource_buffer_per_stage_array[ShaderStage_Compute]), sizeof(ResourceBuffer));
 
-            ::vkUnmapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory);
+            ::pfn_vkUnmapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory);
 
             m_compute_resource_update_count += 1;
         }
@@ -177,27 +177,27 @@ namespace dd::vk {
     void CommandBuffer::PushResourceBufferIndices() {
         if (m_vertex_resource_update_count != 0) {
             const u32 resource_index = m_vertex_resource_update_count - 1;
-            ::vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(u32), std::addressof(resource_index));
+            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(u32), std::addressof(resource_index));
         }
         if (m_tessellation_evaluation_resource_update_count != 0) {
             const u32 resource_index = m_tessellation_evaluation_resource_update_count - 1;
-            ::vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT, sizeof(u32), sizeof(u32), std::addressof(resource_index));
+            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT, sizeof(u32), sizeof(u32), std::addressof(resource_index));
         }
         if (m_tessellation_control_resource_update_count != 0) {
             const u32 resource_index = m_tessellation_control_resource_update_count - 1;
-            ::vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT, sizeof(u32) * 2, sizeof(u32), std::addressof(resource_index));
+            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT, sizeof(u32) * 2, sizeof(u32), std::addressof(resource_index));
         }
         if (m_geometry_resource_update_count != 0) {
             const u32 resource_index = m_geometry_resource_update_count - 1;
-            ::vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_GEOMETRY_BIT, sizeof(u32) * 3, sizeof(u32), std::addressof(resource_index));
+            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_GEOMETRY_BIT, sizeof(u32) * 3, sizeof(u32), std::addressof(resource_index));
         }
         if (m_fragment_resource_update_count != 0) {
             const u32 resource_index = m_fragment_resource_update_count - 1;
-            ::vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(u32) * 4, sizeof(u32), std::addressof(resource_index));
+            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(u32) * 4, sizeof(u32), std::addressof(resource_index));
         }
         if (m_compute_resource_update_count != 0) {
             const u32 resource_index = m_compute_resource_update_count - 1;
-            ::vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, sizeof(u32) * 5, sizeof(u32), std::addressof(resource_index));
+            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, sizeof(u32) * 5, sizeof(u32), std::addressof(resource_index));
         }
     }
 
@@ -213,7 +213,7 @@ namespace dd::vk {
             .commandBufferCount = 1
         };
 
-        const u32 result0 = ::vkAllocateCommandBuffers(context->GetDevice(), std::addressof(allocate_info), std::addressof(m_vk_command_buffer));
+        const u32 result0 = ::pfn_vkAllocateCommandBuffers(context->GetDevice(), std::addressof(allocate_info), std::addressof(m_vk_command_buffer));
         DD_ASSERT(result0 == VK_SUCCESS);
 
         /* Create resource buffer descriptor pool */
@@ -229,7 +229,7 @@ namespace dd::vk {
             .pPoolSizes    = std::addressof(pool_size)
         };
 
-        const u32 result1 = ::vkCreateDescriptorPool(context->GetDevice(), std::addressof(buffer_pool_info), nullptr, std::addressof(m_vk_resource_buffer_descriptor_pool));
+        const u32 result1 = ::pfn_vkCreateDescriptorPool(context->GetDevice(), std::addressof(buffer_pool_info), nullptr, std::addressof(m_vk_resource_buffer_descriptor_pool));
         DD_ASSERT(result1 == VK_SUCCESS);
 
         /* Create resource buffer descriptor set */
@@ -241,7 +241,7 @@ namespace dd::vk {
             .pSetLayouts        = std::addressof(vk_buffer_descriptor_set_layout)
         };
 
-        const u32 result2 = ::vkAllocateDescriptorSets(context->GetDevice(), std::addressof(buffer_set_info), std::addressof(m_vk_resource_buffer_descriptor_set));
+        const u32 result2 = ::pfn_vkAllocateDescriptorSets(context->GetDevice(), std::addressof(buffer_set_info), std::addressof(m_vk_resource_buffer_descriptor_set));
         DD_ASSERT(result2 == VK_SUCCESS);
 
         /* Allocate resource buffer memory */
@@ -253,7 +253,7 @@ namespace dd::vk {
             .allocationSize = TargetResourceBufferMemorySize,
             .memoryTypeIndex = static_cast<u32>(device_memory_type)
         };
-        const u32 result3 = ::vkAllocateMemory(context->GetDevice(), std::addressof(device_allocate_info), nullptr, std::addressof(m_vk_resource_buffer_memory));
+        const u32 result3 = ::pfn_vkAllocateMemory(context->GetDevice(), std::addressof(device_allocate_info), nullptr, std::addressof(m_vk_resource_buffer_memory));
         DD_ASSERT(result3 == VK_SUCCESS);
 
         /* Create resource buffers for each stage */
@@ -267,41 +267,41 @@ namespace dd::vk {
             .pQueueFamilyIndices   = std::addressof(queue_family_index)
         };
 
-        const u32 result4 = ::vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(m_vk_resource_buffer_per_stage_array[ShaderStage_Vertex]));
+        const u32 result4 = ::pfn_vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(m_vk_resource_buffer_per_stage_array[ShaderStage_Vertex]));
         DD_ASSERT(result4 == VK_SUCCESS);
 
-        const u32 result5 = ::vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(m_vk_resource_buffer_per_stage_array[ShaderStage_TessellationEvaluation]));
+        const u32 result5 = ::pfn_vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(m_vk_resource_buffer_per_stage_array[ShaderStage_TessellationEvaluation]));
         DD_ASSERT(result5 == VK_SUCCESS);
 
-        const u32 result6 = ::vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(m_vk_resource_buffer_per_stage_array[ShaderStage_TessellationControl]));
+        const u32 result6 = ::pfn_vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(m_vk_resource_buffer_per_stage_array[ShaderStage_TessellationControl]));
         DD_ASSERT(result6 == VK_SUCCESS);
 
-        const u32 result7 = ::vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(m_vk_resource_buffer_per_stage_array[ShaderStage_Geometry]));
+        const u32 result7 = ::pfn_vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(m_vk_resource_buffer_per_stage_array[ShaderStage_Geometry]));
         DD_ASSERT(result7 == VK_SUCCESS);
 
-        const u32 result8 = ::vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(m_vk_resource_buffer_per_stage_array[ShaderStage_Fragment]));
+        const u32 result8 = ::pfn_vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(m_vk_resource_buffer_per_stage_array[ShaderStage_Fragment]));
         DD_ASSERT(result8 == VK_SUCCESS);
 
-        const u32 result9 = ::vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(m_vk_resource_buffer_per_stage_array[ShaderStage_Compute]));
+        const u32 result9 = ::pfn_vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(m_vk_resource_buffer_per_stage_array[ShaderStage_Compute]));
         DD_ASSERT(result9 == VK_SUCCESS);
 
         /* Bind resource buffer memory to resource buffers */
-        const u32 result10 = ::vkBindBufferMemory(context->GetDevice(), m_vk_resource_buffer_per_stage_array[ShaderStage_Vertex], m_vk_resource_buffer_memory, VertexBufferMemoryOffset);
+        const u32 result10 = ::pfn_vkBindBufferMemory(context->GetDevice(), m_vk_resource_buffer_per_stage_array[ShaderStage_Vertex], m_vk_resource_buffer_memory, VertexBufferMemoryOffset);
         DD_ASSERT(result10 == VK_SUCCESS);
 
-        const u32 result11 = ::vkBindBufferMemory(context->GetDevice(), m_vk_resource_buffer_per_stage_array[ShaderStage_TessellationEvaluation], m_vk_resource_buffer_memory, TessellationEvaluationBufferMemoryOffset);
+        const u32 result11 = ::pfn_vkBindBufferMemory(context->GetDevice(), m_vk_resource_buffer_per_stage_array[ShaderStage_TessellationEvaluation], m_vk_resource_buffer_memory, TessellationEvaluationBufferMemoryOffset);
         DD_ASSERT(result11 == VK_SUCCESS);
 
-        const u32 result12 = ::vkBindBufferMemory(context->GetDevice(), m_vk_resource_buffer_per_stage_array[ShaderStage_TessellationControl], m_vk_resource_buffer_memory, TessellationControlBufferMemoryOffset);
+        const u32 result12 = ::pfn_vkBindBufferMemory(context->GetDevice(), m_vk_resource_buffer_per_stage_array[ShaderStage_TessellationControl], m_vk_resource_buffer_memory, TessellationControlBufferMemoryOffset);
         DD_ASSERT(result12 == VK_SUCCESS);
 
-        const u32 result13 = ::vkBindBufferMemory(context->GetDevice(), m_vk_resource_buffer_per_stage_array[ShaderStage_Geometry], m_vk_resource_buffer_memory, GeometryBufferMemoryOffset);
+        const u32 result13 = ::pfn_vkBindBufferMemory(context->GetDevice(), m_vk_resource_buffer_per_stage_array[ShaderStage_Geometry], m_vk_resource_buffer_memory, GeometryBufferMemoryOffset);
         DD_ASSERT(result13 == VK_SUCCESS);
 
-        const u32 result14 = ::vkBindBufferMemory(context->GetDevice(), m_vk_resource_buffer_per_stage_array[ShaderStage_Fragment], m_vk_resource_buffer_memory, FragmentBufferMemoryOffset);
+        const u32 result14 = ::pfn_vkBindBufferMemory(context->GetDevice(), m_vk_resource_buffer_per_stage_array[ShaderStage_Fragment], m_vk_resource_buffer_memory, FragmentBufferMemoryOffset);
         DD_ASSERT(result14 == VK_SUCCESS);
 
-        const u32 result15 = ::vkBindBufferMemory(context->GetDevice(), m_vk_resource_buffer_per_stage_array[ShaderStage_Compute], m_vk_resource_buffer_memory, ComputeBufferMemoryOffset);
+        const u32 result15 = ::pfn_vkBindBufferMemory(context->GetDevice(), m_vk_resource_buffer_per_stage_array[ShaderStage_Compute], m_vk_resource_buffer_memory, ComputeBufferMemoryOffset);
         DD_ASSERT(result15 == VK_SUCCESS);
 
         /* Update resource buffer descriptor */
@@ -394,18 +394,18 @@ namespace dd::vk {
             }
         };
 
-        ::vkUpdateDescriptorSets(context->GetDevice(), sizeof(write_set) / sizeof(VkWriteDescriptorSet), write_set, 0, nullptr);
+        ::pfn_vkUpdateDescriptorSets(context->GetDevice(), sizeof(write_set) / sizeof(VkWriteDescriptorSet), write_set, 0, nullptr);
     }
 
     void CommandBuffer::Finalize(const Context *context) {
 
-        ::vkFreeCommandBuffers(context->GetDevice(), context->GetGraphicsCommandPool(), 1, std::addressof(m_vk_command_buffer));
+        ::pfn_vkFreeCommandBuffers(context->GetDevice(), context->GetGraphicsCommandPool(), 1, std::addressof(m_vk_command_buffer));
 
         for (u32 i = 0; i < Context::TargetShaderStages; ++i) {
-            ::vkDestroyBuffer(context->GetDevice(), m_vk_resource_buffer_per_stage_array[i], nullptr);
+            ::pfn_vkDestroyBuffer(context->GetDevice(), m_vk_resource_buffer_per_stage_array[i], nullptr);
         }
-        ::vkDestroyDescriptorPool(context->GetDevice(), m_vk_resource_buffer_descriptor_pool, nullptr);
-        ::vkFreeMemory(context->GetDevice(), m_vk_resource_buffer_memory, nullptr);
+        ::pfn_vkDestroyDescriptorPool(context->GetDevice(), m_vk_resource_buffer_descriptor_pool, nullptr);
+        ::pfn_vkFreeMemory(context->GetDevice(), m_vk_resource_buffer_memory, nullptr);
     }
 
     void CommandBuffer::Begin() {
@@ -416,11 +416,11 @@ namespace dd::vk {
             .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
         };
 
-        const u32 result = ::vkBeginCommandBuffer(m_vk_command_buffer, std::addressof(begin_info));
+        const u32 result = ::pfn_vkBeginCommandBuffer(m_vk_command_buffer, std::addressof(begin_info));
         DD_ASSERT(result == VK_SUCCESS);
 
         /* Bind Resource buffer */
-        ::vkCmdBindDescriptorSets(m_vk_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetGlobalContext()->GetPipelineLayout(), 2, 1, std::addressof(m_vk_resource_buffer_descriptor_set), 0, nullptr);
+        ::pfn_vkCmdBindDescriptorSets(m_vk_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetGlobalContext()->GetPipelineLayout(), 2, 1, std::addressof(m_vk_resource_buffer_descriptor_set), 0, nullptr);
 
         m_resource_buffer_per_stage_array[ShaderStage_Vertex].SetDefaults();
         m_resource_buffer_per_stage_array[ShaderStage_TessellationControl].SetDefaults();
@@ -439,7 +439,7 @@ namespace dd::vk {
     void CommandBuffer::End() {
         this->EndRenderingIfRendering();
 
-        const u32 result = ::vkEndCommandBuffer(m_vk_command_buffer);
+        const u32 result = ::pfn_vkEndCommandBuffer(m_vk_command_buffer);
         DD_ASSERT(result == VK_SUCCESS);
     }
 
@@ -447,7 +447,7 @@ namespace dd::vk {
 
         this->EndRenderingIfRendering();
 
-        ::vkCmdClearColorImage(m_vk_command_buffer, color_target->GetImage(), VK_IMAGE_LAYOUT_GENERAL, color, 1, sub_range);
+        ::pfn_vkCmdClearColorImage(m_vk_command_buffer, color_target->GetImage(), VK_IMAGE_LAYOUT_GENERAL, color, 1, sub_range);
 
         /* Barrier the clear */
         const dd::vk::TextureBarrierCmdState clear_barrier_state = {
@@ -465,7 +465,7 @@ namespace dd::vk {
 
         this->EndRenderingIfRendering();
 
-        ::vkCmdClearDepthStencilImage(m_vk_command_buffer, depth_stencil_target->GetImage(), VK_IMAGE_LAYOUT_GENERAL, std::addressof(clear_value), 1, sub_range);
+        ::pfn_vkCmdClearDepthStencilImage(m_vk_command_buffer, depth_stencil_target->GetImage(), VK_IMAGE_LAYOUT_GENERAL, std::addressof(clear_value), 1, sub_range);
     }
 
     void CommandBuffer::SetFastClearColor(const VkClearColorValue& color) {
@@ -485,8 +485,8 @@ namespace dd::vk {
         this->PushResourceBufferIndices();
 
         /* Draw */
-        ::vkCmdSetPrimitiveTopology(m_vk_command_buffer, vk_primitive_topology);
-        ::vkCmdDraw(m_vk_command_buffer, vertex_count, 1, base_vertex, 0);
+        ::pfn_vkCmdSetPrimitiveTopology(m_vk_command_buffer, vk_primitive_topology);
+        ::pfn_vkCmdDraw(m_vk_command_buffer, vertex_count, 1, base_vertex, 0);
     }
 
     void CommandBuffer::DrawIndexed(VkPrimitiveTopology vk_primitive_topology, VkIndexType index_format, Buffer *index_buffer, u32 index_count, u32 base_index) {
@@ -502,18 +502,18 @@ namespace dd::vk {
 
         /* Bind index buffer */
         const VkDeviceSize offset = 0;
-        ::vkCmdBindIndexBuffer(m_vk_command_buffer, index_buffer->GetBuffer(), offset, index_format);
+        ::pfn_vkCmdBindIndexBuffer(m_vk_command_buffer, index_buffer->GetBuffer(), offset, index_format);
 
         /* Set resource indices */
         this->PushResourceBufferIndices();
 
         /* Draw */
-        ::vkCmdSetPrimitiveTopology(m_vk_command_buffer, vk_primitive_topology);
-        ::vkCmdDrawIndexed(m_vk_command_buffer, index_count, 1, base_index, 0, 0);
+        ::pfn_vkCmdSetPrimitiveTopology(m_vk_command_buffer, vk_primitive_topology);
+        ::pfn_vkCmdDrawIndexed(m_vk_command_buffer, index_count, 1, base_index, 0, 0);
     }
 
     void CommandBuffer::SetPipeline(Pipeline *pipeline) {
-        ::vkCmdBindPipeline(m_vk_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetPipeline());
+        ::pfn_vkCmdBindPipeline(m_vk_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetPipeline());
     }
 
     void CommandBuffer::SetPipelineState(const PipelineCmdState *pipeline_state) {
@@ -525,34 +525,34 @@ namespace dd::vk {
 
     void CommandBuffer::SetColorBlendState(const ColorBlendCmdState *color_blend_state) {
         pfn_vkCmdSetLogicOpEXT(m_vk_command_buffer, color_blend_state->vk_logic_op);
-        ::vkCmdSetBlendConstants(m_vk_command_buffer, color_blend_state->blend_constants);
+        ::pfn_vkCmdSetBlendConstants(m_vk_command_buffer, color_blend_state->blend_constants);
     }
 
     void CommandBuffer::SetDepthStencilState(const DepthStencilCmdState *depth_stencil_state) {
-        ::vkCmdSetDepthTestEnable(m_vk_command_buffer, depth_stencil_state->depth_test_enable);
-        ::vkCmdSetDepthWriteEnable(m_vk_command_buffer, depth_stencil_state->depth_write_enable);
-        ::vkCmdSetDepthBoundsTestEnable(m_vk_command_buffer, depth_stencil_state->depth_bounds_test_enable);
-        ::vkCmdSetDepthBounds(m_vk_command_buffer, depth_stencil_state->min_depth_bounds, depth_stencil_state->max_depth_bounds);
-        ::vkCmdSetDepthCompareOp(m_vk_command_buffer, depth_stencil_state->vk_depth_compare_op);
-        ::vkCmdSetStencilTestEnable(m_vk_command_buffer, depth_stencil_state->stencil_test_enable);
-        ::vkCmdSetStencilCompareMask(m_vk_command_buffer, VK_STENCIL_FACE_FRONT_BIT, depth_stencil_state->vk_op_state_front.compareMask);
-        ::vkCmdSetStencilCompareMask(m_vk_command_buffer, VK_STENCIL_FACE_BACK_BIT, depth_stencil_state->vk_op_state_back.compareMask);
-        ::vkCmdSetStencilWriteMask(m_vk_command_buffer, VK_STENCIL_FACE_FRONT_BIT, depth_stencil_state->vk_op_state_front.writeMask);
-        ::vkCmdSetStencilWriteMask(m_vk_command_buffer, VK_STENCIL_FACE_BACK_BIT, depth_stencil_state->vk_op_state_back.writeMask);
-        ::vkCmdSetStencilReference(m_vk_command_buffer, VK_STENCIL_FACE_FRONT_BIT, depth_stencil_state->vk_op_state_front.reference);
-        ::vkCmdSetStencilReference(m_vk_command_buffer, VK_STENCIL_FACE_BACK_BIT, depth_stencil_state->vk_op_state_back.reference);
-        ::vkCmdSetStencilOp(m_vk_command_buffer, VK_STENCIL_FACE_FRONT_BIT, depth_stencil_state->vk_op_state_front.failOp, depth_stencil_state->vk_op_state_front.passOp, depth_stencil_state->vk_op_state_front.depthFailOp, depth_stencil_state->vk_op_state_front.compareOp);
-        ::vkCmdSetStencilOp(m_vk_command_buffer, VK_STENCIL_FACE_BACK_BIT, depth_stencil_state->vk_op_state_back.failOp, depth_stencil_state->vk_op_state_back.passOp, depth_stencil_state->vk_op_state_back.depthFailOp, depth_stencil_state->vk_op_state_back.compareOp);
+        ::pfn_vkCmdSetDepthTestEnable(m_vk_command_buffer, depth_stencil_state->depth_test_enable);
+        ::pfn_vkCmdSetDepthWriteEnable(m_vk_command_buffer, depth_stencil_state->depth_write_enable);
+        ::pfn_vkCmdSetDepthBoundsTestEnable(m_vk_command_buffer, depth_stencil_state->depth_bounds_test_enable);
+        ::pfn_vkCmdSetDepthBounds(m_vk_command_buffer, depth_stencil_state->min_depth_bounds, depth_stencil_state->max_depth_bounds);
+        ::pfn_vkCmdSetDepthCompareOp(m_vk_command_buffer, depth_stencil_state->vk_depth_compare_op);
+        ::pfn_vkCmdSetStencilTestEnable(m_vk_command_buffer, depth_stencil_state->stencil_test_enable);
+        ::pfn_vkCmdSetStencilCompareMask(m_vk_command_buffer, VK_STENCIL_FACE_FRONT_BIT, depth_stencil_state->vk_op_state_front.compareMask);
+        ::pfn_vkCmdSetStencilCompareMask(m_vk_command_buffer, VK_STENCIL_FACE_BACK_BIT, depth_stencil_state->vk_op_state_back.compareMask);
+        ::pfn_vkCmdSetStencilWriteMask(m_vk_command_buffer, VK_STENCIL_FACE_FRONT_BIT, depth_stencil_state->vk_op_state_front.writeMask);
+        ::pfn_vkCmdSetStencilWriteMask(m_vk_command_buffer, VK_STENCIL_FACE_BACK_BIT, depth_stencil_state->vk_op_state_back.writeMask);
+        ::pfn_vkCmdSetStencilReference(m_vk_command_buffer, VK_STENCIL_FACE_FRONT_BIT, depth_stencil_state->vk_op_state_front.reference);
+        ::pfn_vkCmdSetStencilReference(m_vk_command_buffer, VK_STENCIL_FACE_BACK_BIT, depth_stencil_state->vk_op_state_back.reference);
+        ::pfn_vkCmdSetStencilOp(m_vk_command_buffer, VK_STENCIL_FACE_FRONT_BIT, depth_stencil_state->vk_op_state_front.failOp, depth_stencil_state->vk_op_state_front.passOp, depth_stencil_state->vk_op_state_front.depthFailOp, depth_stencil_state->vk_op_state_front.compareOp);
+        ::pfn_vkCmdSetStencilOp(m_vk_command_buffer, VK_STENCIL_FACE_BACK_BIT, depth_stencil_state->vk_op_state_back.failOp, depth_stencil_state->vk_op_state_back.passOp, depth_stencil_state->vk_op_state_back.depthFailOp, depth_stencil_state->vk_op_state_back.compareOp);
     }
 
     void CommandBuffer::SetRasterizerState(const RasterizerCmdState *rasterizer_state) {
-        ::vkCmdSetRasterizerDiscardEnable(m_vk_command_buffer, rasterizer_state->rasterizer_discard_enable);
-        ::vkCmdSetPrimitiveRestartEnable(m_vk_command_buffer, rasterizer_state->primitive_restart_enable);
-        ::vkCmdSetDepthBiasEnable(m_vk_command_buffer, rasterizer_state->depth_bias_enable);
-        ::vkCmdSetDepthBias(m_vk_command_buffer, rasterizer_state->depth_bias_constant_factor, rasterizer_state->depth_bias_clamp, rasterizer_state->depth_bias_slope_factor);
-        ::vkCmdSetLineWidth(m_vk_command_buffer, rasterizer_state->line_width);
-        ::vkCmdSetCullMode(m_vk_command_buffer, rasterizer_state->vk_cull_mode);
-        ::vkCmdSetFrontFace(m_vk_command_buffer, rasterizer_state->vk_front_face);
+        ::pfn_vkCmdSetRasterizerDiscardEnable(m_vk_command_buffer, rasterizer_state->rasterizer_discard_enable);
+        ::pfn_vkCmdSetPrimitiveRestartEnable(m_vk_command_buffer, rasterizer_state->primitive_restart_enable);
+        ::pfn_vkCmdSetDepthBiasEnable(m_vk_command_buffer, rasterizer_state->depth_bias_enable);
+        ::pfn_vkCmdSetDepthBias(m_vk_command_buffer, rasterizer_state->depth_bias_constant_factor, rasterizer_state->depth_bias_clamp, rasterizer_state->depth_bias_slope_factor);
+        ::pfn_vkCmdSetLineWidth(m_vk_command_buffer, rasterizer_state->line_width);
+        ::pfn_vkCmdSetCullMode(m_vk_command_buffer, rasterizer_state->vk_cull_mode);
+        ::pfn_vkCmdSetFrontFace(m_vk_command_buffer, rasterizer_state->vk_front_face);
     }
 
     void CommandBuffer::SetVertexState(const VertexCmdState *vertex_state) {
@@ -560,16 +560,16 @@ namespace dd::vk {
     }
 
     void CommandBuffer::SetViewports(u32 viewport_count, const VkViewport *viewport_array) {
-        ::vkCmdSetViewportWithCount(m_vk_command_buffer, viewport_count, viewport_array);
+        ::pfn_vkCmdSetViewportWithCount(m_vk_command_buffer, viewport_count, viewport_array);
     }
 
     void CommandBuffer::SetScissors(u32 scissor_count, const VkRect2D *scissor_array) {
-        ::vkCmdSetScissorWithCount(m_vk_command_buffer, scissor_count, scissor_array);
+        ::pfn_vkCmdSetScissorWithCount(m_vk_command_buffer, scissor_count, scissor_array);
     }
 
     void CommandBuffer::SetViewportScissors(u32 viewport_count, const VkViewport *viewport_array, u32 scissor_count, const VkRect2D *scissor_array) {
-        ::vkCmdSetViewportWithCount(m_vk_command_buffer, viewport_count, viewport_array);
-        ::vkCmdSetScissorWithCount(m_vk_command_buffer, scissor_count, scissor_array);
+        ::pfn_vkCmdSetViewportWithCount(m_vk_command_buffer, viewport_count, viewport_array);
+        ::pfn_vkCmdSetScissorWithCount(m_vk_command_buffer, scissor_count, scissor_array);
     }
 
     void CommandBuffer::SetRenderTargets(s32 color_target_count, ColorTargetView **color_targets, DepthStencilTargetView *depth_stencil_target) {
@@ -596,7 +596,7 @@ namespace dd::vk {
 
         const VkBuffer vk_buffer = vertex_buffer->GetBuffer();
         const VkDeviceSize offset = 0;
-        ::vkCmdBindVertexBuffers2(m_vk_command_buffer, binding, 1, std::addressof(vk_buffer), std::addressof(offset), std::addressof(size), std::addressof(stride));
+        ::pfn_vkCmdBindVertexBuffers2(m_vk_command_buffer, binding, 1, std::addressof(vk_buffer), std::addressof(offset), std::addressof(size), std::addressof(stride));
     }
 
     void CommandBuffer::SetBufferStateTransition(Buffer *buffer, const BufferBarrierCmdState *barrier_state) {
@@ -625,7 +625,7 @@ namespace dd::vk {
             .pBufferMemoryBarriers    = std::addressof(buffer_barrier)
         };
 
-        ::vkCmdPipelineBarrier2(m_vk_command_buffer, std::addressof(dependency_info));
+        ::pfn_vkCmdPipelineBarrier2(m_vk_command_buffer, std::addressof(dependency_info));
     }
 
     void CommandBuffer::SetTextureStateTransition(Texture *texture, const TextureBarrierCmdState *barrier_state, VkImageAspectFlagBits aspect_mask) {
@@ -660,7 +660,7 @@ namespace dd::vk {
             .pImageMemoryBarriers    = std::addressof(buffer_barrier)
         };
 
-        ::vkCmdPipelineBarrier2(m_vk_command_buffer, std::addressof(dependency_info));
+        ::pfn_vkCmdPipelineBarrier2(m_vk_command_buffer, std::addressof(dependency_info));
         
         texture->SetImageLayout(barrier_state->vk_dst_layout);
     }
@@ -679,7 +679,7 @@ namespace dd::vk {
             DD_ASSERT(false);
         }
 
-        ::vkCmdBindDescriptorSets(m_vk_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetGlobalContext()->GetPipelineLayout(), set, 1, std::addressof(vk_descriptor_set), 0, nullptr);
+        ::pfn_vkCmdBindDescriptorSets(m_vk_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetGlobalContext()->GetPipelineLayout(), set, 1, std::addressof(vk_descriptor_set), 0, nullptr);
     }
 
     void CommandBuffer::SetUniformBuffer(u32 location, ShaderStage shader_stage, const VkDeviceAddress gpu_address) {

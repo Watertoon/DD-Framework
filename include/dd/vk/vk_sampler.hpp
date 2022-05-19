@@ -74,12 +74,12 @@ namespace dd::vk {
                     .borderColor      = static_cast<VkBorderColor>(sampler_info->vk_border_color)
                 };
 
-                const u32 result0 = ::vkCreateSampler(context->GetDevice(), std::addressof(vk_sampler_info), nullptr, std::addressof(m_vk_sampler));
+                const u32 result0 = ::pfn_vkCreateSampler(context->GetDevice(), std::addressof(vk_sampler_info), nullptr, std::addressof(m_vk_sampler));
                 DD_ASSERT(result0 == VK_SUCCESS);
             }
 
             void Finalize(const Context *context) {
-                ::vkDestroySampler(context->GetDevice(), m_vk_sampler, nullptr);
+                ::pfn_vkDestroySampler(context->GetDevice(), m_vk_sampler, nullptr);
             }
 
             constexpr ALWAYS_INLINE VkSampler GetSampler() const { return m_vk_sampler; }

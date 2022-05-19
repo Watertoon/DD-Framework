@@ -82,7 +82,7 @@ namespace dd::vk {
                         .allocationSize = pool_info->size,
                         .memoryTypeIndex = device_memory_type
                     };
-                    const u32 result1 = ::vkAllocateMemory(context->GetDevice(), std::addressof(device_allocate_info), nullptr, std::addressof(m_vk_device_memory));
+                    const u32 result1 = ::pfn_vkAllocateMemory(context->GetDevice(), std::addressof(device_allocate_info), nullptr, std::addressof(m_vk_device_memory));
                     DD_ASSERT(result1 == VK_SUCCESS);
                 }
                 DD_ASSERT(host_memory_type != -1);
@@ -104,33 +104,33 @@ namespace dd::vk {
                     .allocationSize = pool_info->size,
                     .memoryTypeIndex = host_memory_type
                 };
-                const u32 result2 = ::vkAllocateMemory(context->GetDevice(), std::addressof(host_allocate_info), nullptr, std::addressof(m_vk_host_memory));
+                const u32 result2 = ::pfn_vkAllocateMemory(context->GetDevice(), std::addressof(host_allocate_info), nullptr, std::addressof(m_vk_host_memory));
                 DD_ASSERT(result2 == VK_SUCCESS);
             }
 
             void Finalize(const Context *context) {
                 const VkDevice device = context->GetDevice();
                 if (m_vk_host_buffer != 0) {
-                    ::vkDestroyBuffer(device, m_vk_host_buffer, nullptr);
+                    ::pfn_vkDestroyBuffer(device, m_vk_host_buffer, nullptr);
                     m_vk_host_buffer = 0;
                 }
                 if (m_vk_host_memory != 0) {
-                    ::vkFreeMemory(device, m_vk_host_memory, nullptr);
+                    ::pfn_vkFreeMemory(device, m_vk_host_memory, nullptr);
                     m_vk_host_memory = 0;
                 }
                 if (m_vk_device_buffer != 0) {
-                    ::vkDestroyBuffer(device, m_vk_device_buffer, nullptr);
+                    ::pfn_vkDestroyBuffer(device, m_vk_device_buffer, nullptr);
                     m_vk_device_buffer = 0;
                 }
                 if (m_vk_device_memory != 0) {
-                    ::vkFreeMemory(device, m_vk_device_memory, nullptr);
+                    ::pfn_vkFreeMemory(device, m_vk_device_memory, nullptr);
                     m_vk_device_memory = 0;
                 }
             }
 
             void *Map() {
                 if (m_mapped_memory == nullptr) {
-                    const u32 result0 = ::vkMapMemory(GetGlobalContext()->GetDevice(), this->GetDeviceMemory(), 0, VK_WHOLE_SIZE, 0, std::addressof(m_mapped_memory));
+                    const u32 result0 = ::pfn_vkMapMemory(GetGlobalContext()->GetDevice(), this->GetDeviceMemory(), 0, VK_WHOLE_SIZE, 0, std::addressof(m_mapped_memory));
                     DD_ASSERT(result0 == VK_SUCCESS);
                 }
                 m_map_count += 1;
@@ -140,7 +140,7 @@ namespace dd::vk {
             void Unmap() {
                 m_map_count -= 1;
                 if (m_map_count == 0) {
-                    ::vkUnmapMemory(GetGlobalContext()->GetDevice(), this->GetDeviceMemory());
+                    ::pfn_vkUnmapMemory(GetGlobalContext()->GetDevice(), this->GetDeviceMemory());
                     m_mapped_memory = nullptr;
                 }
             }
@@ -173,10 +173,10 @@ namespace dd::vk {
                         .pQueueFamilyIndices = std::addressof(queue_family_index)
                     };
 
-                    const u32 result0 = ::vkCreateBuffer(GetGlobalContext()->GetDevice(), std::addressof(src_buffer_info), nullptr, std::addressof(m_vk_host_buffer));
+                    const u32 result0 = ::pfn_vkCreateBuffer(GetGlobalContext()->GetDevice(), std::addressof(src_buffer_info), nullptr, std::addressof(m_vk_host_buffer));
                     DD_ASSERT(result0 == VK_SUCCESS);
 
-                    const u32 result1 = ::vkBindBufferMemory(GetGlobalContext()->GetDevice(), m_vk_host_buffer, m_vk_host_memory, 0);
+                    const u32 result1 = ::pfn_vkBindBufferMemory(GetGlobalContext()->GetDevice(), m_vk_host_buffer, m_vk_host_memory, 0);
                     DD_ASSERT(result1 == VK_SUCCESS);
 
                     const VkBufferCreateInfo dst_buffer_info = {
@@ -187,17 +187,17 @@ namespace dd::vk {
                         .queueFamilyIndexCount = 1,
                         .pQueueFamilyIndices = std::addressof(queue_family_index)
                     };
-                    const u32 result2 = ::vkCreateBuffer(GetGlobalContext()->GetDevice(), std::addressof(dst_buffer_info), nullptr, std::addressof(m_vk_device_buffer));
+                    const u32 result2 = ::pfn_vkCreateBuffer(GetGlobalContext()->GetDevice(), std::addressof(dst_buffer_info), nullptr, std::addressof(m_vk_device_buffer));
                     DD_ASSERT(result2 == VK_SUCCESS);
 
-                    const u32 result3 = ::vkBindBufferMemory(GetGlobalContext()->GetDevice(), m_vk_device_buffer, m_vk_device_memory, 0);
+                    const u32 result3 = ::pfn_vkBindBufferMemory(GetGlobalContext()->GetDevice(), m_vk_device_buffer, m_vk_device_memory, 0);
                     DD_ASSERT(result3 == VK_SUCCESS);
 
                     /* Copy memory to device local buffer */
                     const VkBufferCopy copy_info = {
                         .size = m_size
                     };
-                    ::vkCmdCopyBuffer(vk_command_buffer, m_vk_host_buffer, m_vk_device_buffer, 1, std::addressof(copy_info));
+                    ::pfn_vkCmdCopyBuffer(vk_command_buffer, m_vk_host_buffer, m_vk_device_buffer, 1, std::addressof(copy_info));
 
                     /* Barrier copy operation */
                     const VkBufferMemoryBarrier2 buffer_barrier = {
@@ -215,7 +215,7 @@ namespace dd::vk {
                         .pBufferMemoryBarriers    = std::addressof(buffer_barrier)
                     };
 
-                    ::vkCmdPipelineBarrier2(vk_command_buffer, std::addressof(dependency_info));
+                    ::pfn_vkCmdPipelineBarrier2(vk_command_buffer, std::addressof(dependency_info));
 
                     m_requires_relocation = false;
                 }
