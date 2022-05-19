@@ -360,7 +360,7 @@ namespace dd::learn {
         command_buffer->SetTextureAndSampler(1, vk::ShaderStage_Fragment, texture_view1_slot, sampler_slot);
 
         u32 width = 0, height = 0;
-        vk::GetGlobalContext()->GetWindowDimensions(std::addressof(width), std::addressof(height));
+        vk::GetGlobalContext()->GetWindowDimensionsUnsafe(std::addressof(width), std::addressof(height));
         VkViewport viewport {
             .width  = static_cast<float>(width),
             .height = static_cast<float>(height),

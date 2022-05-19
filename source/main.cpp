@@ -53,7 +53,7 @@ long unsigned int ContextMain(void *arg) {
     MSG msg = {};
     while (::GetMessage(std::addressof(msg), nullptr, 0, 0) != 0) {
         ::DispatchMessage(std::addressof(msg));
-        dd::vk::GetGlobalContext()->WaitSwapchainChange();
+        dd::vk::GetGlobalContext()->EndResizeIfNecessary();
     }
 
     /* End main loop in main thread */
@@ -66,6 +66,7 @@ long unsigned int ContextMain(void *arg) {
     ::ResetEvent(context_state->context_event);
 
     /* Cleanup */
+    ::pfn_vkQueueWaitIdle(dd::util::GetPointer(context)->GetGraphicsQueue());
     ::pfn_vkDeviceWaitIdle(dd::util::GetPointer(context)->GetDevice());
 
     dd::util::GetReference(framebuffer).Finalize(dd::util::GetPointer(context));
@@ -81,6 +82,70 @@ long unsigned int ContextMain(void *arg) {
 
     dd::hid::FinalizeRawInputThread();
     return 0;
+}
+
+void Draw(dd::vk::Context *global_context, dd::vk::CommandBuffer *global_command_buffer, dd::util::DelegateThread *present_thread) {
+
+    global_context->LockWindowResize();
+
+    if (global_context->IsSkipDrawUnsafe() == true) {
+        global_context->UnlockWindowResize();
+        return;
+    }
+
+    dd::vk::FrameBuffer *global_frame_buffer = dd::util::GetPointer(framebuffer);
+    const VkClearColorValue clear_color = {
+        .float32 = { 0.0f, 1.0f, 0.0f, 1.0f }
+    };
+    const VkImageSubresourceRange clear_sub_range = {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .levelCount = 1,
+        .layerCount = 1,
+    };
+
+    /* Get current targets */
+    dd::vk::ColorTargetView *current_color_target = global_frame_buffer->GetCurrentColorTarget();
+    dd::vk::Texture *color_target_texture = current_color_target->GetTexture();
+
+    global_command_buffer->Begin();
+    global_context->EnterDraw();
+
+    /* Transition render target to attachment */
+    const dd::vk::TextureBarrierCmdState clear_barrier_state = {
+        .vk_src_stage_mask  = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+        .vk_dst_stage_mask  = VK_PIPELINE_STAGE_TRANSFER_BIT,
+        .vk_dst_access_mask = VK_ACCESS_TRANSFER_WRITE_BIT,
+        .vk_src_layout      = VK_IMAGE_LAYOUT_UNDEFINED,
+        .vk_dst_layout      = VK_IMAGE_LAYOUT_GENERAL
+    };
+    global_command_buffer->SetTextureStateTransition(color_target_texture, std::addressof(clear_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
+
+    /* Clear render target */
+    global_command_buffer->ClearColorTarget(current_color_target, std::addressof(clear_color), std::addressof(clear_sub_range));
+
+    /* Set render target */
+    global_command_buffer->SetRenderTargets(1 , std::addressof(current_color_target), nullptr);
+
+    /* Draw Frame */
+    dd::learn::DrawTriangle(global_command_buffer);
+
+    /* Transition render target to present */
+    const dd::vk::TextureBarrierCmdState present_barrier_state = {
+        .vk_src_stage_mask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        .vk_dst_stage_mask  = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+        .vk_src_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+        .vk_src_layout      = VK_IMAGE_LAYOUT_GENERAL,
+        .vk_dst_layout      = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+    };
+    global_command_buffer->SetTextureStateTransition(color_target_texture, std::addressof(present_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
+
+    /* End draw */
+    global_command_buffer->End();
+
+    /* Send present message */
+    present_thread->SendMessage(reinterpret_cast<size_t>(global_command_buffer));
+
+    global_context->UnlockWindowResize();
 }
 
 int main() {
@@ -106,16 +171,7 @@ int main() {
     /* Setup for main loop */
     dd::vk::Context         *global_context = dd::vk::GetGlobalContext();
     dd::vk::CommandBuffer   *global_command_buffer = dd::util::GetPointer(command_buffers[dd::util::GetPointer(framebuffer)->GetCurrentFrame()]);
-    dd::vk::FrameBuffer     *global_frame_buffer = dd::util::GetPointer(framebuffer);
-    const VkClearColorValue clear_color = {
-        .float32 = { 0.0f, 1.0f, 0.0f, 1.0f }
-    };
-    const VkImageSubresourceRange clear_sub_range = {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-        .levelCount = 1,
-        .layerCount = 1,
-    };
-    dd::util::DelegateThread *present_thread = global_context->InitializePresentationThread(global_frame_buffer);
+    dd::util::DelegateThread *present_thread = global_context->InitializePresentationThread(dd::util::GetPointer(framebuffer));
 
     /* Calc And Draw */
     while (true) {
@@ -127,50 +183,11 @@ int main() {
         }
         ::ReleaseSRWLockExclusive(std::addressof(context_init_state.context_lock));
 
-        /* Wait for resize */
-        dd::vk::ColorTargetView *current_color_target = global_frame_buffer->GetCurrentColorTarget();
-        dd::vk::Texture *color_target_texture = current_color_target->GetTexture();
-
         /* Begin frame */
         dd::util::BeginFrame();
         dd::hid::BeginFrame();
-        global_command_buffer->Begin();
-        global_context->EnterDraw();
 
-        /* Transition render target to attachment */
-        const dd::vk::TextureBarrierCmdState clear_barrier_state = {
-            .vk_src_stage_mask  = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-            .vk_dst_stage_mask  = VK_PIPELINE_STAGE_TRANSFER_BIT,
-            .vk_dst_access_mask = VK_ACCESS_TRANSFER_WRITE_BIT,
-            .vk_src_layout      = VK_IMAGE_LAYOUT_UNDEFINED,
-            .vk_dst_layout      = VK_IMAGE_LAYOUT_GENERAL
-        };
-        global_command_buffer->SetTextureStateTransition(color_target_texture, std::addressof(clear_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
-
-        /* Clear render target */
-        global_command_buffer->ClearColorTarget(current_color_target, std::addressof(clear_color), std::addressof(clear_sub_range));
-
-        /* Set render target */
-        global_command_buffer->SetRenderTargets(1 , std::addressof(current_color_target), nullptr);
-
-        /* Draw Frame */
-        dd::learn::DrawTriangle(global_command_buffer);
-
-        /* Transition render target to present */
-        const dd::vk::TextureBarrierCmdState present_barrier_state = {
-            .vk_src_stage_mask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-            .vk_dst_stage_mask  = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-            .vk_src_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-            .vk_src_layout      = VK_IMAGE_LAYOUT_GENERAL,
-            .vk_dst_layout      = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-        };
-        global_command_buffer->SetTextureStateTransition(color_target_texture, std::addressof(present_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
-
-        /* End draw */
-        global_command_buffer->End();
-
-        /* Send present message */
-        present_thread->SendMessage(reinterpret_cast<size_t>(global_command_buffer));
+        Draw(global_context, global_command_buffer, present_thread);
 
         /* Calc Frame */
         dd::learn::CalcTriangle();
@@ -180,8 +197,11 @@ int main() {
 
         global_command_buffer = dd::util::GetPointer(command_buffers[dd::util::GetPointer(framebuffer)->GetCurrentFrame()]);
     }
-    
+
     present_thread->FinalizeThread();
+
+    ::pfn_vkQueueWaitIdle(dd::util::GetPointer(context)->GetGraphicsQueue());
+    ::pfn_vkDeviceWaitIdle(dd::util::GetPointer(context)->GetDevice());
 
     /* Cleanup */
     dd::learn::CleanTriangle();

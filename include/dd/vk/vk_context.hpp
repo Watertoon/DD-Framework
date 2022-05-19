@@ -113,8 +113,8 @@ namespace dd::vk {
             s32                     m_window_width;
             s32                     m_window_height;
             util::CriticalSection   m_window_cs;
-            util::ConditionVariable m_window_cv;
             bool                    m_has_resized;
+            bool                    m_skip_draw;
 
             /* Presentation objects */
             FrameBuffer                                                                *m_bound_frame_buffer;
@@ -189,7 +189,6 @@ namespace dd::vk {
             }
 
             void EndResizeManuel() {
-                m_window_cv.Broadcast();
                 m_window_cs.Leave();
                 m_has_resized = false;
             }
@@ -197,6 +196,9 @@ namespace dd::vk {
             void SetWindowDimensionsUnsafe(u32 width, u32 height) {
                 m_window_width  = width;
                 m_window_height = height;
+                if (m_window_width == 0 || m_window_height == 0) {
+                    m_skip_draw = true;
+                }
                 m_has_resized   = true;
             }
 
@@ -227,23 +229,53 @@ namespace dd::vk {
                 return m_has_resized == true;
             }
 
-            void WaitSwapchainChange() {
+            bool HasValidWindowDimensions() {
+                std::scoped_lock l(m_window_cs);
+                return m_window_width != 0 && m_window_height != 0;
+            }
+
+            bool HasValidWindowDimensionsUnsafe() {
+                return m_window_width != 0 && m_window_height != 0;
+            }
+
+            bool IsSkipDraw() {
+                std::scoped_lock l(m_window_cs);
+                return m_skip_draw;
+            }
+
+            void SetSkipDraw() {
+                std::scoped_lock l(m_window_cs);
+                m_skip_draw = true;
+            }
+
+            void ClearSkipDraw() {
+                std::scoped_lock l(m_window_cs);
+                m_skip_draw = false;
+            }
+            
+            bool IsSkipDrawUnsafe() {
+                return m_skip_draw;
+            }
+
+            void SetSkipDrawUnsafe() {
+                m_skip_draw = true;
+            }
+
+            void ClearSkipDrawUnsafe() {
+                m_skip_draw = false;
+            }
+
+            bool TryRecreateFramebuffer();
+
+            void EndResizeIfNecessary() {
 
                 if (m_window_cs.IsLockedByCurrentThread() == true) {
-                    while (m_has_resized == true) {
-                        m_window_cv.Wait(std::addressof(m_window_cs));
-                    }
-
                     m_window_cs.Leave();
                 }
             }
             
             void ClearResizeUnsafe() {
                 m_has_resized = false;
-            }
-
-            void SignalWindowSwapchainChanged() {
-                m_window_cv.Broadcast();
             }
 
         private:

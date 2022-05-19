@@ -40,10 +40,10 @@ namespace dd::vk {
                 /* Create Swapchain */
                 u32 window_width = 0, window_height = 0;
                 context->GetWindowDimensionsUnsafe(std::addressof(window_width), std::addressof(window_height));
-                
+
                 this->SetVirtualCanvasSize(static_cast<float>(window_width), static_cast<float>(window_height));
                 this->SetDimensions(static_cast<float>(window_width), static_cast<float>(window_height));
-                
+
                 const u32 family_index = context->GetGraphicsQueueFamilyIndex();
                 const VkSwapchainCreateInfoKHR swapchain_info = {
                     .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -182,7 +182,7 @@ namespace dd::vk {
 
                 /* Reset state */
                 ::pfn_vkDestroySwapchainKHR(vk_device, old_swapchain, nullptr);
-                
+
                 for (u32 i = 0; i < BufferedFrames; ++i) {
                     m_vk_swapchain_targets[i].Finalize(context);
                     m_vk_swapchain_textures[i].Finalize(context);
@@ -226,16 +226,16 @@ namespace dd::vk {
 
                 const u32 result7 = ::pfn_vkAcquireNextImageKHR(vk_device, m_vk_swapchain, 0, VK_NULL_HANDLE, m_vk_image_acquire_fence, std::addressof(m_current_target_index));
                 DD_ASSERT(result7 == VK_SUCCESS);
-                
+
                 for (u32 i = 0; i < FramesInFlight; ++i) {
                     ::pfn_vkDestroySemaphore(vk_device, m_vk_queue_present_semaphore[i], nullptr);
                 }
-                
+
                 /* Recreate Semaphores */
                 VkSemaphoreCreateInfo semaphore_info = {
                     .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
                 };
-                
+
                 for (u32 i = 0; i < FramesInFlight; ++i) {
                     const u32 result10 = ::pfn_vkCreateSemaphore(vk_device, std::addressof(semaphore_info), nullptr, std::addressof(m_vk_queue_present_semaphore[i]));
                     DD_ASSERT(result10 == VK_SUCCESS);
@@ -272,7 +272,7 @@ namespace dd::vk {
 
                 context->LockWindowResize();
 
-                if (context->HasWindowResizedUnsafe() == false) {
+                if (context->HasWindowResizedUnsafe() == false || context->HasValidWindowDimensionsUnsafe() == false) {
                     context->UnlockWindowResize();
                     return false;
                 }
@@ -290,8 +290,6 @@ namespace dd::vk {
 
                 context->UnlockWindowResize();
 
-                /* Allow the context window to update again */
-                context->SignalWindowSwapchainChanged();
                 return true;
             }
 

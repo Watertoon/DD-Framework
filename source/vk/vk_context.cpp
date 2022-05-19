@@ -137,6 +137,7 @@ namespace dd::vk {
                 const s32 width = LOWORD(l_param);
                 const s32 height = HIWORD(l_param);
                 dd::vk::GetGlobalContext()->SetWindowDimensionsUnsafe(width, height);
+                dd::vk::GetGlobalContext()->SetSkipDrawUnsafe();
             }
 
             return ::DefWindowProc(window_handle, message, w_param, l_param);
@@ -176,7 +177,7 @@ namespace dd::vk {
         m_vk_physical_device_vertex_input_dynamic_state_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_INPUT_DYNAMIC_STATE_FEATURES_EXT;
         m_vk_physical_device_vertex_input_dynamic_state_features.pNext = std::addressof(m_vk_physical_device_extended_dynamic_state_features);
         m_vk_physical_device_extended_dynamic_state_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT;
-        
+
         for (u32 i = 0; i < m_vk_physical_device_count; ++i) {
             /* Query Physical Device */
             pfn_vkGetPhysicalDeviceProperties2(m_vk_physical_device_array[i], std::addressof(m_vk_physical_device_properties));
@@ -184,7 +185,7 @@ namespace dd::vk {
 
             /*  Ensure Vulkan 1.3 support */
             if (!(TargetMinimumApiVersion <= m_vk_physical_device_properties.properties.apiVersion)) { DD_ASSERT(false); continue; }
-            
+
             /* Ensure resource ubos meet our size requirements */
             if (m_vk_physical_device_properties.properties.limits.maxUniformBufferRange < TargetMaxUniformBufferSize) { DD_ASSERT(false); continue; }
 
@@ -357,7 +358,7 @@ namespace dd::vk {
     }
 
     Context::Context() : m_window_cs(), m_present_cs() {
-        
+
         dd::vk::SetGlobalContext(this);
         ::LoadInitialVkCProcs();
 
@@ -694,7 +695,7 @@ namespace dd::vk {
         this->LockWindowResize();
         m_entered_present = true;
 
-        if (this->HasWindowResizedUnsafe() == true) {
+        if (this->HasWindowResizedUnsafe() == true || this->IsSkipDrawUnsafe() == true || this->HasValidWindowDimensionsUnsafe() == false) {
             this->UnlockWindowResize();
             m_present_cs.Leave();
             return;
@@ -736,6 +737,26 @@ namespace dd::vk {
     }
 
     void Context::WaitForGpu() {
+        
+        /* Bail if draw is skipped */
+        if (this->IsSkipDraw() == true) {
+            bool result = this->TryRecreateFramebuffer();
+            if (result == true) {
+                this->LockWindowResize();
+                this->ClearSkipDrawUnsafe();
+                this->ClearResizeUnsafe();
+                this->UnlockWindowResize();
+                VkFence submit_fence = m_bound_frame_buffer->GetCurrentQueueSubmitFence();
+                const u32 result0 = pfn_vkWaitForFences(m_vk_device, 1, std::addressof(submit_fence), VK_TRUE, UINT64_MAX);
+                DD_ASSERT(result0 == VK_SUCCESS);
+                VkFence acquire_fence = m_bound_frame_buffer->GetImageAcquireFence();
+
+                const u32 result1 = pfn_vkWaitForFences(m_vk_device, 1, std::addressof(acquire_fence), VK_TRUE, 16000000);
+                DD_ASSERT(result1 == VK_SUCCESS);
+            }
+
+            return;
+        }
 
         /* Wait until we have presented */
         while (m_entered_present == false) {
@@ -748,6 +769,7 @@ namespace dd::vk {
 
         /* Apply our window resize */
         if (m_bound_frame_buffer->ApplyResize(this) == true) {
+            this->SetSkipDraw();
             m_present_cs.Leave();
             return;
         }
@@ -765,6 +787,19 @@ namespace dd::vk {
         DD_ASSERT(result0 == VK_SUCCESS);
 
         m_present_cs.Leave();
+    }
+    
+    bool Context::TryRecreateFramebuffer() {
+
+        m_present_cs.Enter();
+
+        this->SetResize();
+
+        /* Apply our window resize */
+        bool result = m_bound_frame_buffer->ApplyResize(this);
+
+        m_present_cs.Leave();
+        return result;
     }
 
     util::DelegateThread *Context::InitializePresentationThread(FrameBuffer *framebuffer) {
