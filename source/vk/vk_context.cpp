@@ -57,7 +57,8 @@ namespace dd::vk {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
             .pNext = std::addressof(TargetDeviceVertexInputDynamicStateFeatures),
             .synchronization2 = VK_TRUE,
-            .dynamicRendering = VK_TRUE
+            .dynamicRendering = VK_TRUE,
+            .maintenance4 = VK_TRUE,
         };
         constinit VkPhysicalDeviceVulkan12Features TargetDeviceFeatures12 = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
@@ -315,6 +316,7 @@ namespace dd::vk {
 
             if (m_vk_physical_device_supported_features_13.synchronization2 == false)                              { DD_ASSERT(false); continue; }
             if (m_vk_physical_device_supported_features_13.dynamicRendering == false)                              { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_supported_features_13.maintenance4 == false)                                  { DD_ASSERT(false); continue; }
 
             if (m_vk_physical_device_vertex_input_dynamic_state_features.vertexInputDynamicState == false)         { DD_ASSERT(false); continue; }
 

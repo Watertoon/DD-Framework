@@ -110,7 +110,6 @@ namespace dd::vk {
             static u64 GetAlignment(const Context *context, const TextureInfo *texture_info) { 
 
                 /* Create staging Image */
-                VkImage vk_image;
                 const u32 queue_family_index = context->GetGraphicsQueueFamilyIndex();
                 const VkImageCreateInfo image_info {
                     .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -133,15 +132,19 @@ namespace dd::vk {
                     .initialLayout = static_cast<VkImageLayout>(texture_info->vk_image_layout)
                 };
 
-                const u32 result0 = ::pfn_vkCreateImage(context->GetDevice(), std::addressof(image_info), nullptr, std::addressof(vk_image));
-                DD_ASSERT(result0 == VK_SUCCESS);
+                const VkDeviceImageMemoryRequirements requirements_info = {
+                    .sType = VK_STRUCTURE_TYPE_DEVICE_IMAGE_MEMORY_REQUIREMENTS,
+                    .pCreateInfo = std::addressof(image_info),
+                    .planeAspect = VK_IMAGE_ASPECT_NONE_KHR
+                };
 
-                VkMemoryRequirements memory_requirements = {};
-                ::pfn_vkGetImageMemoryRequirements(context->GetDevice(), vk_image, std::addressof(memory_requirements));
+                VkMemoryRequirements2 memory_requirements = {
+                    .sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2
+                };
 
-                ::pfn_vkDestroyImage(context->GetDevice(), vk_image, nullptr);
-
-                return memory_requirements.alignment;
+                ::pfn_vkGetDeviceImageMemoryRequirements(context->GetDevice(), std::addressof(requirements_info), std::addressof(memory_requirements));
+                
+                return memory_requirements.memoryRequirements.alignment;
             }
     };
 }

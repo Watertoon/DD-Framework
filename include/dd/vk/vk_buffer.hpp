@@ -99,7 +99,6 @@ namespace dd::vk {
             static u64 GetAlignment(const Context *context, const BufferInfo *buffer_info) {
 
                 /* Use staging buffer to query alignment */
-                VkBuffer vk_buffer;
                 const u32 queue_family_index = context->GetGraphicsQueueFamilyIndex();
                 const VkBufferCreateInfo buffer_create_info = {
                     .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -109,16 +108,19 @@ namespace dd::vk {
                     .queueFamilyIndexCount = 1,
                     .pQueueFamilyIndices = std::addressof(queue_family_index)
                 };
-
-                const u32 result0 = ::pfn_vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(vk_buffer));
-                DD_ASSERT(result0 == VK_SUCCESS);
-
-                VkMemoryRequirements memory_requirements = {};
-                ::pfn_vkGetBufferMemoryRequirements(context->GetDevice(), vk_buffer, std::addressof(memory_requirements));
-
-                ::pfn_vkDestroyBuffer(context->GetDevice(), vk_buffer, nullptr);
                 
-                return memory_requirements.alignment;
+                const VkDeviceBufferMemoryRequirements requirements_info = {
+                    .sType = VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS,
+                    .pCreateInfo = std::addressof(buffer_create_info)
+                };
+
+                VkMemoryRequirements2 memory_requirements = {
+                    .sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2
+                };
+
+                ::pfn_vkGetDeviceBufferMemoryRequirements(context->GetDevice(), std::addressof(requirements_info), std::addressof(memory_requirements));
+                
+                return memory_requirements.memoryRequirements.alignment;
             }
     };
 }
