@@ -63,7 +63,7 @@ namespace dd::vk {
             constexpr Pipeline() {/*...*/}
 
             void Initialize(const Context *context, const PipelineInfo *pipeline_info) {
-                
+
                 /* pNext Pipeline State */
                 VkFormat color_formats[Context::TargetColorAttachmentCount] = {};
                 for (u32 i = 0; i < pipeline_info->color_blend_state.color_blend_count; ++i) {
@@ -72,12 +72,14 @@ namespace dd::vk {
                 const VkPipelineRenderingCreateInfo rendering_info = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
                     .colorAttachmentCount = pipeline_info->color_blend_state.color_blend_count,
-                    .pColorAttachmentFormats = color_formats
+                    .pColorAttachmentFormats = color_formats,
+                    .depthAttachmentFormat = Context::TargetDepthStencilFormat,
+                    .stencilAttachmentFormat = Context::TargetDepthStencilFormat
                 };
 
                 /* Pipeline state */
                 VkPipelineShaderStageCreateInfo shader_create_info[Context::TargetShaderStages] = {};
-        
+
                 u32 stage_count = 0;
                 const VkShaderModule vertex_module = pipeline_info->shader->GetVertexModule();
                 if (vertex_module != 0) {

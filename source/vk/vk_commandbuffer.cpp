@@ -466,6 +466,17 @@ namespace dd::vk {
         this->EndRenderingIfRendering();
 
         ::pfn_vkCmdClearDepthStencilImage(m_vk_command_buffer, depth_stencil_target->GetImage(), VK_IMAGE_LAYOUT_GENERAL, std::addressof(clear_value), 1, sub_range);
+
+        /* Barrier the clear */
+        const dd::vk::TextureBarrierCmdState clear_barrier_state = {
+            .vk_src_stage_mask  = VK_PIPELINE_STAGE_TRANSFER_BIT,
+            .vk_dst_stage_mask  = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+            .vk_src_access_mask = VK_ACCESS_TRANSFER_WRITE_BIT,
+            .vk_dst_access_mask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+            .vk_src_layout      = VK_IMAGE_LAYOUT_GENERAL,
+            .vk_dst_layout      = VK_IMAGE_LAYOUT_GENERAL
+        };
+        this->SetTextureStateTransition(depth_stencil_target->GetTexture(), std::addressof(clear_barrier_state), static_cast<VkImageAspectFlagBits>(VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT));
     }
 
     void CommandBuffer::SetFastClearColor(const VkClearColorValue& color) {
@@ -529,11 +540,14 @@ namespace dd::vk {
     }
 
     void CommandBuffer::SetDepthStencilState(const DepthStencilCmdState *depth_stencil_state) {
+        /* Depth */
         ::pfn_vkCmdSetDepthTestEnable(m_vk_command_buffer, depth_stencil_state->depth_test_enable);
         ::pfn_vkCmdSetDepthWriteEnable(m_vk_command_buffer, depth_stencil_state->depth_write_enable);
         ::pfn_vkCmdSetDepthBoundsTestEnable(m_vk_command_buffer, depth_stencil_state->depth_bounds_test_enable);
         ::pfn_vkCmdSetDepthBounds(m_vk_command_buffer, depth_stencil_state->min_depth_bounds, depth_stencil_state->max_depth_bounds);
         ::pfn_vkCmdSetDepthCompareOp(m_vk_command_buffer, depth_stencil_state->vk_depth_compare_op);
+
+        /* Stencil */
         ::pfn_vkCmdSetStencilTestEnable(m_vk_command_buffer, depth_stencil_state->stencil_test_enable);
         ::pfn_vkCmdSetStencilCompareMask(m_vk_command_buffer, VK_STENCIL_FACE_FRONT_BIT, depth_stencil_state->vk_op_state_front.compareMask);
         ::pfn_vkCmdSetStencilCompareMask(m_vk_command_buffer, VK_STENCIL_FACE_BACK_BIT, depth_stencil_state->vk_op_state_back.compareMask);

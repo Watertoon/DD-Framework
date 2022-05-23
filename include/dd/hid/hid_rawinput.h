@@ -16,7 +16,7 @@
 #pragma once
 
 namespace dd::hid {
-    
+
     enum VirtualKey : u8 {
         VirtualKey_LButton          = 0x01,
         VirtualKey_RButton          = 0x02,
@@ -391,7 +391,7 @@ namespace dd::hid {
                 u64 reserve16            : 1; /* 0xFF */
             };
         };
-        
+
         constexpr KeyState operator|(const KeyState& rhs) const {
             KeyState new_state = {*this};
             new_state.state_array[0] |= rhs.state_array[0];
@@ -400,7 +400,7 @@ namespace dd::hid {
             new_state.state_array[3] |= rhs.state_array[3];
             return new_state;
         }
-        
+
         constexpr KeyState operator&(const KeyState& rhs) const {
             KeyState new_state = {*this};
             new_state.state_array[0] &= rhs.state_array[0];
@@ -409,7 +409,7 @@ namespace dd::hid {
             new_state.state_array[3] &= rhs.state_array[3];
             return new_state;
         }
-        
+
         constexpr KeyState operator~() const {
             KeyState new_state = {};
             new_state.state_array[0] = ~state_array[0];
@@ -480,7 +480,7 @@ namespace dd::hid {
         s32 delta_hwheel;
         u16 button_state;
         u16 button_held;
-        
+
         static constexpr u16 ButtonDownMask =  MouseButton_Left | MouseButton_Right | MouseButton_Middle | MouseButton_X1 | MouseButton_X2;
         static constexpr u16 ButtonUpMask   = (MouseButton_Left | MouseButton_Right | MouseButton_Middle | MouseButton_X1 | MouseButton_X2) << 1;
 

@@ -45,23 +45,75 @@ namespace dd::learn {
         const char *fragment_shader_path = "shaders/2_frag_fragment.spv";
 
         const float vertices[] = {
-            /* Position */      /* Color */        /* Tex Coords*/
-            0.5f,  0.5f, 0.0f,  0.1f, 0.2f, 0.5f,  1.0f, 1.0f,
-            0.5f, -0.5f, 0.0f,  0.1f, 0.2f, 0.5f,  1.0f, 0.0f,
-           -0.5f, -0.5f, 0.0f,  0.4f, 0.6f, 0.9f,  0.0f, 0.0f,
-           -0.5f,  0.5f, 0.0f,  0.2f, 0.2f, 0.0f,  0.0f, 1.0f
+            /* Position */       /* Tex Coords */
+            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+             0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+             0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+             0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+             0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+             0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+             0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+            -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+            -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+            -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+             0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+             0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+             0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+             0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+             0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+             0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+             0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+             0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+             0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+             0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+             0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+             0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
         };
-        constexpr inline u32 VerticeCount = 4;
+        constexpr inline u32 VerticeCount = sizeof(vertices) / (sizeof(float) * 5);
+        static_assert(VerticeCount == 36);
         constexpr inline u32 VerticeStride = sizeof(vertices) / VerticeCount;
         const u32 indices[] = {
             0, 1, 3,
             1, 2, 3
         };
 
-        dd::util::math::Matrix34f model1_matrix = util::math::IdentityMatrix34<float>;
+        const util::math::Vector3f CubePositions[] = {
+            util::math::Vector3f( 0.0f,  0.0f,  0.0f), 
+            util::math::Vector3f( 2.0f,  5.0f, -15.0f), 
+            util::math::Vector3f(-1.5f, -2.2f, -2.5f),  
+            util::math::Vector3f(-3.8f, -2.0f, -12.3f),  
+            util::math::Vector3f( 2.4f, -0.4f, -3.5f),  
+            util::math::Vector3f(-1.7f,  3.0f, -7.5f),  
+            util::math::Vector3f( 1.3f, -2.0f, -2.5f),  
+            util::math::Vector3f( 1.5f,  2.0f, -2.5f), 
+            util::math::Vector3f( 1.5f,  0.2f, -1.5f), 
+            util::math::Vector3f(-1.3f,  1.0f, -1.5f)  
+        };
+        constexpr inline u32 CubeCount = sizeof(CubePositions) / sizeof(util::math::Vector3f);
+
+        dd::util::math::Matrix34f model_matrix = util::math::IdentityMatrix34<float>;
         dd::util::LookAtCamera camera = {{ 0.0f, 0.0f, 3.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, -1.0f, 0.0f }};
         dd::util::PerspectiveProjection perspective_projection(0.1f, 100.0f, util::math::TRadians<float, 45.0f>, 1280.0f / 720.0f);
-        
+
         struct ViewArg {
             dd::util::math::Matrix34f model_matrix;
             dd::util::math::Matrix34f view_matrix;
@@ -69,7 +121,10 @@ namespace dd::learn {
         };
 
         constexpr u32 UniformBufferSize = sizeof(ViewArg);
-        
+
+        float rot_x_angle = 0.0f;
+        float rot_y_angle = 0.0f;
+
         char *memory_buffer = nullptr;
         char *memory_image = nullptr;
 
@@ -98,15 +153,8 @@ namespace dd::learn {
                 .sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT,
                 .location = 1,
                 .binding = 0,
-                .format = VK_FORMAT_R32G32B32_SFLOAT,
-                .offset = sizeof(float) * 3
-            },
-            {
-                .sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT,
-                .location = 2,
-                .binding = 0,
                 .format = VK_FORMAT_R32G32_SFLOAT,
-                .offset = sizeof(float) * 6
+                .offset = sizeof(float) * 3
             },
         };
         constexpr size_t input_attribute_count = sizeof(vk_attribute_descriptions) / sizeof(VkVertexInputAttributeDescription2EXT);
@@ -205,7 +253,7 @@ namespace dd::learn {
         
         ::memcpy(memory_buffer, vertices, sizeof(vertices));
         ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory_buffer) + index_buffer_info.offset), indices, sizeof(indices));
-        ViewArg view_arg = { model1_matrix, *camera.GetCameraMatrix(), *perspective_projection.GetProjectionMatrix() };
+        ViewArg view_arg = { model_matrix, *camera.GetCameraMatrix(), *perspective_projection.GetProjectionMatrix() };
         ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory_buffer) + uniform_buffer_info.offset), std::addressof(view_arg), sizeof(ViewArg));
         
         ::memcpy(memory_image, texture0, texture0_size);
@@ -267,11 +315,11 @@ namespace dd::learn {
 
         util::ConstructAt(vk_texture_view1);
         util::GetReference(vk_texture_view1).Initialize(context, std::addressof(view_info));
-        
+
         /* Create sampler */
         vk::SamplerInfo sampler_info = {};
         sampler_info.SetDefaults();
-        
+
         util::ConstructAt(vk_sampler);
         util::GetReference(vk_sampler).Initialize(context, std::addressof(sampler_info));
 
@@ -305,41 +353,14 @@ namespace dd::learn {
         /* Register our textures */
         sampler_slot = sampler_descriptor_pool->RegisterSampler(util::GetPointer(vk_sampler));
     }
-    
+
     void CalcTriangle() {
-        ViewArg view_arg = { model1_matrix, *camera.GetCameraMatrix(), *perspective_projection.GetProjectionMatrix() };
         
-        const float angle = util::math::TRadians<float, -55.0f>;
-        dd::util::math::RotateLocalX(std::addressof(view_arg.model_matrix), angle);
-        
-        char buffer[0x300] = {};
-        std::snprintf(buffer, sizeof(buffer), "%s", "Model Matrix:\n");
-        for (u32 i = 0; i < 12; i = i + 4) {
-            std::snprintf(buffer, sizeof(buffer), "%s%f %f %f %f\n", buffer, view_arg.model_matrix.m_arr[i], view_arg.model_matrix.m_arr[i + 1], view_arg.model_matrix.m_arr[i + 2], view_arg.model_matrix.m_arr[i + 3]);
-        }
-
-        std::snprintf(buffer, sizeof(buffer), "%s%s", buffer, "View Matrix:\n");
-        for (u32 i = 0; i < 12; i = i + 4) {
-            std::snprintf(buffer, sizeof(buffer), "%s%f %f %f %f\n", buffer, view_arg.view_matrix.m_arr[i], view_arg.view_matrix.m_arr[i + 1], view_arg.view_matrix.m_arr[i + 2], view_arg.view_matrix.m_arr[i + 3]);
-        }
-
-        std::snprintf(buffer, sizeof(buffer), "%s%s", buffer, "Projection Matrix:\n");
-        for (u32 i = 0; i < 16; i = i + 4) {
-            std::snprintf(buffer, sizeof(buffer), "%s%f %f %f %f\n", buffer, view_arg.projection_matrix.m_arr[i], view_arg.projection_matrix.m_arr[i + 1], view_arg.projection_matrix.m_arr[i + 2], view_arg.projection_matrix.m_arr[i + 3]);
-        }
-
-        ::puts(buffer);
-
-        perspective_projection.Print();
-
-        /* Transform matrices */
-        /*rot_mtx = model_matrix;
-        rot_x_angle += dd::util::math::TRadians<float, 1.0f> * dd::util::GetDeltaTime();
+        /* Calculate new angle */
+        rot_x_angle += dd::util::math::TRadians<float, 0.5f> * dd::util::GetDeltaTime();
         rot_y_angle += dd::util::math::TRadians<float, 1.0f> * dd::util::GetDeltaTime();
-        ::fmod(rot_x_angle, dd::util::math::Float2Pi);
-        ::fmod(rot_y_angle, dd::util::math::Float2Pi);
-        dd::util::math::RotateLocalX(std::addressof(rot_mtx), rot_z_angle);
-        dd::util::math::RotateLocalY(std::addressof(rot_mtx), rot_z_angle);*/
+        rot_x_angle = ::fmod(rot_x_angle, dd::util::math::Float2Pi);
+        rot_y_angle = ::fmod(rot_y_angle, dd::util::math::Float2Pi);
     }
     
     void DrawTriangle(vk::CommandBuffer *command_buffer) {
@@ -347,11 +368,12 @@ namespace dd::learn {
         /* Copy matrices to buffer */
         u32 width = 0, height = 0;
         vk::GetGlobalContext()->GetWindowDimensionsUnsafe(std::addressof(width), std::addressof(height));
-        
-        camera.UpdateCameraMatrixSelf();
-        ViewArg view_arg = { model1_matrix, *camera.GetCameraMatrix(), *perspective_projection.GetProjectionMatrix() };
 
-        util::math::RotateLocalX(std::addressof(view_arg.model_matrix), util::math::TRadians<float, -55.0f>);
+        camera.UpdateCameraMatrixSelf();
+        ViewArg view_arg = { model_matrix, *camera.GetCameraMatrix(), *perspective_projection.GetProjectionMatrix() };
+
+        util::math::RotateLocalX(std::addressof(view_arg.model_matrix), rot_x_angle);
+        util::math::RotateLocalY(std::addressof(view_arg.model_matrix), rot_y_angle);
 
         void *ubo_address = util::GetReference(vk_uniform_buffer).Map();
         DD_ASSERT(ubo_address != nullptr);
@@ -360,7 +382,7 @@ namespace dd::learn {
 
         /* Ensure textures are transistioned */
         if (util::GetPointer(vk_texture_view0)->GetTexture()->GetImageLayout() == VK_IMAGE_LAYOUT_PREINITIALIZED) {
-            
+
             util::GetReference(vk_image_memory).Relocate(command_buffer->GetCommandBuffer());
 
             const dd::vk::TextureBarrierCmdState texture_barrier_state = {
@@ -371,7 +393,7 @@ namespace dd::learn {
             };
 
             command_buffer->SetTextureStateTransition(util::GetPointer(vk_texture_view0)->GetTexture(), std::addressof(texture_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
-            
+
             texture_view0_slot = util::GetPointer(vk_texture_descriptor_pool)->RegisterTexture(util::GetPointer(vk_texture_view0));
         }
         if (util::GetPointer(vk_texture_view1)->GetTexture()->GetImageLayout() == VK_IMAGE_LAYOUT_PREINITIALIZED) {
@@ -384,7 +406,7 @@ namespace dd::learn {
             };
 
             command_buffer->SetTextureStateTransition(util::GetPointer(vk_texture_view1)->GetTexture(), std::addressof(texture_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
-            
+
             texture_view1_slot = util::GetPointer(vk_texture_descriptor_pool)->RegisterTexture(util::GetPointer(vk_texture_view1));
         }
 
@@ -393,9 +415,9 @@ namespace dd::learn {
         command_buffer->SetDescriptorPool(util::GetPointer(vk_texture_descriptor_pool));
         command_buffer->SetPipeline(util::GetPointer(vk_pipeline));
         command_buffer->SetPipelineState(std::addressof(vk_pipeline_cmd_state));
-        
+
         command_buffer->SetVertexBuffer(0, util::GetPointer(vk_vertex_buffer), VerticeStride, sizeof(vertices));
-        
+
         command_buffer->SetUniformBuffer(0, vk::ShaderStage_Vertex, util::GetReference(vk_uniform_buffer).GetGpuAddress());
 
         command_buffer->SetTextureAndSampler(0, vk::ShaderStage_Fragment, texture_view0_slot, sampler_slot);
@@ -418,7 +440,7 @@ namespace dd::learn {
         command_buffer->SetScissors(1, std::addressof(scissor));
 
         /* Draw */
-        command_buffer->DrawIndexed(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_INDEX_TYPE_UINT32, util::GetPointer(vk_index_buffer), 6, 0);
+        command_buffer->Draw(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VerticeCount, 0);
     }
 
     void CleanTriangle() {
@@ -438,34 +460,34 @@ namespace dd::learn {
         util::GetReference(vk_sampler_descriptor_pool).UnregisterResourceBySlot(sampler_slot);
         util::GetReference(vk_sampler_descriptor_pool).Finalize(context);
         dd::util::DestructAt(vk_sampler_descriptor_pool);
-        
+
         util::GetReference(vk_texture_view0).Finalize(context);
         dd::util::DestructAt(vk_texture_view0);
-        
+
         util::GetReference(vk_texture_view1).Finalize(context);
         dd::util::DestructAt(vk_texture_view1);
-        
+
         util::GetReference(vk_texture0).Finalize(context);
         dd::util::DestructAt(vk_texture0);
-        
+
         util::GetReference(vk_texture1).Finalize(context);
         dd::util::DestructAt(vk_texture1);
-        
+
         util::GetReference(vk_sampler).Finalize(context);
         dd::util::DestructAt(vk_sampler);
-        
+
         util::GetReference(vk_uniform_buffer).Finalize(context);
         dd::util::DestructAt(vk_uniform_buffer);
-        
+
         util::GetReference(vk_index_buffer).Finalize(context);
         dd::util::DestructAt(vk_index_buffer);
-        
+
         util::GetReference(vk_vertex_buffer).Finalize(context);
         dd::util::DestructAt(vk_vertex_buffer);
-        
+
         util::GetReference(vk_image_memory).Finalize(context);
         dd::util::DestructAt(vk_image_memory);
-        
+
         util::GetReference(vk_buffer_memory).Finalize(context);
         dd::util::DestructAt(vk_buffer_memory);
     }

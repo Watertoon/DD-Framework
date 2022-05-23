@@ -30,6 +30,10 @@ namespace dd::vk {
             VkFence          m_vk_image_acquire_fence;
             Texture          m_vk_swapchain_textures[BufferedFrames];
             ColorTargetView  m_vk_swapchain_targets[BufferedFrames];
+            VkDeviceMemory   m_vk_depth_stencil_image_memory;
+            MemoryPool       m_depth_stencil_memory;
+            Texture          m_depth_stencil_texture;
+            DepthStencilTargetView  m_depth_stencil_target;
             u32              m_current_target_index;
             u32              m_current_frame;
         public:
@@ -82,7 +86,6 @@ namespace dd::vk {
                 /* Initialize ColorTargets */
                 ColorTargetInfo target_info = {
                     .vk_image_view_type = VK_IMAGE_VIEW_TYPE_2D,
-                    .levels = 1,
                     .vk_format = Context::TargetSurfaceFormat.format,
                     .base_layer = 0,
                     .layers = 1,
@@ -128,6 +131,50 @@ namespace dd::vk {
 
                 const u32 result8 = ::pfn_vkWaitForFences(context->GetDevice(), 1, std::addressof(m_vk_image_acquire_fence), VK_TRUE, UINT64_MAX);
                 DD_ASSERT(result8 == VK_SUCCESS);
+
+                /* Create depth image */
+                const TextureInfo depth_image_info = {
+                    .vk_usage_flags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+                    .mip_levels = 1,
+                    .width = window_width,
+                    .height = window_height,
+                    .depth = 1,
+                    .vk_format = Context::TargetDepthStencilFormat,
+                    .vk_image_layout = VK_IMAGE_LAYOUT_UNDEFINED,
+                    .vk_image_type = VK_IMAGE_TYPE_2D,
+                    .vk_sample_count_flag = VK_SAMPLE_COUNT_1_BIT,
+                    .vk_tiling = VK_IMAGE_TILING_OPTIMAL,
+                    .array_layers = 1
+                };
+                const u64 required_memory = util::AlignUp(Texture::GetRequiredMemory(context, std::addressof(depth_image_info)), Context::TargetMemoryPoolAlignment);
+
+                const s32 memory_type = context->FindMemoryHeapIndex(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                const VkMemoryAllocateInfo depth_stencil_allocate_info =  {
+                    .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+                    .allocationSize = required_memory,
+                    .memoryTypeIndex = static_cast<u32>(memory_type)
+                };
+                const u32 result9 = ::pfn_vkAllocateMemory(context->GetDevice(), std::addressof(depth_stencil_allocate_info), nullptr, std::addressof(m_vk_depth_stencil_image_memory));
+                DD_ASSERT(result9 == VK_SUCCESS);
+                
+                m_depth_stencil_memory.ImportExisting(m_vk_depth_stencil_image_memory, true);
+
+                m_depth_stencil_texture.Initialize(context, std::addressof(depth_image_info), std::addressof(m_depth_stencil_memory));
+                
+                const DepthStencilTargetInfo depth_target_info = {
+                    .vk_image_view_type = VK_IMAGE_VIEW_TYPE_2D,
+                    .vk_format = Context::TargetDepthStencilFormat,
+                    .base_layer = 0,
+                    .layers = 1,
+                    .base_mip_level = 0,
+                    .mip_levels = 1,
+                    .vk_swizzle_r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .vk_swizzle_g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .vk_swizzle_b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .vk_swizzle_a = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .depth_stencil_attachment = std::addressof(m_depth_stencil_texture)
+                };
+                m_depth_stencil_target.Initialize(context, std::addressof(depth_target_info));
             }
 
             void Finalize(const Context *context) {
@@ -142,6 +189,11 @@ namespace dd::vk {
                     m_vk_swapchain_targets[i].Finalize(context);
                     m_vk_swapchain_textures[i].Finalize(context);
                 }
+
+                m_depth_stencil_target.Finalize(context);
+                m_depth_stencil_texture.Finalize(context);
+                m_depth_stencil_memory.Finalize(context);
+                ::pfn_vkFreeMemory(context->GetDevice(), m_vk_depth_stencil_image_memory, nullptr);
 
                 m_current_frame = 0;
             }
@@ -203,7 +255,6 @@ namespace dd::vk {
                 /* Reinitialize ColorTargets */
                 ColorTargetInfo target_info = {
                     .vk_image_view_type = VK_IMAGE_VIEW_TYPE_2D,
-                    .levels = 1,
                     .vk_format = Context::TargetSurfaceFormat.format,
                     .base_layer = 0,
                     .layers = 1,
@@ -227,11 +278,11 @@ namespace dd::vk {
                 const u32 result7 = ::pfn_vkAcquireNextImageKHR(vk_device, m_vk_swapchain, 0, VK_NULL_HANDLE, m_vk_image_acquire_fence, std::addressof(m_current_target_index));
                 DD_ASSERT(result7 == VK_SUCCESS);
 
+                /* Recreate Semaphores */
                 for (u32 i = 0; i < FramesInFlight; ++i) {
                     ::pfn_vkDestroySemaphore(vk_device, m_vk_queue_present_semaphore[i], nullptr);
                 }
-
-                /* Recreate Semaphores */
+                
                 VkSemaphoreCreateInfo semaphore_info = {
                     .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
                 };
@@ -240,6 +291,55 @@ namespace dd::vk {
                     const u32 result10 = ::pfn_vkCreateSemaphore(vk_device, std::addressof(semaphore_info), nullptr, std::addressof(m_vk_queue_present_semaphore[i]));
                     DD_ASSERT(result10 == VK_SUCCESS);
                 }
+
+                /* Rereate depth image */
+                m_depth_stencil_target.Finalize(context);
+                m_depth_stencil_texture.Finalize(context);
+                m_depth_stencil_memory.Finalize(context);
+                ::pfn_vkFreeMemory(context->GetDevice(), m_vk_depth_stencil_image_memory, nullptr);
+
+                const TextureInfo depth_image_info = {
+                    .vk_usage_flags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+                    .mip_levels = 1,
+                    .width = window_width,
+                    .height = window_height,
+                    .depth = 1,
+                    .vk_format = Context::TargetDepthStencilFormat,
+                    .vk_image_layout = VK_IMAGE_LAYOUT_UNDEFINED,
+                    .vk_image_type = VK_IMAGE_TYPE_2D,
+                    .vk_sample_count_flag = VK_SAMPLE_COUNT_1_BIT,
+                    .vk_tiling = VK_IMAGE_TILING_OPTIMAL,
+                    .array_layers = 1
+                };
+                const u64 required_memory = util::AlignUp(Texture::GetRequiredMemory(context, std::addressof(depth_image_info)), Context::TargetMemoryPoolAlignment);
+
+                const s32 memory_type = context->FindMemoryHeapIndex(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                const VkMemoryAllocateInfo depth_stencil_allocate_info =  {
+                    .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+                    .allocationSize = required_memory,
+                    .memoryTypeIndex = static_cast<u32>(memory_type)
+                };
+                const u32 result11 = ::pfn_vkAllocateMemory(context->GetDevice(), std::addressof(depth_stencil_allocate_info), nullptr, std::addressof(m_vk_depth_stencil_image_memory));
+                DD_ASSERT(result11 == VK_SUCCESS);
+
+                m_depth_stencil_memory.ImportExisting(m_vk_depth_stencil_image_memory, true);
+
+                m_depth_stencil_texture.Initialize(context, std::addressof(depth_image_info), std::addressof(m_depth_stencil_memory));
+
+                const DepthStencilTargetInfo depth_target_info = {
+                    .vk_image_view_type = VK_IMAGE_VIEW_TYPE_2D,
+                    .vk_format = Context::TargetDepthStencilFormat,
+                    .base_layer = 0,
+                    .layers = 1,
+                    .base_mip_level = 0,
+                    .mip_levels = 1,
+                    .vk_swizzle_r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .vk_swizzle_g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .vk_swizzle_b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .vk_swizzle_a = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .depth_stencil_attachment = std::addressof(m_depth_stencil_texture)
+                };
+                m_depth_stencil_target.Initialize(context, std::addressof(depth_target_info));
             }
 
             void PresentTextureAndAcquireNext(Context *context) {
@@ -294,6 +394,8 @@ namespace dd::vk {
             }
 
             constexpr ColorTargetView *GetCurrentColorTarget()         { return std::addressof(m_vk_swapchain_targets[m_current_target_index]); }
+
+            constexpr DepthStencilTargetView *GetDepthStencilTarget()         { return std::addressof(m_depth_stencil_target); }
 
             constexpr VkSemaphore GetCurrentQueuePresentSemaphore()    { return m_vk_queue_present_semaphore[m_current_frame]; }
 

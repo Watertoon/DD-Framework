@@ -19,8 +19,8 @@ namespace dd::vk {
 
     struct DepthStencilTargetInfo {
         u8       vk_image_view_type;
-        u8       reserve;
-        u16      levels;
+        u8       reserve0;
+        u16      reserve1;
         u32      vk_format;
         u32      base_layer;
         u32      layers;
@@ -74,7 +74,9 @@ namespace dd::vk {
                 m_vk_depth_stencil_image_view = 0;
             }
 
-            constexpr ALWAYS_INLINE VkImage GetImage() const { return m_texture->GetImage(); }
+            constexpr ALWAYS_INLINE Texture *GetTexture()            { return m_texture; }
+
+            constexpr ALWAYS_INLINE VkImage GetImage() const         { return m_texture->GetImage(); }
 
             constexpr ALWAYS_INLINE VkImageView GetImageView() const { return m_vk_depth_stencil_image_view; }
     };

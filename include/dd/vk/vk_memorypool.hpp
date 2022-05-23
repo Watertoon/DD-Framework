@@ -34,6 +34,7 @@ namespace dd::vk {
             u32             m_vk_memory_property_flags;
             bool            m_requires_relocation;
             bool            m_is_device_memory;
+            bool            m_is_import;
             void           *m_host_pointer;
             VkDeviceSize    m_size;
             void           *m_mapped_memory;
@@ -108,7 +109,22 @@ namespace dd::vk {
                 DD_ASSERT(result2 == VK_SUCCESS);
             }
 
+            void ImportExisting(VkDeviceMemory import_memory, bool is_device_local) {
+                if (is_device_local == true) {
+                    m_vk_device_memory = import_memory;
+                } else {
+                    m_vk_host_memory = import_memory;
+                }
+                m_is_device_memory = is_device_local;
+                m_is_import = true;
+            }
+
             void Finalize(const Context *context) {
+
+                if (m_is_import == true) {
+                    return;
+                }
+
                 const VkDevice device = context->GetDevice();
                 if (m_vk_host_buffer != 0) {
                     ::pfn_vkDestroyBuffer(device, m_vk_host_buffer, nullptr);

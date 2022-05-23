@@ -16,7 +16,7 @@
 #include <dd.hpp>
 
 namespace dd::res {
-    
+
     void LoadFile(const char *path, void **out_file, u32 *out_file_size) {
         /* Find file */
         Handle file = ::CreateFile(path, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);

@@ -98,34 +98,48 @@ void Draw(dd::vk::Context *global_context, dd::vk::CommandBuffer *global_command
     const VkClearColorValue clear_color = {
         .float32 = { 0.5f, 0.5f, 0.5f, 1.0f }
     };
-    const VkImageSubresourceRange clear_sub_range = {
+    const VkImageSubresourceRange clear_color_sub_range = {
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .levelCount = 1,
+        .layerCount = 1,
+    };
+
+    const VkClearDepthStencilValue clear_depth_stencil = {
+        .depth = 1.0f,
+        .stencil = 0
+    };
+    const VkImageSubresourceRange clear_depth_stencil_sub_range = {
+        .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT,
         .levelCount = 1,
         .layerCount = 1,
     };
 
     /* Get current targets */
     dd::vk::ColorTargetView *current_color_target = global_frame_buffer->GetCurrentColorTarget();
+    dd::vk::DepthStencilTargetView *depth_stencil_target = global_frame_buffer->GetDepthStencilTarget();
     dd::vk::Texture *color_target_texture = current_color_target->GetTexture();
+    dd::vk::Texture *depth_target_texture = depth_stencil_target->GetTexture();
 
     global_command_buffer->Begin();
     global_context->EnterDraw();
 
-    /* Transition render target to attachment */
+    /* Transition render targets to attachment */
     const dd::vk::TextureBarrierCmdState clear_barrier_state = {
-        .vk_src_stage_mask  = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+        .vk_src_stage_mask  = 0,
         .vk_dst_stage_mask  = VK_PIPELINE_STAGE_TRANSFER_BIT,
         .vk_dst_access_mask = VK_ACCESS_TRANSFER_WRITE_BIT,
         .vk_src_layout      = VK_IMAGE_LAYOUT_UNDEFINED,
         .vk_dst_layout      = VK_IMAGE_LAYOUT_GENERAL
     };
     global_command_buffer->SetTextureStateTransition(color_target_texture, std::addressof(clear_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
+    global_command_buffer->SetTextureStateTransition(depth_target_texture, std::addressof(clear_barrier_state), static_cast<VkImageAspectFlagBits>(VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT));
 
-    /* Clear render target */
-    global_command_buffer->ClearColorTarget(current_color_target, std::addressof(clear_color), std::addressof(clear_sub_range));
+    /* Clear render targets */
+    global_command_buffer->ClearColorTarget(current_color_target, std::addressof(clear_color), std::addressof(clear_color_sub_range));
+    global_command_buffer->ClearDepthStencilTarget(depth_stencil_target, clear_depth_stencil, std::addressof(clear_depth_stencil_sub_range));
 
     /* Set render target */
-    global_command_buffer->SetRenderTargets(1 , std::addressof(current_color_target), nullptr);
+    global_command_buffer->SetRenderTargets(1 , std::addressof(current_color_target), depth_stencil_target);
 
     /* Draw Frame */
     dd::learn::DrawTriangle(global_command_buffer);
@@ -192,7 +206,7 @@ int main() {
 
         /* Calc Frame */
         dd::learn::CalcTriangle();
-        
+
         /* Wait for presentation */
         global_context->WaitForGpu();
 

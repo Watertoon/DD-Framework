@@ -67,7 +67,7 @@ namespace dd::util::math {
             constexpr const v3 GetVectorType() const {
                 return v3{x,y,z,0};
             }
-            
+
             constexpr Vector3Type& operator=(const Vector3Type& rhs) {
                 x = rhs.x;
                 y = rhs.y;
@@ -146,7 +146,7 @@ namespace dd::util::math {
             constexpr ALWAYS_INLINE bool operator!=(const Vector3Type& rhs) {
                 return !(*this == rhs);
             }
-            
+
             template<typename A = T> 
                 requires std::is_floating_point<A>::value && (sizeof(Vector3Type<A>) == sizeof(float) * 3)
             constexpr ALWAYS_INLINE Vector3Type Cross(const Vector3Type& rhs) {

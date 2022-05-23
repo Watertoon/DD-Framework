@@ -40,15 +40,13 @@
     DECLARE_RESOURCE_BUFFER(ResourceBuffer);
 
     layout (location = 0) in vec3 aPosition;
-    layout (location = 1) in vec3 aColor;
-    layout (location = 2) in vec2 aTexCoord;
+    layout (location = 1) in vec2 aTexCoord;
     
     layout (location = 0) out vec3 ovColor;
     layout (location = 1) out vec2 ovTexCoord;
 
     void main() {
         gl_Position = RB(ubo.proj) * mat4(RB(ubo.view)) * mat4(RB(ubo.model)) * vec4(aPosition, 1.0);
-        ovColor = aColor;
         ovTexCoord = aTexCoord;
     }
 

@@ -22,13 +22,12 @@ namespace dd::util {
                 float width  = 0.0f;
                 float height = 0.0f;
                 framebuffer->GetVirtualCanvasSize(std::addressof(width), std::addressof(height));
-                
+
                 m_bounding_box.min_x = math::Min(width, 0.0f);
                 m_bounding_box.min_y = math::Min(height, 0.0f);
                 m_bounding_box.max_x = math::Max(width, 0.0f);
                 m_bounding_box.max_y = math::Max(height, 0.0f);
             }
-            
-            
+
     };
 }

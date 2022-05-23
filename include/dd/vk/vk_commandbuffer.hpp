@@ -42,8 +42,8 @@ namespace dd::vk {
         float            max_depth_bounds;
 
         constexpr void SetDefaults() {
-            depth_test_enable             = false;
-            depth_write_enable            = false;
+            depth_test_enable             = true;
+            depth_write_enable            = true;
             depth_bounds_test_enable      = false;
             stencil_test_enable           = false;
             vk_op_state_front.failOp      = VK_STENCIL_OP_KEEP;
@@ -60,6 +60,7 @@ namespace dd::vk {
             vk_op_state_back.compareMask  = 0;
             vk_op_state_back.writeMask    = 0;
             vk_op_state_back.reference    = 0;
+            vk_depth_compare_op           = VK_COMPARE_OP_LESS_OR_EQUAL;
             min_depth_bounds              = 0.0f;
             max_depth_bounds              = 1.0f;
         }
@@ -78,7 +79,7 @@ namespace dd::vk {
         float           line_width;
 
         constexpr void SetDefaults() {
-            vk_cull_mode               = VK_CULL_MODE_BACK_BIT;
+            vk_cull_mode               = VK_CULL_MODE_FRONT_BIT;
             vk_front_face              = VK_FRONT_FACE_CLOCKWISE;
             rasterizer_discard_enable  = false;
             primitive_restart_enable   = false;
@@ -210,7 +211,7 @@ namespace dd::vk {
             void EndRenderingIfRendering();
 
             void UpdateResourceBufferIfNecessary();
-            
+
             void PushResourceBufferIndices();
         public:
             constexpr CommandBuffer() { /*...*/ }

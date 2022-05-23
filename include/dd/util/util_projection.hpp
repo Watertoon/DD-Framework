@@ -1,7 +1,7 @@
 #pragma once
 
 namespace dd::util {
-    
+
     class Projection {
         protected:
             math::Matrix44f m_projection_matrix;
@@ -24,7 +24,7 @@ namespace dd::util {
             constexpr const math::Matrix44f *GetProjectionMatrix() const {
                 return std::addressof(m_projection_matrix);
             }
-            
+
             constexpr virtual void UpdateMatrix(math::Matrix44f *out_proj_matrix) const = 0;
     };
     
@@ -74,7 +74,7 @@ namespace dd::util {
                 out_proj_matrix->m_row4 = { 0.0f, 0.0f, -1.0f, 0.0f };
             }
     };
-    
+
     class PerspectiveProjection : public FrustumProjection {
         private:
             float m_fov_x;
@@ -110,12 +110,6 @@ namespace dd::util {
                 out_proj_matrix->m_row3 = row3;
 
                 out_proj_matrix->m_row4 = { 0.0f, 0.0f, -1.0f, 0.0f };
-            }
-            
-            void Print() {
-                char buffer[0x200] = {};
-                std::snprintf(buffer, sizeof(buffer), "near: %f, far: %f", m_near, m_far);
-                ::puts(buffer);
             }
     };
 }

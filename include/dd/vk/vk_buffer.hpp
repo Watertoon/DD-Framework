@@ -76,7 +76,7 @@ namespace dd::vk {
             void Unmap() {
                 m_bound_memory_pool->Unmap();
             }
-            
+
             VkDeviceAddress GetGpuAddress() {
                 const VkBufferDeviceAddressInfo device_address_info = {
                     .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
@@ -84,7 +84,7 @@ namespace dd::vk {
                 };
                 return ::pfn_vkGetBufferDeviceAddress(GetGlobalContext()->GetDevice(), std::addressof(device_address_info));
             }
-            
+
             constexpr ALWAYS_INLINE VkBuffer GetBuffer() const { return m_vk_buffer; }
 
             void Relocate(VkCommandBuffer vk_command_buffer) {
@@ -108,7 +108,7 @@ namespace dd::vk {
                     .queueFamilyIndexCount = 1,
                     .pQueueFamilyIndices = std::addressof(queue_family_index)
                 };
-                
+
                 const VkDeviceBufferMemoryRequirements requirements_info = {
                     .sType = VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS,
                     .pCreateInfo = std::addressof(buffer_create_info)

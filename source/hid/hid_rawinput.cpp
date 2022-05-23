@@ -36,10 +36,10 @@ namespace dd::hid {
         MouseData             last_raw_mouse = {};
         MouseState            interim_mouse_state = {};
         MouseState            frame_mouse_state = {};
-        
+
         util::CriticalSection mouse_state_cs = {};
         util::CriticalSection keyboard_state_cs = {};
-        
+
         KeyboardData          raw_keyboard = {};
         KeyboardState         frame_keyboard_state;
         KeyState              pressed_state;
@@ -65,7 +65,7 @@ namespace dd::hid {
             /* Set Mouse State */
             {
                 std::scoped_lock l(mouse_state_cs);
-                
+
                 if ((last_mouse->usFlags & MOUSE_MOVE_ABSOLUTE) == MOUSE_MOVE_ABSOLUTE) {
                     interim_mouse_state.absolute_x = static_cast<s32>(((mouse->lLastX / 65535.0f) * width));
                     interim_mouse_state.absolute_y = static_cast<s32>(((mouse->lLastY / 65535.0f) * height));
@@ -166,10 +166,6 @@ namespace dd::hid {
             struct_size = sizeof(KeyboardData);
             result = ::GetRawInputData(input_handle, RID_INPUT, std::addressof(raw_keyboard.raw_input), std::addressof(struct_size), sizeof(RAWINPUTHEADER));
             DD_ASSERT(sizeof(RAWKEYBOARD) <= result && result <= sizeof(KeyboardData));
-            
-            char buff[0x10] = {};
-            std::snprintf(buff, sizeof(buff), "%d, %d", raw_keyboard.raw_input.data.keyboard.Flags, raw_keyboard.raw_input.data.keyboard.VKey);
-            ::puts(buff);
             
             SetKeyboardState();
         }

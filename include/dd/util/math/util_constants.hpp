@@ -40,6 +40,7 @@ namespace dd::util::math {
     template<typename T, T Radians> requires std::is_floating_point<T>::value
     constexpr inline T TDegrees = (Radians * FloatDegree180 / FloatPi);
 
+    static_assert(TRadians<float, 45.0f> == 0.7853982f);
     static_assert(TDegrees<float, TRadians<float, 90.0f>> == 90.0f);
     static_assert(TDegrees<float, TRadians<float, 180.0f>> == 180.0f);
     static_assert(TDegrees<float, TRadians<float, 270.0f>> == 270.0f);
@@ -123,6 +124,8 @@ namespace dd::util::math {
     /* Following Cos value, Sin Value, Next Cos Diff, Next Sin Diff, Next Cos value, Next Sin value ... N */
     /* Each method has 256 values and 256 differences */
     constexpr std::array<float, 1024> SinCosSampleTable = GenerateSinCosTable();
+    
+    static_assert(SinCosSampleTable[0] == 1.0f);
 
     constexpr ALWAYS_INLINE float SampleSin(float value_from_angle_index) {
         const unsigned int angle_index = static_cast<unsigned int>(value_from_angle_index);

@@ -66,6 +66,8 @@ namespace dd::vk {
                 .format = VK_FORMAT_B8G8R8A8_SRGB,
                 .colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
             };
+            
+            static constexpr VkFormat TargetDepthStencilFormat = VK_FORMAT_D32_SFLOAT_S8_UINT;
 
             /* Decide we will can have up to 8 color attachments per Render Pass */
             static constexpr size_t TargetColorAttachmentCount = 8;
@@ -167,7 +169,7 @@ namespace dd::vk {
             constexpr ALWAYS_INLINE HWND GetWindowHandle() const                                       { return m_hwnd; }
 
             constexpr ALWAYS_INLINE const VkPhysicalDeviceProperties2 *GetPhysicalDeviceProperties() const { return std::addressof(m_vk_physical_device_properties); }
-        
+
         public:
 
             void GetWindowDimensions(u32 *out_width, u32 *out_height) {
@@ -252,7 +254,7 @@ namespace dd::vk {
                 std::scoped_lock l(m_window_cs);
                 m_skip_draw = false;
             }
-            
+
             bool IsSkipDrawUnsafe() {
                 return m_skip_draw;
             }
@@ -273,7 +275,7 @@ namespace dd::vk {
                     m_window_cs.Leave();
                 }
             }
-            
+
             void ClearResizeUnsafe() {
                 m_has_resized = false;
             }
