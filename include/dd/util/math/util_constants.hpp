@@ -78,7 +78,7 @@ namespace dd::util::math {
         return  1.0l - (std::pow(V, 2) / TFactorial<long double, 2>) + (std::pow(V, 4) / TFactorial<long double, 4>) - (std::pow(V, 6) / TFactorial<long double, 6>) + (std::pow(V, 8) / TFactorial<long double, 8>) - (std::pow(V, 10) / TFactorial<long double, 10>) + (std::pow(V, 12) / TFactorial<long double, 12>) - (std::pow(V, 14) / TFactorial<long double, 14>) + (std::pow(V, 16) / TFactorial<long double, 16>) - (std::pow(V, 18) / TFactorial<long double, 18>) + (std::pow(V, 20) / TFactorial<long double, 20>) - (std::pow(V, 22) / TFactorial<long double, 22>) + (std::pow(V, 24) / TFactorial<long double, 24>) - (std::pow(V, 26) / TFactorial<long double, 26>) + (std::pow(V, 28) / TFactorial<long double, 28>) - (std::pow(V, 30) / TFactorial<long double, 30>) + (std::pow(V, 32) / TFactorial<long double, 32>) - (std::pow(V, 34) / TFactorial<long double, 34>);
     }
 
-    consteval auto GenerateSinCosTable() {
+    consteval std::array<float, 1024> GenerateSinCosTable() {
         std::array<float, 1024>  values{}; 
         values[0] = 1.0l;
         values[1] = 0.0l;
@@ -122,7 +122,7 @@ namespace dd::util::math {
     /* Size 1024 float table of cos and sin values interpolated from a period of 2Pi with differences calculated between as implemented above */
     /* Following Cos value, Sin Value, Next Cos Diff, Next Sin Diff, Next Cos value, Next Sin value ... N */
     /* Each method has 256 values and 256 differences */
-    const auto SinCosSampleTable = GenerateSinCosTable();
+    constexpr std::array<float, 1024> SinCosSampleTable = GenerateSinCosTable();
 
     constexpr ALWAYS_INLINE float SampleSin(float value_from_angle_index) {
         const unsigned int angle_index = static_cast<unsigned int>(value_from_angle_index);

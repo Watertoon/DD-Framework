@@ -43,6 +43,11 @@ namespace dd::util::math {
             constexpr T operator[](int index) const {
                 return m_vec[index];
             }
+            
+            constexpr Vector2Type& operator=(const Vector2Type& rhs) {
+                m_vec = rhs.m_vec;
+                return *this;
+            }
 
             constexpr Vector2Type operator+(Vector2Type& rhs) {
                 v2 a = m_vec + rhs.m_vec;

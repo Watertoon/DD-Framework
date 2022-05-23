@@ -57,7 +57,7 @@ namespace dd::vk {
                 DD_ASSERT(result0 == VK_SUCCESS);
 
                 /* Handle whether our host pointer needs a staging buffer */
-                DD_ASSERT((host_properties.memoryTypeBits & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+                DD_ASSERT((host_properties.memoryTypeBits & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) == (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
                 s32 host_memory_type = 0;
                 if (((host_properties.memoryTypeBits & pool_properties) == pool_properties)) {
                     host_memory_type = context->FindMemoryHeapIndex(pool_properties);
@@ -80,7 +80,7 @@ namespace dd::vk {
                         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
                         .pNext = std::addressof(device_allocate_flags),
                         .allocationSize = pool_info->size,
-                        .memoryTypeIndex = device_memory_type
+                        .memoryTypeIndex = static_cast<u32>(device_memory_type)
                     };
                     const u32 result1 = ::pfn_vkAllocateMemory(context->GetDevice(), std::addressof(device_allocate_info), nullptr, std::addressof(m_vk_device_memory));
                     DD_ASSERT(result1 == VK_SUCCESS);
@@ -102,7 +102,7 @@ namespace dd::vk {
                     .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
                     .pNext = std::addressof(host_info),
                     .allocationSize = pool_info->size,
-                    .memoryTypeIndex = host_memory_type
+                    .memoryTypeIndex = static_cast<u32>(host_memory_type)
                 };
                 const u32 result2 = ::pfn_vkAllocateMemory(context->GetDevice(), std::addressof(host_allocate_info), nullptr, std::addressof(m_vk_host_memory));
                 DD_ASSERT(result2 == VK_SUCCESS);

@@ -16,12 +16,13 @@ LIBDIRS  := $(VULKAN_SDK) third_party
 INCLUDES := include
 
 # Compiler options
-CXX_FLAGS := -std=gnu++20 -m64 -msse4.1 -ffunction-sections -fdata-sections -fno-strict-aliasing -fwrapv -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-stack-protector -fno-rtti -fno-exceptions $(DEFINES)
-CXX_WARNS := -Wall -Wno-format-truncation -Wno-format-zero-length -Wno-stringop-truncation -Wno-invalid-offsetof -Wno-format-truncation -Wno-format-zero-length -Wno-stringop-truncation -Wextra -Werror -Wno-missing-field-initializers
+EXE_FLAGS := -fPIE
+CXX_FLAGS := -std=gnu++20 -m64 -msse4.2 -fconstexpr-fp-except -ffold-simple-inlines -fimplicit-constexpr -ffunction-sections -fdata-sections -fno-strict-aliasing -fwrapv -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-stack-protector -fno-rtti -fno-exceptions $(DEFINES)
+CXX_WARNS := -Wall  -Wmissing-requires -Wuninitialized -Wno-format-truncation -Wno-format-zero-length -Wno-stringop-truncation -Wno-invalid-offsetof -Wno-format-truncation -Wno-format-zero-length -Wno-stringop-truncation -Wextra -Werror -Wno-missing-field-initializers
 
 # Release and Debug mode options 
-RELEASE_FLAGS := -Og -flto -g -gdwarf-4
-DEBUG_FLAGS   := -g -Og -flto -gdwarf-4
+RELEASE_FLAGS := -O3 -flto=1 -g -gdwarf-4
+DEBUG_FLAGS   := -g -Og -flto=1 -gdwarf-4
 
 # Source input file iteration methods
 DIRECTORY_WILDCARD  =   $(foreach d,$(wildcard $(1:=/*)),$(if $(wildcard $d/.),$(call DIRECTORY_WILDCARD,$d) $d,))
@@ -60,7 +61,7 @@ export LIBINC     := $(foreach dir,$(LIBDIRS),-L$(dir)/lib) \
 export INCLUDE_DIRS := -I$(CURDIR)/include -I$(CURDIR)/third_party/include $(INCLUDE)
 
 # Libs
-export LIBS := -lstdc++ -lgdi32 -luser32 -lkernel32 -static-libgcc -static-libstdc++
+export LIBS := -lstdc++ -lkernel32 -static-libgcc -static-libstdc++
 
 # Compiler Flags
 export COMPILER_FLAGS :=  $(RELEASE_FLAGS) $(CXX_FLAGS) $(CXX_WARNS) $(INCLUDE_DIRS) $(LIBINC)
@@ -82,6 +83,7 @@ list:
 	@echo $(SPVDIR)
 	@echo $(GLSLC)
 	@echo $(OFILES)
+	@echo $(MAKEFLAGS)
 
 clean:
 	@echo cleaning ...
@@ -109,7 +111,7 @@ lib/$(TARGET).a: lib release_deps $(SOURCE_DIRS) $(INCLUDES)
 	-C release_deps \
 	-f $(CURDIR)/Makefile
 
-build/$(EXE_NAME).exe: copy_resources release_deps build $(SOURCE_DIRS) $(INCLUDES)
+build/$(EXE_NAME).exe: copy_resources release_deps build $(SOURCE_DIRS)
 	@$(MAKE) BUILD=release_deps OUTPUTEXE=$(CURDIR)/$@ \
 	BUILD_CFLAGS="-DNDEBUG=0" \
 	DEPSDIR=$(CURDIR)/release_deps \
@@ -181,4 +183,4 @@ endif
 
 %.exe:
 	@echo Compiling $@
-	$(CXX) $(COMPILER_FLAGS) -pie -o $@ $(OFILES) $(LIBS)
+	$(CXX) $(COMPILER_FLAGS) $(EXE_FLAGS) -o $@ $(OFILES) $(LIBS)

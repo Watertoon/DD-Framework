@@ -2,7 +2,7 @@
 
 namespace dd::util::math {
     
-    void RotateLocalX(Matrix34f *out_rot_matrix, const float theta) {
+    void RotateLocalX(Matrix34f *out_rot_matrix, float theta) {
         const float sin = SampleSin(theta * (static_cast<float>(AngleIndexHalfRound) / FloatPi));
         const float cos = SampleCos(theta * (static_cast<float>(AngleIndexHalfRound) / FloatPi));
         const float m12 = out_rot_matrix->m_arr2d[0][1];
@@ -16,7 +16,7 @@ namespace dd::util::math {
         out_rot_matrix->m_arr2d[2][2] = (out_rot_matrix->m_arr2d[2][2] * cos) - (m32 * sin);
     }
 
-    void RotateLocalY(Matrix34f *out_rot_matrix, const float theta) {
+    void RotateLocalY(Matrix34f *out_rot_matrix, float theta) {
         const float sin = SampleSin(theta * (static_cast<float>(AngleIndexHalfRound) / FloatPi));
         const float cos = SampleCos(theta * (static_cast<float>(AngleIndexHalfRound) / FloatPi));
         const float m11 = out_rot_matrix->m_arr2d[0][0];
@@ -30,7 +30,7 @@ namespace dd::util::math {
         out_rot_matrix->m_arr2d[2][2] = (out_rot_matrix->m_arr2d[2][2] * cos) + (m31 * sin);
     }
 
-    void RotateLocalZ(Matrix34f *out_rot_matrix, const float theta) {
+    void RotateLocalZ(Matrix34f *out_rot_matrix, float theta) {
         const float sin = SampleSin(theta * (static_cast<float>(AngleIndexHalfRound) / FloatPi));
         const float cos = SampleCos(theta * (static_cast<float>(AngleIndexHalfRound) / FloatPi));
         const float m11 = out_rot_matrix->m_arr2d[0][0];

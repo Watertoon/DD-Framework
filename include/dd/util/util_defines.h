@@ -16,6 +16,8 @@
 #pragma once
 
 #define ALWAYS_INLINE __attribute__((always_inline))
+#define NO_INLINE __attribute__((noinline))
+#define NO_CONSTANT_PROPAGATION __attribute__((optimize("-fno-ipa-cp")))
 
 #define DD_UNLIKELY(expression) __builtin_expect((expression), 0)
 #define DD_LIKELY(expression)   __builtin_expect((expression), 1)

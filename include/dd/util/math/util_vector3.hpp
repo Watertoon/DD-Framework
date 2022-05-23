@@ -67,6 +67,13 @@ namespace dd::util::math {
             constexpr const v3 GetVectorType() const {
                 return v3{x,y,z,0};
             }
+            
+            constexpr Vector3Type& operator=(const Vector3Type& rhs) {
+                x = rhs.x;
+                y = rhs.y;
+                z = rhs.z;
+                return *this;
+            }
 
             constexpr ALWAYS_INLINE Vector3Type operator+(Vector3Type& rhs) {
                 return Vector3Type(this->GetVectorType() + rhs.GetVectorType());

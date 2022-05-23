@@ -58,7 +58,7 @@ namespace dd::learn {
             1, 2, 3
         };
 
-        dd::util::math::Matrix34f model_matrix = util::math::IdentityMatrix34<float>;
+        dd::util::math::Matrix34f model1_matrix = util::math::IdentityMatrix34<float>;
         dd::util::LookAtCamera camera = {{ 0.0f, 0.0f, 3.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, -1.0f, 0.0f }};
         dd::util::PerspectiveProjection perspective_projection(0.1f, 100.0f, util::math::TRadians<float, 45.0f>, 1280.0f / 720.0f);
         
@@ -205,7 +205,7 @@ namespace dd::learn {
         
         ::memcpy(memory_buffer, vertices, sizeof(vertices));
         ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory_buffer) + index_buffer_info.offset), indices, sizeof(indices));
-        ViewArg view_arg = { model_matrix, *camera.GetCameraMatrix(), *perspective_projection.GetProjectionMatrix() };
+        ViewArg view_arg = { model1_matrix, *camera.GetCameraMatrix(), *perspective_projection.GetProjectionMatrix() };
         ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory_buffer) + uniform_buffer_info.offset), std::addressof(view_arg), sizeof(ViewArg));
         
         ::memcpy(memory_image, texture0, texture0_size);
@@ -307,9 +307,10 @@ namespace dd::learn {
     }
     
     void CalcTriangle() {
-        ViewArg view_arg = { model_matrix, *camera.GetCameraMatrix(), *perspective_projection.GetProjectionMatrix() };
+        ViewArg view_arg = { model1_matrix, *camera.GetCameraMatrix(), *perspective_projection.GetProjectionMatrix() };
         
-        util::math::RotateLocalX(std::addressof(view_arg.model_matrix), util::math::TRadians<float, -55.0f>);
+        const float angle = util::math::TRadians<float, -55.0f>;
+        dd::util::math::RotateLocalX(std::addressof(view_arg.model_matrix), angle);
         
         char buffer[0x300] = {};
         std::snprintf(buffer, sizeof(buffer), "%s", "Model Matrix:\n");
@@ -348,7 +349,7 @@ namespace dd::learn {
         vk::GetGlobalContext()->GetWindowDimensionsUnsafe(std::addressof(width), std::addressof(height));
         
         camera.UpdateCameraMatrixSelf();
-        ViewArg view_arg = { model_matrix, *camera.GetCameraMatrix(), *perspective_projection.GetProjectionMatrix() };
+        ViewArg view_arg = { model1_matrix, *camera.GetCameraMatrix(), *perspective_projection.GetProjectionMatrix() };
 
         util::math::RotateLocalX(std::addressof(view_arg.model_matrix), util::math::TRadians<float, -55.0f>);
 
