@@ -20,10 +20,14 @@
 
 #if defined (DD_VERTEX_SHADER)
 
-    layout (row_major, scalar, buffer_reference) buffer VertexUbo {
+    struct TransformMatrices {
         mat4x3 model;
         mat4x3 view;
         mat4   proj;
+    };
+
+    layout (row_major, scalar, buffer_reference) buffer VertexUbo {
+        TransformMatrices matrices[10];
     };
 
     struct ResourceBuffer {
@@ -46,7 +50,7 @@
     layout (location = 1) out vec2 ovTexCoord;
 
     void main() {
-        gl_Position = RB(ubo.proj) * mat4(RB(ubo.view)) * mat4(RB(ubo.model)) * vec4(aPosition, 1.0);
+        gl_Position = RB(ubo.matrices[gl_InstanceIndex].proj) * mat4(RB(ubo.matrices[gl_InstanceIndex].view)) * mat4(RB(ubo.matrices[gl_InstanceIndex].model)) * vec4(aPosition, 1.0);
         ovTexCoord = aTexCoord;
     }
 

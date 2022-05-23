@@ -523,6 +523,44 @@ namespace dd::vk {
         ::pfn_vkCmdDrawIndexed(m_vk_command_buffer, index_count, 1, base_index, 0, 0);
     }
 
+    void CommandBuffer::DrawInstanced(VkPrimitiveTopology vk_primitive_topology, u32 vertex_count, u32 base_vertex, u32 instance_count, u32 base_instance) {
+
+        this->UpdateResourceBufferIfNecessary();
+        this->BeginRenderingIfNotRendering();
+
+        /* Set resource indices */
+        this->PushResourceBufferIndices();
+
+        /* Draw */
+        ::pfn_vkCmdSetPrimitiveTopology(m_vk_command_buffer, vk_primitive_topology);
+        ::pfn_vkCmdDraw(m_vk_command_buffer, vertex_count, instance_count, base_vertex, base_instance);
+    }
+
+    void CommandBuffer::DrawInstancedIndexed(VkPrimitiveTopology vk_primitive_topology, VkIndexType index_format, Buffer *index_buffer, u32 index_count, u32 base_index, u32 instance_count, u32 base_instance) {
+
+        /* Relocate memory pool to device memory if required */
+        if (index_buffer->RequiresRelocation() == true) {
+            this->EndRenderingIfRendering();
+            index_buffer->Relocate(m_vk_command_buffer);
+        }
+    
+        this->UpdateResourceBufferIfNecessary();
+        this->BeginRenderingIfNotRendering();
+
+        /* Bind index buffer */
+        const VkDeviceSize offset = 0;
+        ::pfn_vkCmdBindIndexBuffer(m_vk_command_buffer, index_buffer->GetBuffer(), offset, index_format);
+
+        /* Set resource indices */
+        this->PushResourceBufferIndices();
+
+        /* Draw */
+        ::pfn_vkCmdSetPrimitiveTopology(m_vk_command_buffer, vk_primitive_topology);
+        ::pfn_vkCmdDrawIndexed(m_vk_command_buffer, index_count, instance_count, base_index, 0, base_instance);
+    }
+    
+    
+
     void CommandBuffer::SetPipeline(Pipeline *pipeline) {
         ::pfn_vkCmdBindPipeline(m_vk_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetPipeline());
     }

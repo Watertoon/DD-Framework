@@ -45,6 +45,14 @@ namespace dd::util::math {
 
             constexpr Matrix44RowMajorType(const Matrix44RowMajorType& rhs) : m_row1(rhs.m_row1), m_row2(rhs.m_row2), m_row3(rhs.m_row3), m_row4(rhs.m_row4) {/*...*/}
 
+            constexpr ALWAYS_INLINE Matrix44RowMajorType& operator=(const Matrix44RowMajorType& rhs) {
+                m_row1 = rhs.m_row1;
+                m_row2 = rhs.m_row2;
+                m_row3 = rhs.m_row3;
+                m_row4 = rhs.m_row4;
+                return *this;
+            }
+
             constexpr ALWAYS_INLINE Matrix44RowMajorType operator+(const Matrix44RowMajorType& rhs) const {
                 return { m_row1 + rhs.m_row1, m_row2 + rhs.m_row2, m_row3 + rhs.m_row3, m_row4 + rhs.r4 };
             }

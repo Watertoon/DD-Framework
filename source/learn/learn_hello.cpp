@@ -120,10 +120,7 @@ namespace dd::learn {
             dd::util::math::Matrix44f projection_matrix;
         };
 
-        constexpr u32 UniformBufferSize = sizeof(ViewArg);
-
-        float rot_x_angle = 0.0f;
-        float rot_y_angle = 0.0f;
+        constexpr u32 UniformBufferSize = sizeof(ViewArg) * CubeCount;
 
         char *memory_buffer = nullptr;
         char *memory_image = nullptr;
@@ -253,8 +250,19 @@ namespace dd::learn {
         
         ::memcpy(memory_buffer, vertices, sizeof(vertices));
         ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory_buffer) + index_buffer_info.offset), indices, sizeof(indices));
-        ViewArg view_arg = { model_matrix, *camera.GetCameraMatrix(), *perspective_projection.GetProjectionMatrix() };
-        ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory_buffer) + uniform_buffer_info.offset), std::addressof(view_arg), sizeof(ViewArg));
+
+        ViewArg view_arg[CubeCount] = {};
+        for (u32 i = 0; i < CubeCount; ++i) {
+            view_arg[i].model_matrix = model_matrix;
+            view_arg[i].view_matrix = *camera.GetCameraMatrix();
+            view_arg[i].projection_matrix = *perspective_projection.GetProjectionMatrix();
+            
+            float rot_angle = 20.0f * i;
+            dd::util::math::RotateLocalX(std::addressof(view_arg[i].model_matrix), rot_angle);
+            dd::util::math::RotateLocalY(std::addressof(view_arg[i].model_matrix), 0.3f * rot_angle);
+            dd::util::math::RotateLocalZ(std::addressof(view_arg[i].model_matrix), 0.5f * rot_angle);
+        }
+        ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory_buffer) + uniform_buffer_info.offset), view_arg, sizeof(view_arg));
         
         ::memcpy(memory_image, texture0, texture0_size);
         ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory_image) + texture1_info.memory_offset), texture1, texture1_size);
@@ -356,11 +364,7 @@ namespace dd::learn {
 
     void CalcTriangle() {
         
-        /* Calculate new angle */
-        rot_x_angle += dd::util::math::TRadians<float, 0.5f> * dd::util::GetDeltaTime();
-        rot_y_angle += dd::util::math::TRadians<float, 1.0f> * dd::util::GetDeltaTime();
-        rot_x_angle = ::fmod(rot_x_angle, dd::util::math::Float2Pi);
-        rot_y_angle = ::fmod(rot_y_angle, dd::util::math::Float2Pi);
+
     }
     
     void DrawTriangle(vk::CommandBuffer *command_buffer) {
@@ -370,14 +374,23 @@ namespace dd::learn {
         vk::GetGlobalContext()->GetWindowDimensionsUnsafe(std::addressof(width), std::addressof(height));
 
         camera.UpdateCameraMatrixSelf();
-        ViewArg view_arg = { model_matrix, *camera.GetCameraMatrix(), *perspective_projection.GetProjectionMatrix() };
-
-        util::math::RotateLocalX(std::addressof(view_arg.model_matrix), rot_x_angle);
-        util::math::RotateLocalY(std::addressof(view_arg.model_matrix), rot_y_angle);
+        
+        ViewArg view_arg[CubeCount] = {};
+        for (u32 i = 0; i < CubeCount; ++i) {
+            view_arg[i].model_matrix = model_matrix;
+            view_arg[i].view_matrix = *camera.GetCameraMatrix();
+            view_arg[i].projection_matrix = *perspective_projection.GetProjectionMatrix();
+            
+            view_arg[i].model_matrix.SetColumn(3, CubePositions[i]);
+            float rot_angle = 20.0f * i;
+            dd::util::math::RotateLocalX(std::addressof(view_arg[i].model_matrix), rot_angle);
+            dd::util::math::RotateLocalY(std::addressof(view_arg[i].model_matrix), 0.3f * rot_angle);
+            dd::util::math::RotateLocalZ(std::addressof(view_arg[i].model_matrix), 0.5f * rot_angle);
+        }
 
         void *ubo_address = util::GetReference(vk_uniform_buffer).Map();
         DD_ASSERT(ubo_address != nullptr);
-        ::memcpy(ubo_address, std::addressof(view_arg), sizeof(ViewArg));
+        ::memcpy(ubo_address, view_arg, sizeof(view_arg));
         util::GetReference(vk_uniform_buffer).Unmap();
 
         /* Ensure textures are transistioned */
@@ -440,7 +453,7 @@ namespace dd::learn {
         command_buffer->SetScissors(1, std::addressof(scissor));
 
         /* Draw */
-        command_buffer->Draw(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VerticeCount, 0);
+        command_buffer->DrawInstanced(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VerticeCount, 0, CubeCount, 0);
     }
 
     void CleanTriangle() {

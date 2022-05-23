@@ -229,6 +229,9 @@ namespace dd::vk {
             void Draw(VkPrimitiveTopology vk_primitive_topology, u32 vertex_count, u32 base_vertex);
             void DrawIndexed(VkPrimitiveTopology vk_primitive_topology, VkIndexType index_format, Buffer *index_buffer, u32 index_count, u32 base_index);
 
+            void DrawInstanced(VkPrimitiveTopology vk_primitive_topology, u32 vertex_count, u32 base_vertex, u32 instance_count, u32 base_instance);
+            void DrawInstancedIndexed(VkPrimitiveTopology vk_primitive_topology, VkIndexType index_format, Buffer *index_buffer, u32 index_count, u32 base_index, u32 instance_count, u32 base_instance);
+
             void SetPipeline(Pipeline *pipeline);
             void SetPipelineState(const PipelineCmdState *pipeline);
             void SetColorBlendState(const ColorBlendCmdState *color_blend_state);
