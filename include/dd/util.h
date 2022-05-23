@@ -42,5 +42,8 @@
 #include <dd/util/math/util_clamp.hpp>
 
 #include <dd/util/util_logicalframebuffer.hpp>
+#include <dd/util/util_viewport.hpp>
+#include <dd/util/util_camera.hpp>
+#include <dd/util/util_projection.hpp>
 
 #include <dd/util/util_time.hpp>

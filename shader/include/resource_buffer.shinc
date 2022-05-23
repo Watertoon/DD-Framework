@@ -81,3 +81,5 @@ struct DefaultResourceBuffer {
 #define DECLARE_DEFAULT_RESOURCE_BUFFER layout (DD_RESOURCE_BUFFER_BINDING, scalar) uniform _RB { DefaultResourceBuffer rb[120]; }
 
 #define DECLARE_RESOURCE_BUFFER(structure) layout (DD_RESOURCE_BUFFER_BINDING, scalar) uniform _RB { structure rb[120]; }
+
+#define RB(var) rb[resource_index].var

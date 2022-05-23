@@ -36,6 +36,16 @@ namespace dd::util::math {
 
             constexpr Vector4Type(const Vector4Type& rhs) : m_vec(rhs.m_vec) { /*...*/ }
 
+            constexpr Vector4Type& operator=(Vector4Type& rhs) {
+                m_vec = rhs.m_vec;
+                return *this;
+            }
+
+            constexpr Vector4Type& operator=(const Vector4Type& rhs) {
+                m_vec = rhs.m_vec;
+                return *this;
+            }
+
             constexpr Vector4Type operator+(Vector4Type& rhs) {
                 v4 a = m_vec + rhs.m_vec;
                 return Vector4Type(a);

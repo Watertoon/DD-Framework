@@ -29,6 +29,7 @@ namespace dd::vk {
         constexpr const char *InstanceExtensions[] = {
             #if defined(DD_DEBUG)
                 VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+                VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME,
             #endif
             VK_KHR_SURFACE_EXTENSION_NAME,
             VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME,
@@ -370,6 +371,18 @@ namespace dd::vk {
         DD_ASSERT(TargetMinimumApiVersion <= api_version);
 
         /* Create instance */
+        #if defined(DD_DEBUG)
+            const VkValidationFeatureEnableEXT validation_feature_enable[] = {
+                VK_VALIDATION_FEATURE_ENABLE_DEBUG_PRINTF_EXT,
+                VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT
+            };
+            const VkValidationFeaturesEXT validation_features = {
+                .sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT,
+                .enabledValidationFeatureCount = sizeof(validation_feature_enable) / sizeof(VkValidationFeatureEnableEXT),
+                .pEnabledValidationFeatures = validation_feature_enable
+            };
+        #endif
+
         const VkApplicationInfo app_info = {
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
             .pApplicationName = "Learn",
@@ -381,6 +394,9 @@ namespace dd::vk {
 
         const VkInstanceCreateInfo instance_info = {
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+            #if defined(DD_DEBUG)
+                .pNext = std::addressof(validation_features),
+            #endif
             .pApplicationInfo = std::addressof(app_info),
             #if defined(DD_DEBUG)
                 .enabledLayerCount = DebugLayerCount,

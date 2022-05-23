@@ -135,7 +135,7 @@ namespace dd::vk {
                 const VkDeviceImageMemoryRequirements requirements_info = {
                     .sType = VK_STRUCTURE_TYPE_DEVICE_IMAGE_MEMORY_REQUIREMENTS,
                     .pCreateInfo = std::addressof(image_info),
-                    .planeAspect = VK_IMAGE_ASPECT_NONE_KHR
+                    .planeAspect = VK_IMAGE_ASPECT_COLOR_BIT
                 };
 
                 VkMemoryRequirements2 memory_requirements = {

@@ -42,7 +42,7 @@ namespace dd::util {
                 }
             }
         public:
-            constexpr DelegateThread(IDelegate2<DelegateThread*, size_t> *delegate, u32 stack_size, size_t exit_code, u32 max_messages) {
+            DelegateThread(IDelegate2<DelegateThread*, size_t> *delegate, u32 stack_size, size_t exit_code, u32 max_messages) {
                 DD_ASSERT(delegate != nullptr);
 
                 m_delegate = delegate;

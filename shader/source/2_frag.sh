@@ -16,11 +16,14 @@
  */
 
 #include "resource_buffer.shinc"
+#extension GL_EXT_debug_printf : enable
 
 #if defined (DD_VERTEX_SHADER)
 
-    layout (row_major, buffer_reference) buffer VertexUbo {
-        mat4x3 uTransform;
+    layout (row_major, scalar, buffer_reference) buffer VertexUbo {
+        mat4x3 model;
+        mat4x3 view;
+        mat4   proj;
     };
 
     struct ResourceBuffer {
@@ -33,7 +36,7 @@
         uint reserve2;
         uint reserve3;
     };
-    
+
     DECLARE_RESOURCE_BUFFER(ResourceBuffer);
 
     layout (location = 0) in vec3 aPosition;
@@ -44,9 +47,7 @@
     layout (location = 1) out vec2 ovTexCoord;
 
     void main() {
-        
-        gl_PointSize = 1.0;
-        gl_Position = vec4(rb[resource_index].ubo.uTransform * vec4(aPosition, 1.0), 1.0);
+        gl_Position = RB(ubo.proj) * mat4(RB(ubo.view)) * mat4(RB(ubo.model)) * vec4(aPosition, 1.0);
         ovColor = aColor;
         ovTexCoord = aTexCoord;
     }
@@ -54,7 +55,7 @@
 #endif
 
 #if defined(DD_FRAGMENT_SHADER)
-    
+
     DECLARE_DEFAULT_RESOURCE_BUFFER;
 
     layout(location = 0) in vec3 ovColor;

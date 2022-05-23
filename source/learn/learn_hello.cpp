@@ -58,12 +58,18 @@ namespace dd::learn {
             1, 2, 3
         };
 
-        const dd::util::math::Matrix34f base_transform(0.5f, 0.0f, 0.0f, 0.5f, 
-                                                       0.0f, 1.5f, 0.0f, -0.3f,
-                                                       0.0f, 0.0f, 1.0f, 0.0f);
-        dd::util::math::Matrix34f rot_mtx = dd::util::math::IdentityMatrix34<float>;
-        float rot_z_angle = 0.0f;
+        dd::util::math::Matrix34f model_matrix = util::math::IdentityMatrix34<float>;
+        dd::util::LookAtCamera camera = {{ 0.0f, 0.0f, 3.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, -1.0f, 0.0f }};
+        dd::util::PerspectiveProjection perspective_projection(0.1f, 100.0f, util::math::TRadians<float, 45.0f>, 1280.0f / 720.0f);
+        
+        struct ViewArg {
+            dd::util::math::Matrix34f model_matrix;
+            dd::util::math::Matrix34f view_matrix;
+            dd::util::math::Matrix44f projection_matrix;
+        };
 
+        constexpr u32 UniformBufferSize = sizeof(ViewArg);
+        
         char *memory_buffer = nullptr;
         char *memory_image = nullptr;
 
@@ -130,8 +136,8 @@ namespace dd::learn {
         /* Load textures */
         s32 width0 = 0, height0 = 0, channels0 = 0;
         s32 width1 = 0, height1 = 0, channels1 = 0;
-        res::LoadStbImage("resources/woodcrate.jpg", 4, std::addressof(texture0), std::addressof(width0), std::addressof(height0), std::addressof(channels0));
-        res::LoadStbImage("resources/awesomeface.png", 0, std::addressof(texture1), std::addressof(width1), std::addressof(height1), std::addressof(channels1));
+        res::LoadStbImage("resources/third_party/woodcrate.jpg", 4, std::addressof(texture0), std::addressof(width0), std::addressof(height0), std::addressof(channels0));
+        res::LoadStbImage("resources/third_party/awesomeface.png", 0, std::addressof(texture1), std::addressof(width1), std::addressof(height1), std::addressof(channels1));
 
         const s64 texture0_size = width0 * height0 * 4;
         const s64 texture1_size = width1 * height1 * channels1;
@@ -188,7 +194,7 @@ namespace dd::learn {
         texture1_info.memory_offset = util::AlignUp(texture0_size, vk::Texture::GetAlignment(context, std::addressof(texture1_info)));
 
         /* Determine memory size */
-        const u64 buffer_memory_size = util::AlignUp(uniform_buffer_info.offset + sizeof(base_transform), vk::Context::TargetMemoryPoolAlignment);
+        const u64 buffer_memory_size = util::AlignUp(uniform_buffer_info.offset + UniformBufferSize, vk::Context::TargetMemoryPoolAlignment);
         const u64 image_memory_size = util::AlignUp(texture1_info.memory_offset + texture1_size, vk::Context::TargetMemoryPoolAlignment);
 
         /* Copy host memory */
@@ -199,7 +205,8 @@ namespace dd::learn {
         
         ::memcpy(memory_buffer, vertices, sizeof(vertices));
         ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory_buffer) + index_buffer_info.offset), indices, sizeof(indices));
-        ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory_buffer) + uniform_buffer_info.offset), std::addressof(base_transform), sizeof(base_transform));
+        ViewArg view_arg = { model_matrix, *camera.GetCameraMatrix(), *perspective_projection.GetProjectionMatrix() };
+        ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory_buffer) + uniform_buffer_info.offset), std::addressof(view_arg), sizeof(ViewArg));
         
         ::memcpy(memory_image, texture0, texture0_size);
         ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory_image) + texture1_info.memory_offset), texture1, texture1_size);
@@ -300,22 +307,56 @@ namespace dd::learn {
     }
     
     void CalcTriangle() {
+        ViewArg view_arg = { model_matrix, *camera.GetCameraMatrix(), *perspective_projection.GetProjectionMatrix() };
+        
+        util::math::RotateLocalX(std::addressof(view_arg.model_matrix), util::math::TRadians<float, -55.0f>);
+        
+        char buffer[0x300] = {};
+        std::snprintf(buffer, sizeof(buffer), "%s", "Model Matrix:\n");
+        for (u32 i = 0; i < 12; i = i + 4) {
+            std::snprintf(buffer, sizeof(buffer), "%s%f %f %f %f\n", buffer, view_arg.model_matrix.m_arr[i], view_arg.model_matrix.m_arr[i + 1], view_arg.model_matrix.m_arr[i + 2], view_arg.model_matrix.m_arr[i + 3]);
+        }
 
-        /* Calculate new matrix */
-        rot_mtx = base_transform;
-        rot_z_angle += dd::util::math::TRadians<float, 1.0f> * dd::util::GetDeltaTime();
-        ::fmod(rot_z_angle, dd::util::math::Float2Pi);
-        dd::util::math::RotateLocalZ(std::addressof(rot_mtx), rot_z_angle);
+        std::snprintf(buffer, sizeof(buffer), "%s%s", buffer, "View Matrix:\n");
+        for (u32 i = 0; i < 12; i = i + 4) {
+            std::snprintf(buffer, sizeof(buffer), "%s%f %f %f %f\n", buffer, view_arg.view_matrix.m_arr[i], view_arg.view_matrix.m_arr[i + 1], view_arg.view_matrix.m_arr[i + 2], view_arg.view_matrix.m_arr[i + 3]);
+        }
+
+        std::snprintf(buffer, sizeof(buffer), "%s%s", buffer, "Projection Matrix:\n");
+        for (u32 i = 0; i < 16; i = i + 4) {
+            std::snprintf(buffer, sizeof(buffer), "%s%f %f %f %f\n", buffer, view_arg.projection_matrix.m_arr[i], view_arg.projection_matrix.m_arr[i + 1], view_arg.projection_matrix.m_arr[i + 2], view_arg.projection_matrix.m_arr[i + 3]);
+        }
+
+        ::puts(buffer);
+
+        perspective_projection.Print();
+
+        /* Transform matrices */
+        /*rot_mtx = model_matrix;
+        rot_x_angle += dd::util::math::TRadians<float, 1.0f> * dd::util::GetDeltaTime();
+        rot_y_angle += dd::util::math::TRadians<float, 1.0f> * dd::util::GetDeltaTime();
+        ::fmod(rot_x_angle, dd::util::math::Float2Pi);
+        ::fmod(rot_y_angle, dd::util::math::Float2Pi);
+        dd::util::math::RotateLocalX(std::addressof(rot_mtx), rot_z_angle);
+        dd::util::math::RotateLocalY(std::addressof(rot_mtx), rot_z_angle);*/
     }
     
     void DrawTriangle(vk::CommandBuffer *command_buffer) {
 
-        /* Copy matrix to buffer */
+        /* Copy matrices to buffer */
+        u32 width = 0, height = 0;
+        vk::GetGlobalContext()->GetWindowDimensionsUnsafe(std::addressof(width), std::addressof(height));
+        
+        camera.UpdateCameraMatrixSelf();
+        ViewArg view_arg = { model_matrix, *camera.GetCameraMatrix(), *perspective_projection.GetProjectionMatrix() };
+
+        util::math::RotateLocalX(std::addressof(view_arg.model_matrix), util::math::TRadians<float, -55.0f>);
+
         void *ubo_address = util::GetReference(vk_uniform_buffer).Map();
         DD_ASSERT(ubo_address != nullptr);
-        ::memcpy(ubo_address, std::addressof(rot_mtx), sizeof(rot_mtx));
+        ::memcpy(ubo_address, std::addressof(view_arg), sizeof(ViewArg));
         util::GetReference(vk_uniform_buffer).Unmap();
-        
+
         /* Ensure textures are transistioned */
         if (util::GetPointer(vk_texture_view0)->GetTexture()->GetImageLayout() == VK_IMAGE_LAYOUT_PREINITIALIZED) {
             
@@ -359,8 +400,6 @@ namespace dd::learn {
         command_buffer->SetTextureAndSampler(0, vk::ShaderStage_Fragment, texture_view0_slot, sampler_slot);
         command_buffer->SetTextureAndSampler(1, vk::ShaderStage_Fragment, texture_view1_slot, sampler_slot);
 
-        u32 width = 0, height = 0;
-        vk::GetGlobalContext()->GetWindowDimensionsUnsafe(std::addressof(width), std::addressof(height));
         VkViewport viewport {
             .width  = static_cast<float>(width),
             .height = static_cast<float>(height),

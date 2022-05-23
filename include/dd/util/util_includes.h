@@ -22,17 +22,11 @@
 #include <memory>
 #include <type_traits>
 #include <mutex>
+#include <array>
 
 /* Windows */
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-
-/* OpenGL */
-#include <gl/glcorearb.h>
-#include <gl/gl.h>
-#include <gl/glext.h>
-#include <gl/wgl.h>
-#include <gl/wglext.h>
 
 /* Vulkan */
 #define VK_USE_PLATFORM_WIN32_KHR

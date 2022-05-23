@@ -27,8 +27,9 @@ namespace dd::util::math {
                     Vector4Type<T> m_row2;
                     Vector4Type<T> m_row3;
                 };
-                T m_arr[12];
-                T m_arr2d[3][4];
+                Vector4Type<T> m_row_array[3];
+                T              m_arr[12];
+                T              m_arr2d[3][4];
             };
         public:
             constexpr Matrix34RowMajorType() : m_arr{} { /*...*/ }
@@ -39,10 +40,20 @@ namespace dd::util::math {
             constexpr Matrix34RowMajorType(const Matrix34RowMajorType& rhs) : m_row1(rhs.m_row1), m_row2(rhs.m_row2), m_row3(rhs.m_row3) {/*...*/}
 
             constexpr ALWAYS_INLINE Matrix34RowMajorType& operator=(const Matrix34RowMajorType& rhs) {
-                m_row1.m_vec = rhs.m_row1.m_vec;
-                m_row2.m_vec = rhs.m_row2.m_vec;
-                m_row3.m_vec = rhs.m_row3.m_vec;
+                m_row1 = rhs.m_row1;
+                m_row2 = rhs.m_row2;
+                m_row3 = rhs.m_row3;
                 return *this;
+            }
+
+            constexpr void SetColumn(int index, const Vector3f& col_vec3) {
+                m_arr2d[0][index] = col_vec3.m_vec[0];
+                m_arr2d[1][index] = col_vec3.m_vec[1];
+                m_arr2d[2][index] = col_vec3.m_vec[2];
+            }       
+
+            constexpr void SetRow(int index, const Vector4f& row_vec4) {
+                m_row_array[index] = row_vec4;
             }
     };
 
