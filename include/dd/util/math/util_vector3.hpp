@@ -210,6 +210,30 @@ namespace dd::util::math {
             constexpr ALWAYS_INLINE const T Magnitude() const {
                 return ::sqrtf(m_vec[0] * m_vec[0] + m_vec[1] * m_vec[1] + m_vec[2] * m_vec[2]);
             }
+
+            template<typename A = T> 
+                requires std::is_floating_point<A>::value && (sizeof(Vector3Type<A>) == sizeof(float) * 3)
+            constexpr ALWAYS_INLINE Vector3Type<A> Normalize() {
+                Vector3Type<A> ret = *this;
+                const float mag = this->Magnitude();
+                if (0.0 < mag) {
+                    const float norm = 1.0 / mag;
+                    ret = ret * norm;
+                }
+                return ret;
+            }
+
+            template<typename A = T> 
+                requires std::is_floating_point<A>::value && (sizeof(Vector3Type<A>) == sizeof(float) * 3)
+            constexpr ALWAYS_INLINE Vector3Type<A> Normalize() const {
+                Vector3Type<A> ret = *this;
+                const float mag = this->Magnitude();
+                if (0.0 < mag) {
+                    const float norm = 1.0 / mag;
+                    ret = ret * norm;
+                }
+                return ret;
+            }
     };
 
     using Vector3f = Vector3Type<float>;

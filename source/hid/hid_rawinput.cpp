@@ -167,6 +167,10 @@ namespace dd::hid {
             result = ::GetRawInputData(input_handle, RID_INPUT, std::addressof(raw_keyboard.raw_input), std::addressof(struct_size), sizeof(RAWINPUTHEADER));
             DD_ASSERT(sizeof(RAWKEYBOARD) <= result && result <= sizeof(KeyboardData));
             
+            char buffer[0x40] = {};
+            std::snprintf(buffer, sizeof(buffer), "Packet: %u %u", raw_keyboard.raw_input.data.keyboard.VKey, raw_keyboard.raw_input.data.keyboard.Flags);
+            ::puts(buffer);
+            
             SetKeyboardState();
         }
     }

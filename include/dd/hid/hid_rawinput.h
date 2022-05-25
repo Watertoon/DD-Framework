@@ -421,45 +421,49 @@ namespace dd::hid {
 
         constexpr bool GetKeyState(u8 vk_code) const {
             const u8 index = vk_code >> 6;
-            const u8 key_pos = 1 << (vk_code % 64);
+            const u64 key_pos = 1 << (vk_code % 64);
 
             return (state_array[index] & key_pos) == key_pos;
         }
 
         constexpr void SetKeyState(u8 vk_code) {
             const u8 index = vk_code >> 6;
-            const u8 key_pos = 1 << (vk_code % 64);
+            const u64 key_pos = 1 << (vk_code % 64);
 
             state_array[index] |= key_pos;
         }
 
         constexpr void ClearKeyState(u8 vk_code) {
             const u8 index = vk_code >> 6;
-            const u8 key_pos = 1 << (vk_code % 64);
+            const u64 key_pos = 1 << (vk_code % 64);
 
-            state_array[index] &= ~key_pos;
+            state_array[index] &= (~key_pos);
         }
     };
     static_assert(sizeof(KeyState) == sizeof(u64) * 4);
-    static_assert((~KeyState{(1 << VirtualKey_XButton1)}).GetKeyState(VirtualKey_XButton1) == false);
-    static_assert((KeyState{(1 << VirtualKey_XButton1)} & KeyState{(1 << VirtualKey_XButton1)}).GetKeyState(VirtualKey_XButton1) == true);
-    static_assert((KeyState{(1 << VirtualKey_XButton2)} & KeyState{(1 << VirtualKey_XButton1)}).GetKeyState(VirtualKey_XButton1) == false);
-    static_assert((KeyState{(1 << VirtualKey_XButton2)} | KeyState{(1 << VirtualKey_XButton1)}).GetKeyState(VirtualKey_XButton1) == true);
+    static_assert((~KeyState{(1 << (VirtualKey_XButton1 % 64))}).GetKeyState(VirtualKey_XButton1) == false);
+    static_assert((KeyState{(1 << (VirtualKey_XButton1 % 64))} & KeyState{(1 << (VirtualKey_XButton1 % 64))}).GetKeyState(VirtualKey_XButton1) == true);
+    static_assert((KeyState{(1 << (VirtualKey_XButton2 % 64))} & KeyState{(1 << (VirtualKey_XButton1 % 64))}).GetKeyState(VirtualKey_XButton1) == false);
+    static_assert((KeyState{(1 << (VirtualKey_XButton2 % 64))} | KeyState{(1 << (VirtualKey_XButton1 % 64))}).GetKeyState(VirtualKey_XButton1) == true);
+    static_assert((~KeyState{0, (1 << (VirtualKey_W % 64))}).GetKeyState(VirtualKey_W) == false);
+    static_assert((KeyState{0, (1 << (VirtualKey_W % 64))} & KeyState{0, (1 << (VirtualKey_W % 64))}).GetKeyState(VirtualKey_W) == true);
+    static_assert((KeyState{0, (1 << (VirtualKey_S % 64))} & KeyState{0, (1 << (VirtualKey_W % 64))}).GetKeyState(VirtualKey_W) == false);
+    static_assert((KeyState{0, (1 << (VirtualKey_S % 64))} | KeyState{0, (1 << (VirtualKey_W % 64))}).GetKeyState(VirtualKey_W) == true);
 
     struct KeyboardState {
         KeyState pressed_keys;
         KeyState held_keys;
         KeyState released_keys;
 
-        bool GetKeyDown(u8 virtual_key_code) const {
+        bool IsKeyPressed(u8 virtual_key_code) const {
             return pressed_keys.GetKeyState(virtual_key_code);
         }
 
-        bool GetKeyHeld(u8 virtual_key_code) const {
+        bool IsKeyHeld(u8 virtual_key_code) const {
             return held_keys.GetKeyState(virtual_key_code);
         }
 
-        bool GetKeyUp(u8 virtual_key_code) const {
+        bool IsKeyUp(u8 virtual_key_code) const {
             return released_keys.GetKeyState(virtual_key_code);
         }
     };

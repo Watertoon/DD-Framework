@@ -50,6 +50,10 @@
     layout (location = 1) out vec2 ovTexCoord;
 
     void main() {
+        //debugPrintfEXT("view :\n");
+        //debugPrintfEXT("%vf3 \n", RB(ubo.matrices[gl_InstanceIndex].view[0]));
+        //debugPrintfEXT("%vf3 \n", RB(ubo.matrices[gl_InstanceIndex].view[1]));
+        //debugPrintfEXT("%vf3 \n", RB(ubo.matrices[gl_InstanceIndex].view[2]));
         gl_Position = RB(ubo.matrices[gl_InstanceIndex].proj) * mat4(RB(ubo.matrices[gl_InstanceIndex].view)) * mat4(RB(ubo.matrices[gl_InstanceIndex].model)) * vec4(aPosition, 1.0);
         ovTexCoord = aTexCoord;
     }

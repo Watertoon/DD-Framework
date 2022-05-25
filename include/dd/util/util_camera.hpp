@@ -69,6 +69,30 @@ namespace dd::util {
                 out_view_matrix->m_arr2d[2][3] = -(dir.m_vec[0]   * m_pos.m_vec[0] + dir.m_vec[1]   * m_pos.m_vec[1] + dir.m_vec[2]   * m_pos.m_vec[2]);
             }
 
+            void SetPos(const math::Vector3f& new_pos) {
+                m_pos = new_pos;
+            }
+
+            void SetAt(const math::Vector3f& new_at) {
+                m_at = new_at;
+            }
+
+            void SetUp(const math::Vector3f& new_up) {
+                m_up = new_up;
+            }
+
+            constexpr void GetPos(math::Vector3f *out_pos) const {
+                *out_pos = m_pos;
+            }
+
+           constexpr void GetAt(math::Vector3f *out_at) const {
+                *out_at = m_at;
+            }
+
+           constexpr void GetUp(math::Vector3f *out_up) const {
+                *out_up = m_up;
+            }
+
             constexpr void GetRightVectorByMatrix(math::Vector3f *out_right_vec) const {
                 const math::Matrix34f *camera_mtx = this->GetCameraMatrix();
                 out_right_vec[0] = camera_mtx->m_arr2d[0][0];

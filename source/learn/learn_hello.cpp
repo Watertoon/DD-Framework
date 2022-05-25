@@ -111,7 +111,7 @@ namespace dd::learn {
         constexpr inline u32 CubeCount = sizeof(CubePositions) / sizeof(util::math::Vector3f);
 
         dd::util::math::Matrix34f model_matrix = util::math::IdentityMatrix34<float>;
-        dd::util::LookAtCamera camera = {{ 0.0f, 0.0f, 3.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, -1.0f, 0.0f }};
+        dd::util::LookAtCamera camera = {{ 0.0f, 0.0f, 3.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }};
         dd::util::PerspectiveProjection perspective_projection(0.1f, 100.0f, util::math::TRadians<float, 45.0f>, 1280.0f / 720.0f);
 
         struct ViewArg {
@@ -363,8 +363,33 @@ namespace dd::learn {
     }
 
     void CalcTriangle() {
-        
 
+        /* Process input */
+        util::math::Vector3f new_pos = {};
+        util::math::Vector3f up = {};
+        util::math::Vector3f front = { 0.0f, 0.0f, -1.0f };
+
+        camera.GetPos(std::addressof(new_pos));
+        camera.GetUp(std::addressof(up));
+        float speed = 0.5f * util::GetDeltaTime();
+
+        hid::KeyboardState key_state = hid::GetKeyboardState();
+
+        if (key_state.IsKeyHeld(hid::VirtualKey_W) == true) {
+            new_pos += front * speed;
+        }
+        if (key_state.IsKeyHeld(hid::VirtualKey_A) == true) {
+            new_pos -= front.Cross(up).Normalize() * speed;
+        }
+        if (key_state.IsKeyHeld(hid::VirtualKey_S) == true) {
+            new_pos -= front * speed;
+        }
+        if (key_state.IsKeyHeld(hid::VirtualKey_D) == true) {
+            new_pos += front.Cross(up).Normalize() * speed;
+        }
+
+        camera.SetPos(new_pos);
+        camera.SetAt(new_pos + front);
     }
     
     void DrawTriangle(vk::CommandBuffer *command_buffer) {
@@ -374,13 +399,13 @@ namespace dd::learn {
         vk::GetGlobalContext()->GetWindowDimensionsUnsafe(std::addressof(width), std::addressof(height));
 
         camera.UpdateCameraMatrixSelf();
-        
+
         ViewArg view_arg[CubeCount] = {};
         for (u32 i = 0; i < CubeCount; ++i) {
             view_arg[i].model_matrix = model_matrix;
             view_arg[i].view_matrix = *camera.GetCameraMatrix();
             view_arg[i].projection_matrix = *perspective_projection.GetProjectionMatrix();
-            
+
             view_arg[i].model_matrix.SetColumn(3, CubePositions[i]);
             float rot_angle = 20.0f * i;
             dd::util::math::RotateLocalX(std::addressof(view_arg[i].model_matrix), rot_angle);
