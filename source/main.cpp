@@ -166,7 +166,6 @@ void Draw(dd::vk::Context *global_context, dd::vk::CommandBuffer *global_command
 int main() {
     /* Initialize System Time */
     dd::util::InitializeTime();
-    dd::util::SetFrameFrequency(60);
 
     /* Set flush denormals to 0 */
     _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);

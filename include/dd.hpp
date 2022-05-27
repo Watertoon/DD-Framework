@@ -15,6 +15,7 @@
  */
 #pragma once
 
+#include <dd/trace.h>
 #include <dd/util.h>
 #include <dd/res.h>
 #include <dd/hid.h>

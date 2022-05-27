@@ -214,25 +214,25 @@ namespace dd::util::math {
             template<typename A = T> 
                 requires std::is_floating_point<A>::value && (sizeof(Vector3Type<A>) == sizeof(float) * 3)
             constexpr ALWAYS_INLINE Vector3Type<A> Normalize() {
-                Vector3Type<A> ret = *this;
+                Vector3Type<A> vec = *this;
                 const float mag = this->Magnitude();
                 if (0.0 < mag) {
-                    const float norm = 1.0 / mag;
-                    ret = ret * norm;
+                    const float reciprocal_mag = 1.0 / mag;
+                    vec = vec * reciprocal_mag;
                 }
-                return ret;
+                return vec;
             }
 
             template<typename A = T> 
                 requires std::is_floating_point<A>::value && (sizeof(Vector3Type<A>) == sizeof(float) * 3)
             constexpr ALWAYS_INLINE Vector3Type<A> Normalize() const {
-                Vector3Type<A> ret = *this;
+                Vector3Type<A> vec = *this;
                 const float mag = this->Magnitude();
                 if (0.0 < mag) {
-                    const float norm = 1.0 / mag;
-                    ret = ret * norm;
+                    const float reciprocal_mag = 1.0 / mag;
+                    vec = vec * reciprocal_mag;
                 }
-                return ret;
+                return vec;
             }
     };
 

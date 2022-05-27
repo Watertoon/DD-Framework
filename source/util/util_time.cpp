@@ -19,9 +19,8 @@ namespace dd::util {
 
     namespace {
         s64 system_frequency = 0;
-        s64 display_frequency = 0;
-        s64 target_frame_frequency = 0;
         s64 last_frame_time = 0;
+        s64 delta_tick = 0;
         double delta_time = 0;
     }
 
@@ -43,15 +42,11 @@ namespace dd::util {
         return tick.QuadPart;
     }
 
-    void SetFrameFrequency(s32 refresh) {
-        display_frequency = refresh;
-        target_frame_frequency = system_frequency / display_frequency;
-    }
-
     void BeginFrame() {
         const s64 last_last_frame = last_frame_time;
         last_frame_time = GetSystemTick();
-        delta_time = static_cast<double>(last_frame_time - last_last_frame) / static_cast<double>(target_frame_frequency);
+        delta_tick = last_frame_time - last_last_frame;
+        delta_time = static_cast<double>(delta_tick) / static_cast<double>(system_frequency);
     }
 
     s64 GetMillisecondsFromTick(s64 tick) {
@@ -59,16 +54,11 @@ namespace dd::util {
     }
     static_assert(dd::util::math::TPow<s64, 10, 3> == 1000);
 
-    void WaitUntilNextFrame() {
-        const s32 sleep_time = static_cast<s32>(GetMillisecondsFromTick(target_frame_frequency / (GetSystemTick() - last_frame_time)));
-        ::Sleep(sleep_time);
-    }
-
-    s64 GetTickUntilNextFrame() {
-        return static_cast<s64>(target_frame_frequency / (GetSystemTick() - last_frame_time));
-    }
-
     double GetDeltaTime() {
         return delta_time;
+    }
+    
+    double CalcFps() {
+        return static_cast<double>(system_frequency) / static_cast<double>(delta_tick);
     }
 }

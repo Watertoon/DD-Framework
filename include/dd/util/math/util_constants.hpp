@@ -45,6 +45,16 @@ namespace dd::util::math {
     static_assert(TDegrees<float, TRadians<float, 180.0f>> == 180.0f);
     static_assert(TDegrees<float, TRadians<float, 270.0f>> == 270.0f);
 
+    template<typename T> requires std::is_floating_point<T>::value
+    constexpr T ToRadians(T degrees) {
+        return (degrees * (FloatPi / FloatDegree180));
+    }
+
+    template<typename T> requires std::is_floating_point<T>::value
+    constexpr T ToDegrees(T radians) {
+        return (radians * (FloatDegree180 / FloatPi));
+    }
+
     template<typename T, T V, size_t N>
     constexpr inline T TPow = V * TPow<T, V, N-1>;
 
@@ -126,17 +136,21 @@ namespace dd::util::math {
     constexpr std::array<float, 1024> SinCosSampleTable = GenerateSinCosTable();
     
     static_assert(SinCosSampleTable[0] == 1.0f);
+    
+    constexpr ALWAYS_INLINE float AngleHalfRound(float rad) {
+        return rad * (static_cast<float>(AngleIndexHalfRound) / FloatPi);
+    }
 
     constexpr ALWAYS_INLINE float SampleSin(float value_from_angle_index) {
-        const unsigned int angle_index = static_cast<unsigned int>(value_from_angle_index);
-        const unsigned int   index     = (angle_index >> 24) & 0xFF;
+        const unsigned long long angle_index = static_cast<unsigned long long>(value_from_angle_index);
+        const unsigned int       index       = (angle_index >> 24) & 0xFF;
         const float variance = static_cast<float>(angle_index & 0xFFFFFF) * 5.9604644775390625e-8;
         return SinCosSampleTable[(index * 4) + 1] + (SinCosSampleTable[(index * 4) + 3] * variance);
     }
 
     constexpr ALWAYS_INLINE float SampleCos(float value_from_angle_index) {
-        const unsigned int angle_index = static_cast<unsigned int>(value_from_angle_index);
-        const unsigned int   index     = (angle_index >> 24) & 0xFF;
+        const unsigned long long angle_index = static_cast<unsigned long long>(value_from_angle_index);
+        const unsigned int       index       = (angle_index >> 24) & 0xFF;
         const float variance = static_cast<float>(angle_index & 0xFFFFFF) * 5.9604644775390625e-8;
         return SinCosSampleTable[(index * 4)] + (SinCosSampleTable[(index * 4) + 2] * variance);
     }

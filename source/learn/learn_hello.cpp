@@ -41,8 +41,8 @@ namespace dd::learn {
         vk::DescriptorSlot                    sampler_slot;
 
         /* Resources */
-        const char *vertex_shader_path = "shaders/2_frag_vertex.spv";
-        const char *fragment_shader_path = "shaders/2_frag_fragment.spv";
+        const char *vertex_shader_path = "shaders/primitive_vertex.spv";
+        const char *fragment_shader_path = "shaders/primitive_fragment.spv";
 
         const float vertices[] = {
             /* Position */       /* Tex Coords */
@@ -121,6 +121,9 @@ namespace dd::learn {
         };
 
         constexpr u32 UniformBufferSize = sizeof(ViewArg) * CubeCount;
+
+        float yaw = -90.0f;
+        float pitch = 0.0f;
 
         char *memory_buffer = nullptr;
         char *memory_image = nullptr;
@@ -367,11 +370,38 @@ namespace dd::learn {
         /* Process input */
         util::math::Vector3f new_pos = {};
         util::math::Vector3f up = {};
-        util::math::Vector3f front = { 0.0f, 0.0f, -1.0f };
 
         camera.GetPos(std::addressof(new_pos));
         camera.GetUp(std::addressof(up));
-        float speed = 0.5f * util::GetDeltaTime();
+        float speed = 2.5f * util::GetDeltaTime();
+
+        hid::MouseState mouse_state = hid::GetMouseState();
+
+        float sensitivity = 0.1f;
+
+        yaw   += sensitivity * mouse_state.delta_x;
+        pitch += sensitivity * mouse_state.delta_y;
+
+        char buffer[0x40] = {};
+        std::snprintf(buffer, sizeof(buffer), "Yaw: %f\n Pitch: %f\n", yaw, pitch);
+        ::puts(buffer);
+        std::snprintf(buffer, sizeof(buffer), "FPS: %f\n", dd::util::CalcFps());
+        ::puts(buffer);
+
+        const float yaw_rad   = util::math::AngleHalfRound(util::math::ToRadians(yaw));
+        const float pitch_rad = util::math::AngleHalfRound(util::math::ToRadians(pitch));
+        const float cos_pitch = util::math::SampleCos(pitch_rad);
+
+        std::snprintf(buffer, sizeof(buffer), "Yaw: %f\n Pitch: %f\n", util::math::SampleSin(pitch_rad), cos_pitch);
+        ::puts(buffer);
+
+        const util::math::Vector3f dir = {
+            util::math::SampleCos(yaw_rad) * cos_pitch,
+            util::math::SampleSin(pitch_rad),
+            util::math::SampleSin(yaw_rad) * cos_pitch
+        };
+
+        const util::math::Vector3f front = dir.Normalize();
 
         hid::KeyboardState key_state = hid::GetKeyboardState();
 
