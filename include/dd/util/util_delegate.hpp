@@ -44,4 +44,25 @@ namespace dd::util {
                 return new_delegate; 
             }
     };
+
+    template<typename T>
+    class VirtualDelegate final : public IDelegate {
+        public:
+            using FunctionType = void (T::*)();
+        private:
+            T                *m_t;
+            u64               m_function_offset;
+        public:
+            constexpr ALWAYS_INLINE explicit VirtualDelegate(T *t, u64 function_offset) : m_t(t), m_function_offset(function_offset) {/*...*/}
+            explicit VirtualDelegate(T *t, FunctionType function) : m_t(t), m_function_offset(GetVTableOffset(function)) {/*...*/}
+
+            virtual void Invoke() override final {
+                (m_t->*m_function_offset)();
+            }
+
+            virtual IDelegate *Clone() const override final {
+                VirtualDelegate<T> *new_delegate = new VirtualDelegate<T>(m_t, m_function_offset);
+                return new_delegate; 
+            }
+    };
 }

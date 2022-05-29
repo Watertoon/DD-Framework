@@ -30,8 +30,30 @@ namespace dd::util {
             IntrusiveTreeNode *m_child;
             IntrusiveTreeNode *m_sibling_next;
             IntrusiveTreeNode *m_sibling_prev;
+        private:
+            constexpr void ClearChildrenRecursive() {
+                IntrusiveTreeNode *iter = m_child;
+                while (iter != nullptr) {
+                    iter = iter->m_sibling_next;
+                    m_child->ClearChildrenRecursive();
+                    m_child->Clear();
+                }
+            }
         public:
             constexpr IntrusiveTreeNode() : m_parent(nullptr), m_child(nullptr), m_sibling_next(nullptr), m_sibling_prev(nullptr) {/*...*/}
+
+            constexpr void Clear() {
+                m_parent = nullptr;
+                m_child = nullptr;
+                m_sibling_next = nullptr;
+                m_sibling_prev = nullptr;
+            }
+
+            constexpr void DetachAll() {
+                this->DetachSubTree();
+                this->ClearChildrenRecursive();
+                this->Clear();
+            }
 
             constexpr void DetachSubTree() {
 
@@ -80,6 +102,23 @@ namespace dd::util {
                 new_child->m_sibling_prev      = sibling_end;
                 new_child->m_parent            = sibling_end->m_parent;
                 m_child->m_sibling_prev        = new_child;
+            }
+
+            constexpr void PushFrontChild(IntrusiveTreeNode *new_child) {
+                new_child->DetachSubTree();
+
+                if (m_child == nullptr) {
+                    m_child                   = new_child;
+                    new_child->m_parent       = this;
+                    new_child->m_sibling_prev = new_child;
+                    return;
+                }
+
+                new_child->m_sibling_next = m_child;
+                new_child->m_sibling_prev = m_child->m_sibling_prev;
+                m_child->m_sibling_prev = new_child;
+                m_child = new_child;
+                new_child->m_parent = this;
             }
 
             constexpr void PushBackSibling(IntrusiveTreeNode *new_sibling) {

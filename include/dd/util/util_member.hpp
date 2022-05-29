@@ -69,4 +69,17 @@ namespace dd::util {
     ptrdiff_t OffsetOfElementAfter() {
         return OffsetOfImpl<Ptr>::GetOffsetAfter();
     }
+
+    /* Only use on virtual functions */
+    template <class T>
+    int GetVTableOffset(T function) {
+        union
+        {
+            T pointer;
+            int i;
+        };
+        pointer = function;
+
+        return i - 1;
+    }
 }

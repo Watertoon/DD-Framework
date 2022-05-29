@@ -39,6 +39,13 @@ namespace dd::util {
                 m_prev->m_prev->m_next = new_node;
                 m_prev->m_prev = new_prev;
             }
+
+            constexpr void Unlink() {
+                m_prev->m_next = m_next;
+                m_next->m_prev = m_prev;
+                m_next = this;
+                m_prev = this;
+            }
     };
 
     template<typename T, class Traits>
@@ -105,37 +112,42 @@ namespace dd::util {
                 return const_iterator(std::addressof(m_list));
             }
 
-            constexpr iterator iterator_to(reference node) const {
-                return iterator(Traits::GetListNode(std::addressof(node)));
-            }
-            constexpr const_iterator iterator_to(const_reference node) const {
-                return const_iterator(Traits::GetListNode(std::addressof(node)));
-            }
-
-            reference front() {
+            reference Front() {
                 return Traits::GetParentReference(m_list.m_next);
             }
-            const_reference front() const {
+            const_reference Front() const {
                 return Traits::GetParentReference(m_list.m_next);
             }
 
-            reference back() {
+            reference Back() {
                 return Traits::GetParentReference(m_list.m_prev);
             }
-            const_reference back() const {
+            const_reference Back() const {
                 return Traits::GetParentReference(m_list.m_prev);
             }
 
-            constexpr bool empty() const {
+            constexpr bool IsEmpty() const {
                 return m_list.IsLinked();
             }
 
-            void push_back(reference obj) {
+            void PushBack(reference obj) {
                 m_list.LinkNext(Traits::GetListNode(std::addressof(obj)));
             }
 
-            void push_front(reference obj) {
+            void PushFront(reference obj) {
                 m_list.m_next->LinkNext(Traits::GetListNode(std::addressof(obj)));
+            }
+
+            static void Remove(reference obj) {
+                Traits::GetListNode(std::addressof(obj)).Unlink();
+            }
+
+            static constexpr iterator IteratorTo(reference obj) {
+                return iterator(Traits::GetListNode(std::addressof(obj)));
+            }
+
+            static constexpr const_iterator IteratorTo(const_reference obj) {
+                return const_iterator(Traits::GetListNode(std::addressof(obj)));
             }
     };
 
