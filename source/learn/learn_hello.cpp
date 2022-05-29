@@ -381,6 +381,13 @@ namespace dd::learn {
 
         yaw   += sensitivity * mouse_state.delta_x;
         pitch += sensitivity * mouse_state.delta_y;
+        
+        if (pitch < -89.0f) {
+            pitch = -89.0f;
+        }
+        if (pitch > 89.0f) {
+            pitch = 89.0f;
+        }
 
         char buffer[0x40] = {};
         std::snprintf(buffer, sizeof(buffer), "Yaw: %f\n Pitch: %f\n", yaw, pitch);

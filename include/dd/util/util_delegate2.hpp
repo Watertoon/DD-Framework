@@ -27,7 +27,7 @@ namespace dd::util {
     };
 
     template<typename T, typename Param1, typename Param2>
-    class Delegate2 : public IDelegate2<Param1, Param2> {
+    class Delegate2 final : public IDelegate2<Param1, Param2> {
         public:
             using FunctionType = void (T::*)(Param1, Param2);
         private:
@@ -36,11 +36,11 @@ namespace dd::util {
         public:
             constexpr ALWAYS_INLINE explicit Delegate2(T *t, FunctionType function) : m_t(t), m_function(function) {/*...*/}
 
-            virtual void Invoke(Param1 param1, Param2 param2) override {
+            virtual void Invoke(Param1 param1, Param2 param2) override final {
                 (m_t->*m_function)(param1, param2);
             }
 
-            virtual IDelegate2<Param1, Param2> *Clone() const override {
+            virtual IDelegate2<Param1, Param2> *Clone() const override final {
                 Delegate2<T, Param1, Param2> *new_delegate = new Delegate2<T, Param1, Param2>(m_t, m_function);
                 return new_delegate; 
             }

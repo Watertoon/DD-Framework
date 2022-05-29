@@ -1,7 +1,7 @@
 #pragma once
 
-/* While the initial idea came from Atmosphere for this implementation I only used cppreference with vague mental notes */
-/* If you can make a case for infringement please let me know and I'll fix it */
+/* While the initial idea of some elements were inspired by Atmosphère, for this implementation I only used cppreference and vague mental notes from months ago */
+/* If you can make a case for infringement please let me know and I'll correct it */
 
 namespace dd::util {
 
