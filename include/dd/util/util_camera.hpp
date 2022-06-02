@@ -43,10 +43,11 @@ namespace dd::util {
 
                 /* Calculate normalized right */
                 math::Vector3f right = m_up.Cross(dir);
-                const float right_mag = dir.Magnitude();
+                const float right_mag = right.Magnitude();
                 if (0.0 < right_mag) {
                     const float right_norm = 1.0 / right_mag;
                     right = right * right_norm;
+                    
                 }
 
                 /* Calculate normalized up */

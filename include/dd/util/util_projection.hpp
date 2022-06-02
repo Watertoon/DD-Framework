@@ -111,5 +111,15 @@ namespace dd::util {
 
                 out_proj_matrix->m_row4 = { 0.0f, 0.0f, -1.0f, 0.0f };
             }
+            
+            void SetAspect(float new_aspect) {
+                m_fov_x = new_aspect;
+                m_need_update = true;
+            }
+
+            void SetFovX(float new_fov_x) {
+                m_fov_x = ::tanf(new_fov_x * 0.5f) / m_right;
+                m_need_update = true;
+            }
     };
 }

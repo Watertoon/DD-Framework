@@ -368,6 +368,13 @@ namespace dd::learn {
     void CalcTriangle() {
 
         /* Process input */
+        u32 width = 0, height = 0;
+        vk::GetGlobalContext()->GetWindowDimensions(std::addressof(width), std::addressof(height));
+        char buffer[40] = {};
+        std::snprintf(buffer, sizeof(buffer), "%d, %d", width, height);
+        ::puts(buffer);
+        perspective_projection.SetAspect(static_cast<float>(width) / static_cast<float>(height));
+
         util::math::Vector3f new_pos = {};
         util::math::Vector3f up = {};
 
@@ -381,26 +388,10 @@ namespace dd::learn {
 
         yaw   += sensitivity * mouse_state.delta_x;
         pitch += sensitivity * mouse_state.delta_y;
-        
-        if (pitch < -89.0f) {
-            pitch = -89.0f;
-        }
-        if (pitch > 89.0f) {
-            pitch = 89.0f;
-        }
-
-        char buffer[0x40] = {};
-        std::snprintf(buffer, sizeof(buffer), "Yaw: %f\n Pitch: %f\n", yaw, pitch);
-        ::puts(buffer);
-        std::snprintf(buffer, sizeof(buffer), "FPS: %f\n", dd::util::CalcFps());
-        ::puts(buffer);
 
         const float yaw_rad   = util::math::AngleHalfRound(util::math::ToRadians(yaw));
         const float pitch_rad = util::math::AngleHalfRound(util::math::ToRadians(pitch));
         const float cos_pitch = util::math::SampleCos(pitch_rad);
-
-        std::snprintf(buffer, sizeof(buffer), "Yaw: %f\n Pitch: %f\n", util::math::SampleSin(pitch_rad), cos_pitch);
-        ::puts(buffer);
 
         const util::math::Vector3f dir = {
             util::math::SampleCos(yaw_rad) * cos_pitch,

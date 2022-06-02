@@ -71,7 +71,7 @@ namespace dd::util::math {
         const float dot = base.Dot(align) + 1.0f;
 
         if (dot <= FloatUlp) {
-            *out_rot_matrix = ZeroMatrix34<float>;
+            *out_rot_matrix = IdentityMatrix34<float>;
             return false;
         }
 
@@ -96,16 +96,4 @@ namespace dd::util::math {
 
         return true;
     }
-
-    /*void MakeSRTIndex(Matrix34f *out_srt_matrix, const Vector3f& scale, const Vector3f& rotation, const Vector3f& translation) {
-        const float sin_x = SampleSin(rotation.m_vec[0]);
-        const float cos_x = SampleCos(rotation.m_vec[0]);
-        const float sin_y = SampleSin(rotation.m_vec[1]);
-        const float cos_y = SampleCos(rotation.m_vec[1]);
-        const float sin_z = SampleSin(rotation.m_vec[2]);
-        const float cos_z = SampleCos(rotation.m_vec[2]);
-        const Vector4f row1(  translation.m_vec[0] );
-        const Vector4f row2(  translation.m_vec[1] );
-        const Vector4f row3(  translation.m_vec[2] );
-    }*/
 }
