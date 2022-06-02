@@ -63,7 +63,7 @@ namespace dd::vk {
 
             /* Decide we are using a B8G8R8A8 Nonlinear SRGB format for our VkSurface */
             static constexpr VkSurfaceFormatKHR TargetSurfaceFormat = { 
-                .format = VK_FORMAT_B8G8R8A8_SRGB,
+                .format = VK_FORMAT_B8G8R8A8_UNORM,
                 .colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
             };
             
