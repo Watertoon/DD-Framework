@@ -104,7 +104,7 @@ void Draw(dd::vk::Context *global_context, dd::vk::CommandBuffer *global_command
 
     /* Register clear colors*/
     global_command_buffer->RegisterFastClearColor({0.0f, 0.0f, 0.0f, 1.0f});
-    global_command_buffer->RegisterFastClearDepthStencil({1.0f, 0});
+    global_command_buffer->RegisterFastClearDepthStencil({0.0f, 0});
 
     global_command_buffer->Begin();
     global_context->EnterDraw();

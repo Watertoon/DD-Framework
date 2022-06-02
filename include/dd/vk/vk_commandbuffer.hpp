@@ -60,7 +60,7 @@ namespace dd::vk {
             vk_op_state_back.compareMask  = 0;
             vk_op_state_back.writeMask    = 0;
             vk_op_state_back.reference    = 0;
-            vk_depth_compare_op           = VK_COMPARE_OP_LESS_OR_EQUAL;
+            vk_depth_compare_op           = VK_COMPARE_OP_GREATER_OR_EQUAL;
             min_depth_bounds              = 0.0f;
             max_depth_bounds              = 1.0f;
         }

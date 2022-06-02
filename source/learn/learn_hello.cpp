@@ -501,8 +501,8 @@ namespace dd::learn {
         VkViewport viewport {
             .width  = static_cast<float>(width),
             .height = static_cast<float>(height),
-            .minDepth = 0.0f,
-            .maxDepth = 1.0f
+            .minDepth = 1.0f,
+            .maxDepth = 0.0f
         };
         command_buffer->SetViewports(1, std::addressof(viewport));
 
