@@ -18,8 +18,8 @@
 namespace {
 
     dd::util::TypeStorage<dd::vk::Context>       context;
-    dd::util::TypeStorage<dd::vk::FrameBuffer>   framebuffer;
-    dd::util::TypeStorage<dd::vk::CommandBuffer> command_buffers[dd::vk::FrameBuffer::FramesInFlight];
+    dd::util::TypeStorage<dd::vk::DisplayBuffer> framebuffer;
+    dd::util::TypeStorage<dd::vk::CommandBuffer> command_buffers[dd::vk::DisplayBuffer::FramesInFlight];
 
     struct ContextInitState {
         bool    is_ready_for_exit;
@@ -41,7 +41,7 @@ long unsigned int ContextMain(void *arg) {
     dd::util::ConstructAt(framebuffer);
     dd::util::GetReference(framebuffer).Initialize(dd::util::GetPointer(context));
     
-    for (u32 i = 0; i < dd::vk::FrameBuffer::FramesInFlight; ++i) {
+    for (u32 i = 0; i < dd::vk::DisplayBuffer::FramesInFlight; ++i) {
         dd::util::ConstructAt(command_buffers[i]);
         dd::util::GetReference(command_buffers[i]).Initialize(dd::util::GetPointer(context));
     }
@@ -73,7 +73,7 @@ long unsigned int ContextMain(void *arg) {
     dd::util::GetReference(framebuffer).Finalize(dd::util::GetPointer(context));
     dd::util::DestructAt(framebuffer);
 
-    for (u32 i = 0; i < dd::vk::FrameBuffer::FramesInFlight; ++i) {
+    for (u32 i = 0; i < dd::vk::DisplayBuffer::FramesInFlight; ++i) {
         dd::util::GetReference(command_buffers[i]).Finalize(dd::util::GetPointer(context));
         dd::util::DestructAt(command_buffers[i]);
     }
@@ -94,31 +94,17 @@ void Draw(dd::vk::Context *global_context, dd::vk::CommandBuffer *global_command
         return;
     }
 
-    dd::vk::FrameBuffer *global_frame_buffer = dd::util::GetPointer(framebuffer);
-    const VkClearColorValue clear_color = {
-        .float32 = { 0.5f, 0.5f, 0.5f, 1.0f }
-    };
-    const VkImageSubresourceRange clear_color_sub_range = {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-        .levelCount = 1,
-        .layerCount = 1,
-    };
-
-    const VkClearDepthStencilValue clear_depth_stencil = {
-        .depth = 1.0f,
-        .stencil = 0
-    };
-    const VkImageSubresourceRange clear_depth_stencil_sub_range = {
-        .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT,
-        .levelCount = 1,
-        .layerCount = 1,
-    };
+    dd::vk::DisplayBuffer *global_frame_buffer = dd::util::GetPointer(framebuffer);
 
     /* Get current targets */
     dd::vk::ColorTargetView *current_color_target = global_frame_buffer->GetCurrentColorTarget();
     dd::vk::DepthStencilTargetView *depth_stencil_target = global_frame_buffer->GetDepthStencilTarget();
     dd::vk::Texture *color_target_texture = current_color_target->GetTexture();
     dd::vk::Texture *depth_target_texture = depth_stencil_target->GetTexture();
+
+    /* Register clear colors*/
+    global_command_buffer->RegisterFastClearColor({0.0f, 0.0f, 0.0f, 1.0f});
+    global_command_buffer->RegisterFastClearDepthStencil({1.0f, 0});
 
     global_command_buffer->Begin();
     global_context->EnterDraw();
@@ -133,10 +119,6 @@ void Draw(dd::vk::Context *global_context, dd::vk::CommandBuffer *global_command
     };
     global_command_buffer->SetTextureStateTransition(color_target_texture, std::addressof(clear_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
     global_command_buffer->SetTextureStateTransition(depth_target_texture, std::addressof(clear_barrier_state), static_cast<VkImageAspectFlagBits>(VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT));
-
-    /* Clear render targets */
-    global_command_buffer->ClearColorTarget(current_color_target, std::addressof(clear_color), std::addressof(clear_color_sub_range));
-    global_command_buffer->ClearDepthStencilTarget(depth_stencil_target, clear_depth_stencil, std::addressof(clear_depth_stencil_sub_range));
 
     /* Set render target */
     global_command_buffer->SetRenderTargets(1 , std::addressof(current_color_target), depth_stencil_target);

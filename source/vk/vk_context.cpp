@@ -707,7 +707,7 @@ namespace dd::vk {
     }
 
     void Context::Present(CommandBuffer *submit_command_buffer) {
-        DD_ASSERT(submit_command_buffer != nullptr && m_bound_frame_buffer != nullptr);
+        DD_ASSERT(submit_command_buffer != nullptr && m_bound_display_buffer != nullptr);
 
         m_present_cs.Enter();
         this->LockWindowResize();
@@ -729,7 +729,7 @@ namespace dd::vk {
 
         const VkSemaphoreSubmitInfo semaphore_info = {
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-            .semaphore = m_bound_frame_buffer->GetCurrentQueuePresentSemaphore(),
+            .semaphore = m_bound_display_buffer->GetCurrentQueuePresentSemaphore(),
             .stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT
         };
 
@@ -741,14 +741,14 @@ namespace dd::vk {
             .pSignalSemaphoreInfos = std::addressof(semaphore_info)
         };
 
-        m_bound_frame_buffer->ResetCurrentQueueSubmitFence();
-        VkFence submit_fence = m_bound_frame_buffer->GetCurrentQueueSubmitFence();
+        m_bound_display_buffer->ResetCurrentQueueSubmitFence();
+        VkFence submit_fence = m_bound_display_buffer->GetCurrentQueueSubmitFence();
 
         const u32 result1 = pfn_vkQueueSubmit2(m_vk_graphics_queue, 1, std::addressof(submit_info), submit_fence);
         DD_ASSERT(result1 == VK_SUCCESS);
 
         /* Present */
-        m_bound_frame_buffer->PresentTextureAndAcquireNext(global_context);
+        m_bound_display_buffer->PresentTextureAndAcquireNext(global_context);
         this->UnlockWindowResize();
 
         m_present_cs.Leave();
@@ -765,11 +765,11 @@ namespace dd::vk {
                 this->ClearResizeUnsafe();
                 this->UnlockWindowResize();
 
-                VkFence submit_fence = m_bound_frame_buffer->GetCurrentQueueSubmitFence();
+                VkFence submit_fence = m_bound_display_buffer->GetCurrentQueueSubmitFence();
                 const u32 result0 = pfn_vkWaitForFences(m_vk_device, 1, std::addressof(submit_fence), VK_TRUE, UINT64_MAX);
                 DD_ASSERT(result0 == VK_SUCCESS);
 
-                VkFence acquire_fence = m_bound_frame_buffer->GetImageAcquireFence();
+                VkFence acquire_fence = m_bound_display_buffer->GetImageAcquireFence();
                 const u32 result1 = pfn_vkWaitForFences(m_vk_device, 1, std::addressof(acquire_fence), VK_TRUE, 16000000);
                 DD_ASSERT(result1 == VK_SUCCESS);
             }
@@ -787,13 +787,13 @@ namespace dd::vk {
         m_entered_present = false;
 
         /* Wait for Queue submission to finish */
-        VkFence submit_fence = m_bound_frame_buffer->GetCurrentQueueSubmitFence();
+        VkFence submit_fence = m_bound_display_buffer->GetCurrentQueueSubmitFence();
 
         const u32 result2 = pfn_vkWaitForFences(m_vk_device, 1, std::addressof(submit_fence), VK_TRUE, UINT64_MAX);
         DD_ASSERT(result2 == VK_SUCCESS);
 
         /* Wait for image acquire */
-        VkFence acquire_fence = m_bound_frame_buffer->GetImageAcquireFence();
+        VkFence acquire_fence = m_bound_display_buffer->GetImageAcquireFence();
 
         const u32 result0 = pfn_vkWaitForFences(m_vk_device, 1, std::addressof(acquire_fence), VK_TRUE, 16000000);
         DD_ASSERT(result0 == VK_SUCCESS);
@@ -808,15 +808,15 @@ namespace dd::vk {
         this->SetResize();
 
         /* Apply our window resize */
-        bool result = m_bound_frame_buffer->ApplyResize(this);
+        bool result = m_bound_display_buffer->ApplyResize(this);
 
         m_present_cs.Leave();
         return result;
     }
 
-    util::DelegateThread *Context::InitializePresentationThread(FrameBuffer *framebuffer) {
+    util::DelegateThread *Context::InitializePresentationThread(DisplayBuffer *display_buffer) {
 
-        m_bound_frame_buffer = framebuffer;
+        m_bound_display_buffer = display_buffer;
 
         util::ConstructAt(m_present_delegate, this, PresentAsync);
         size_t exit_code = 0;

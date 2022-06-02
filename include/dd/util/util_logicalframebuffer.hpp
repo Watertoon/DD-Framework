@@ -21,8 +21,14 @@ namespace dd::util {
         private:
             math::Vector2f m_virtual_size;
             math::Vector2f m_dimensions;
+        private:
+            virtual void BindImpl() {/*...*/}
         public:
             constexpr LogicalFramebuffer() : m_virtual_size(), m_dimensions() {/*...*/}
+
+            void Bind() {
+                this->BindImpl();
+            }
 
             void SetVirtualCanvasSize(float x, float y) {
                 math::Vector2f temp = {x, y};

@@ -17,7 +17,7 @@
 
 namespace dd::vk {
 
-    class FrameBuffer : public dd::util::LogicalFramebuffer {
+    class DisplayBuffer : public dd::util::LogicalFramebuffer {
         public:
             static constexpr u32 FramesInFlight = 2;
             static constexpr u32 BufferedFrames = 3;
@@ -37,7 +37,7 @@ namespace dd::vk {
             u32              m_current_target_index;
             u32              m_current_frame;
         public:
-            constexpr FrameBuffer() {/*...*/}
+            constexpr DisplayBuffer() {/*...*/}
 
             void Initialize(Context *context) {
 

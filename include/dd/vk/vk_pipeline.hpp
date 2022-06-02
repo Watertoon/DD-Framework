@@ -57,8 +57,6 @@ namespace dd::vk {
     class Pipeline {
         private:
             VkPipeline            m_vk_pipeline;
-            VkDescriptorSetLayout m_vk_descriptor_set_layout;
-            VkPipelineLayout      m_vk_pipeline_layout;
         public:
             constexpr Pipeline() {/*...*/}
 

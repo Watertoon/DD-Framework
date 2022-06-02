@@ -18,7 +18,7 @@
 namespace dd::vk {
 
     class CommandBuffer;
-    class FrameBuffer;
+    class DisplayBuffer;
 
     class Context {
         public:
@@ -35,7 +35,7 @@ namespace dd::vk {
             static constexpr size_t TargetStorageBufferAlignment     = 0x100;
             static constexpr size_t TargetTexelBufferAlignment       = 0x100;
 
-            static constexpr size_t TargetMaxUniformBufferSize       = 0xFA00;
+            static constexpr size_t TargetMaxUniformBufferSize       = 0x10000;
 
             /* Decide our global descriptor resource limits */
             static constexpr size_t TargetMaxTextureDescriptors      = 0x412c;
@@ -119,7 +119,7 @@ namespace dd::vk {
             bool                    m_skip_draw;
 
             /* Presentation objects */
-            FrameBuffer                                                                *m_bound_frame_buffer;
+            DisplayBuffer                                                              *m_bound_display_buffer;
             util::CriticalSection                                                       m_present_cs;
             util::TypeStorage<util::DelegateThread>                                     m_delegate_thread;
             util::TypeStorage<util::Delegate2<Context, util::DelegateThread*, size_t>>  m_present_delegate;
@@ -289,7 +289,7 @@ namespace dd::vk {
 
             void WaitForGpu();
 
-            util::DelegateThread *InitializePresentationThread(FrameBuffer *framebuffer);
+            util::DelegateThread *InitializePresentationThread(DisplayBuffer *display_buffer);
     };
 
     void SetGlobalContext(Context *context);

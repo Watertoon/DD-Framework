@@ -175,36 +175,39 @@ namespace dd::vk {
             static constexpr size_t TargetResourceBufferMemorySize           = util::AlignUp(TargetResourceBufferPerStageSize * 6, Context::TargetMemoryPoolAlignment);
 
             static constexpr size_t VertexBufferMemoryOffset                 = 0;
-            static constexpr size_t TessellationEvaluationBufferMemoryOffset = TargetResourceBufferPerStageSize;
-            static constexpr size_t TessellationControlBufferMemoryOffset    = TargetResourceBufferPerStageSize * 2;
+            static constexpr size_t TessellationControlBufferMemoryOffset    = TargetResourceBufferPerStageSize;
+            static constexpr size_t TessellationEvaluationBufferMemoryOffset = TargetResourceBufferPerStageSize * 2;
             static constexpr size_t GeometryBufferMemoryOffset               = TargetResourceBufferPerStageSize * 3;
             static constexpr size_t FragmentBufferMemoryOffset               = TargetResourceBufferPerStageSize * 4;
             static constexpr size_t ComputeBufferMemoryOffset                = TargetResourceBufferPerStageSize * 5;
         private:
-            VkCommandBuffer         m_vk_command_buffer;
-            VkDescriptorPool        m_vk_resource_buffer_descriptor_pool;
-            VkDescriptorSet         m_vk_resource_buffer_descriptor_set;
-            ResourceBuffer          m_resource_buffer_per_stage_array[Context::TargetShaderStages];
-            VkDeviceMemory          m_vk_resource_buffer_memory;
-            VkBuffer                m_vk_resource_buffer_per_stage_array[Context::TargetShaderStages];
-            ColorTargetView        *m_color_targets[8];
-            DepthStencilTargetView *m_depth_stencil_target;
-            bool                    m_is_rendering;
-            bool                    m_are_new_targets;
-            bool                    m_need_vertex_resource_update;
-            bool                    m_need_tessellation_evaluation_resource_update;
-            bool                    m_need_tessellation_control_resource_update;
-            bool                    m_need_geometry_resource_update;
-            bool                    m_need_fragment_resource_update;
-            bool                    m_need_compute_resource_update;
-            u32                     m_vertex_resource_update_count;
-            u32                     m_tessellation_evaluation_resource_update_count;
-            u32                     m_tessellation_control_resource_update_count;
-            u32                     m_geometry_resource_update_count;
-            u32                     m_fragment_resource_update_count;
-            u32                     m_compute_resource_update_count;
-            VkClearColorValue       m_vk_clear_color;
-            bool                    m_fast_clear;
+            VkCommandBuffer           m_vk_command_buffer;
+            VkDescriptorPool          m_vk_resource_buffer_descriptor_pool;
+            VkDescriptorSet           m_vk_resource_buffer_descriptor_set;
+            ResourceBuffer            m_resource_buffer_per_stage_array[Context::TargetShaderStages];
+            void                     *m_resource_buffer_mapped_address;
+            VkDeviceMemory            m_vk_resource_buffer_memory;
+            VkBuffer                  m_vk_resource_buffer_per_stage_array[Context::TargetShaderStages];
+            ColorTargetView          *m_color_targets[8];
+            DepthStencilTargetView   *m_depth_stencil_target;
+            bool                      m_is_rendering;
+            bool                      m_are_new_targets;
+            bool                      m_need_vertex_resource_update;
+            bool                      m_need_tessellation_evaluation_resource_update;
+            bool                      m_need_tessellation_control_resource_update;
+            bool                      m_need_geometry_resource_update;
+            bool                      m_need_fragment_resource_update;
+            bool                      m_need_compute_resource_update;
+            u32                       m_vertex_resource_update_count;
+            u32                       m_tessellation_control_resource_update_count;
+            u32                       m_tessellation_evaluation_resource_update_count;
+            u32                       m_geometry_resource_update_count;
+            u32                       m_fragment_resource_update_count;
+            u32                       m_compute_resource_update_count;
+            VkClearColorValue         m_vk_clear_color;
+            VkClearDepthStencilValue  m_vk_clear_depth_stencil;
+            bool                      m_fast_clear_color;
+            bool                      m_fast_clear_depth_stencil;
         private:
             void BeginRenderingIfNotRendering();
 
@@ -224,7 +227,8 @@ namespace dd::vk {
 
             void ClearColorTarget(ColorTargetView *color_target, const VkClearColorValue* color, const VkImageSubresourceRange *sub_range);
             void ClearDepthStencilTarget(DepthStencilTargetView *depth_stencil_target, const VkClearDepthStencilValue clear_value, const VkImageSubresourceRange *sub_range);
-            void SetFastClearColor(const VkClearColorValue& color);
+            void RegisterFastClearColor(const VkClearColorValue& color_value);
+            void RegisterFastClearDepthStencil(const VkClearDepthStencilValue& depth_stencil_value);
 
             void Draw(VkPrimitiveTopology vk_primitive_topology, u32 vertex_count, u32 base_vertex);
             void DrawIndexed(VkPrimitiveTopology vk_primitive_topology, VkIndexType index_format, Buffer *index_buffer, u32 index_count, u32 base_index);

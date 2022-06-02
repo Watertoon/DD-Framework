@@ -43,23 +43,24 @@ namespace dd::vk {
             color_attachments[color_target_count].resolveMode        = VK_RESOLVE_MODE_NONE;
             color_attachments[color_target_count].resolveImageView   = 0;
             color_attachments[color_target_count].resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            color_attachments[color_target_count].loadOp             = (m_fast_clear == true) ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+            color_attachments[color_target_count].loadOp             = (m_fast_clear_color == true) ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             color_attachments[color_target_count].storeOp            = VK_ATTACHMENT_STORE_OP_STORE;
             color_attachments[color_target_count].clearValue         = { m_vk_clear_color.float32[0], m_vk_clear_color.float32[1],  m_vk_clear_color.float32[2], m_vk_clear_color.float32[3] };
             color_target_count += 1;
         }
 
         /* Initialize depth stencil attachment */
-        const VkRenderingAttachmentInfo depth_stencil_attachment = {
+        VkRenderingAttachmentInfo depth_stencil_attachment = {
             .sType              = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
             .imageView          = (m_depth_stencil_target != nullptr) ? m_depth_stencil_target->GetImageView() : nullptr,
             .imageLayout        = VK_IMAGE_LAYOUT_GENERAL,
             .resolveMode        = VK_RESOLVE_MODE_NONE,
             .resolveImageView   = 0,
             .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-            .loadOp             = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+            .loadOp             = (m_fast_clear_depth_stencil == true) ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,
             .storeOp            = VK_ATTACHMENT_STORE_OP_STORE
         };
+        depth_stencil_attachment.clearValue.depthStencil = m_vk_clear_depth_stencil;
 
         /* Initialize rendering info */
         const VkRenderingAttachmentInfo *depth_stencil_ref = (m_depth_stencil_target != nullptr) ? std::addressof(depth_stencil_attachment) : nullptr;
@@ -98,78 +99,31 @@ namespace dd::vk {
     }
 
     void CommandBuffer::UpdateResourceBufferIfNecessary() {
+        DD_ASSERT(m_resource_buffer_mapped_address != nullptr);
         
         /* Map and copy resource data for necessary stages */
         if (m_need_vertex_resource_update == true) {
-
-            void *memory_address = nullptr;
-            const u32 result0 = ::pfn_vkMapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory, VertexBufferMemoryOffset + (sizeof(ResourceBuffer) * m_vertex_resource_update_count), sizeof(ResourceBuffer), 0, std::addressof(memory_address));
-            DD_ASSERT(result0 == VK_SUCCESS);
-
-            ::memcpy(memory_address, std::addressof(m_resource_buffer_per_stage_array[ShaderStage_Vertex]), sizeof(ResourceBuffer));
-
-            ::pfn_vkUnmapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory);
-
+            ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_resource_buffer_mapped_address) + VertexBufferMemoryOffset + (sizeof(ResourceBuffer) * m_vertex_resource_update_count)), std::addressof(m_resource_buffer_per_stage_array[ShaderStage_Vertex]), sizeof(ResourceBuffer));
             m_vertex_resource_update_count += 1;
         }
-        if (m_need_tessellation_evaluation_resource_update == true) {
-
-            void *memory_address = nullptr;
-            const u32 result0 = ::pfn_vkMapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory, TessellationEvaluationBufferMemoryOffset + (sizeof(ResourceBuffer) * m_tessellation_evaluation_resource_update_count), sizeof(ResourceBuffer), 0, std::addressof(memory_address));
-            DD_ASSERT(result0 == VK_SUCCESS);
-
-            ::memcpy(memory_address, std::addressof(m_resource_buffer_per_stage_array[ShaderStage_TessellationEvaluation]), sizeof(ResourceBuffer));
-
-            ::pfn_vkUnmapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory);
-
-            m_tessellation_evaluation_resource_update_count += 1;
-        }
         if (m_need_tessellation_control_resource_update == true) {
-
-            void *memory_address = nullptr;
-            const u32 result0 = ::pfn_vkMapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory, TessellationControlBufferMemoryOffset + (sizeof(ResourceBuffer) * m_tessellation_control_resource_update_count), sizeof(ResourceBuffer), 0, std::addressof(memory_address));
-            DD_ASSERT(result0 == VK_SUCCESS);
-
-            ::memcpy(memory_address, std::addressof(m_resource_buffer_per_stage_array[ShaderStage_TessellationControl]), sizeof(ResourceBuffer));
-
-            ::pfn_vkUnmapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory);
-
+            ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_resource_buffer_mapped_address) + TessellationControlBufferMemoryOffset + (sizeof(ResourceBuffer) * m_tessellation_control_resource_update_count)), std::addressof(m_resource_buffer_per_stage_array[ShaderStage_TessellationControl]), sizeof(ResourceBuffer));
             m_tessellation_control_resource_update_count += 1;
         }
+        if (m_need_tessellation_evaluation_resource_update == true) {
+            ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_resource_buffer_mapped_address) + TessellationEvaluationBufferMemoryOffset + (sizeof(ResourceBuffer) * m_tessellation_evaluation_resource_update_count)), std::addressof(m_resource_buffer_per_stage_array[ShaderStage_TessellationEvaluation]), sizeof(ResourceBuffer));
+            m_tessellation_evaluation_resource_update_count += 1;
+        }
         if (m_need_geometry_resource_update == true) {
-
-            void *memory_address = nullptr;
-            const u32 result0 = ::pfn_vkMapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory, GeometryBufferMemoryOffset + (sizeof(ResourceBuffer) * m_geometry_resource_update_count), sizeof(ResourceBuffer), 0, std::addressof(memory_address));
-            DD_ASSERT(result0 == VK_SUCCESS);
-
-            ::memcpy(memory_address, std::addressof(m_resource_buffer_per_stage_array[ShaderStage_Geometry]), sizeof(ResourceBuffer));
-
-            ::pfn_vkUnmapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory);
-
+            ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_resource_buffer_mapped_address) + GeometryBufferMemoryOffset + (sizeof(ResourceBuffer) * m_geometry_resource_update_count)), std::addressof(m_resource_buffer_per_stage_array[ShaderStage_Geometry]), sizeof(ResourceBuffer));
             m_geometry_resource_update_count += 1;
         }
         if (m_need_fragment_resource_update == true) {
-
-            void *memory_address = nullptr;
-            const u32 result0 = ::pfn_vkMapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory, FragmentBufferMemoryOffset + (sizeof(ResourceBuffer) * m_fragment_resource_update_count), sizeof(ResourceBuffer), 0, std::addressof(memory_address));
-            DD_ASSERT(result0 == VK_SUCCESS);
-
-            ::memcpy(memory_address, std::addressof(m_resource_buffer_per_stage_array[ShaderStage_Fragment]), sizeof(ResourceBuffer));
-
-            ::pfn_vkUnmapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory);
-
+            ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_resource_buffer_mapped_address) + FragmentBufferMemoryOffset + (sizeof(ResourceBuffer) * m_fragment_resource_update_count)), std::addressof(m_resource_buffer_per_stage_array[ShaderStage_Fragment]), sizeof(ResourceBuffer));
             m_fragment_resource_update_count += 1;
         }
         if (m_need_compute_resource_update == true) {
-
-            void *memory_address = nullptr;
-            const u32 result0 = ::pfn_vkMapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory, ComputeBufferMemoryOffset + (sizeof(ResourceBuffer) * m_compute_resource_update_count), sizeof(ResourceBuffer), 0, std::addressof(memory_address));
-            DD_ASSERT(result0 == VK_SUCCESS);
-
-            ::memcpy(memory_address, std::addressof(m_resource_buffer_per_stage_array[ShaderStage_Compute]), sizeof(ResourceBuffer));
-
-            ::pfn_vkUnmapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory);
-
+            ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_resource_buffer_mapped_address) + ComputeBufferMemoryOffset + (sizeof(ResourceBuffer) * m_compute_resource_update_count)), std::addressof(m_resource_buffer_per_stage_array[ShaderStage_Compute]), sizeof(ResourceBuffer));
             m_compute_resource_update_count += 1;
         }
     }
@@ -179,13 +133,13 @@ namespace dd::vk {
             const u32 resource_index = m_vertex_resource_update_count - 1;
             ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(u32), std::addressof(resource_index));
         }
-        if (m_tessellation_evaluation_resource_update_count != 0) {
-            const u32 resource_index = m_tessellation_evaluation_resource_update_count - 1;
-            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT, sizeof(u32), sizeof(u32), std::addressof(resource_index));
-        }
         if (m_tessellation_control_resource_update_count != 0) {
             const u32 resource_index = m_tessellation_control_resource_update_count - 1;
-            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT, sizeof(u32) * 2, sizeof(u32), std::addressof(resource_index));
+            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT, sizeof(u32), sizeof(u32), std::addressof(resource_index));
+        }
+        if (m_tessellation_evaluation_resource_update_count != 0) {
+            const u32 resource_index = m_tessellation_evaluation_resource_update_count - 1;
+            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT, sizeof(u32) * 2, sizeof(u32), std::addressof(resource_index));
         }
         if (m_geometry_resource_update_count != 0) {
             const u32 resource_index = m_geometry_resource_update_count - 1;
@@ -304,6 +258,10 @@ namespace dd::vk {
         const u32 result15 = ::pfn_vkBindBufferMemory(context->GetDevice(), m_vk_resource_buffer_per_stage_array[ShaderStage_Compute], m_vk_resource_buffer_memory, ComputeBufferMemoryOffset);
         DD_ASSERT(result15 == VK_SUCCESS);
 
+        /* Map the resource buffer memory */
+        const u32 result16 = ::pfn_vkMapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory, 0, VK_WHOLE_SIZE , 0, std::addressof(m_resource_buffer_mapped_address));
+        DD_ASSERT(result16 == VK_SUCCESS);
+
         /* Update resource buffer descriptor */
         const VkDescriptorBufferInfo descriptor_buffer_info[Context::TargetShaderStages] = {
             {
@@ -405,6 +363,12 @@ namespace dd::vk {
             ::pfn_vkDestroyBuffer(context->GetDevice(), m_vk_resource_buffer_per_stage_array[i], nullptr);
         }
         ::pfn_vkDestroyDescriptorPool(context->GetDevice(), m_vk_resource_buffer_descriptor_pool, nullptr);
+
+        if (m_resource_buffer_mapped_address != nullptr) {
+            ::pfn_vkUnmapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory);
+            m_resource_buffer_mapped_address = nullptr;
+        }
+
         ::pfn_vkFreeMemory(context->GetDevice(), m_vk_resource_buffer_memory, nullptr);
     }
 
@@ -479,12 +443,18 @@ namespace dd::vk {
         this->SetTextureStateTransition(depth_stencil_target->GetTexture(), std::addressof(clear_barrier_state), static_cast<VkImageAspectFlagBits>(VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT));
     }
 
-    void CommandBuffer::SetFastClearColor(const VkClearColorValue& color) {
-        m_vk_clear_color.float32[0] = color.float32[0];
-        m_vk_clear_color.float32[1] = color.float32[1];
-        m_vk_clear_color.float32[2] = color.float32[2];
-        m_vk_clear_color.float32[3] = color.float32[3];
-        m_fast_clear = true;
+    void CommandBuffer::RegisterFastClearColor(const VkClearColorValue& color_value) {
+        m_vk_clear_color.float32[0] = color_value.float32[0];
+        m_vk_clear_color.float32[1] = color_value.float32[1];
+        m_vk_clear_color.float32[2] = color_value.float32[2];
+        m_vk_clear_color.float32[3] = color_value.float32[3];
+        m_fast_clear_color          = true;
+    }
+
+    void CommandBuffer::RegisterFastClearDepthStencil(const VkClearDepthStencilValue& depth_stencil_value) {
+        m_vk_clear_depth_stencil.depth   = depth_stencil_value.depth;
+        m_vk_clear_depth_stencil.stencil = depth_stencil_value.stencil;
+        m_fast_clear_depth_stencil  = true;
     }
 
     void CommandBuffer::Draw(VkPrimitiveTopology vk_primitive_topology, u32 vertex_count, u32 base_vertex) {
