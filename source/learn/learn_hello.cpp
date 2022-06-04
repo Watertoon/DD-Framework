@@ -213,7 +213,7 @@ namespace dd::learn {
             .height               = static_cast<u32>(height0),
             .depth                = 1,
             .vk_format            = VK_FORMAT_R8G8B8A8_UNORM,
-            .vk_image_layout      = VK_IMAGE_LAYOUT_PREINITIALIZED,
+            .vk_image_layout      = VK_IMAGE_LAYOUT_UNDEFINED,
             .vk_image_type        = VK_IMAGE_TYPE_2D,
             .vk_sample_count_flag = VK_SAMPLE_COUNT_1_BIT,
             .vk_tiling            = VK_IMAGE_TILING_LINEAR,
@@ -228,7 +228,7 @@ namespace dd::learn {
             .height               = static_cast<u32>(height1),
             .depth                = 1,
             .vk_format            = VK_FORMAT_R8G8B8A8_UNORM,
-            .vk_image_layout      = VK_IMAGE_LAYOUT_PREINITIALIZED,
+            .vk_image_layout      = VK_IMAGE_LAYOUT_UNDEFINED,
             .vk_image_type        = VK_IMAGE_TYPE_2D,
             .vk_sample_count_flag = VK_SAMPLE_COUNT_1_BIT,
             .vk_tiling            = VK_IMAGE_TILING_LINEAR,
@@ -363,6 +363,8 @@ namespace dd::learn {
 
         /* Register our textures */
         sampler_slot = sampler_descriptor_pool->RegisterSampler(util::GetPointer(vk_sampler));
+        texture_view0_slot = util::GetPointer(vk_texture_descriptor_pool)->RegisterTexture(util::GetPointer(vk_texture_view0));
+        texture_view1_slot = util::GetPointer(vk_texture_descriptor_pool)->RegisterTexture(util::GetPointer(vk_texture_view1));
     }
 
     void CalcTriangle() {
@@ -370,9 +372,6 @@ namespace dd::learn {
         /* Process input */
         u32 width = 0, height = 0;
         vk::GetGlobalContext()->GetWindowDimensions(std::addressof(width), std::addressof(height));
-        char buffer[40] = {};
-        std::snprintf(buffer, sizeof(buffer), "%d, %d", width, height);
-        ::puts(buffer);
         perspective_projection.SetAspect(static_cast<float>(width) / static_cast<float>(height));
 
         util::math::Vector3f new_pos = {};
@@ -447,33 +446,29 @@ namespace dd::learn {
         util::GetReference(vk_uniform_buffer).Unmap();
 
         /* Ensure textures are transistioned */
-        if (util::GetPointer(vk_texture_view0)->GetTexture()->GetImageLayout() == VK_IMAGE_LAYOUT_PREINITIALIZED) {
+        if (util::GetPointer(vk_texture_view0)->GetTexture()->GetImageLayout() == VK_IMAGE_LAYOUT_UNDEFINED) {
 
             util::GetReference(vk_image_memory).Relocate(command_buffer->GetCommandBuffer());
 
             const dd::vk::TextureBarrierCmdState texture_barrier_state = {
                 .vk_dst_stage_mask  = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                 .vk_dst_access_mask = VK_ACCESS_SHADER_READ_BIT,
-                .vk_src_layout      = VK_IMAGE_LAYOUT_PREINITIALIZED,
+                .vk_src_layout      = VK_IMAGE_LAYOUT_UNDEFINED,
                 .vk_dst_layout      = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
             };
 
             command_buffer->SetTextureStateTransition(util::GetPointer(vk_texture_view0)->GetTexture(), std::addressof(texture_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
-
-            texture_view0_slot = util::GetPointer(vk_texture_descriptor_pool)->RegisterTexture(util::GetPointer(vk_texture_view0));
         }
-        if (util::GetPointer(vk_texture_view1)->GetTexture()->GetImageLayout() == VK_IMAGE_LAYOUT_PREINITIALIZED) {
+        if (util::GetPointer(vk_texture_view1)->GetTexture()->GetImageLayout() == VK_IMAGE_LAYOUT_UNDEFINED) {
 
             const dd::vk::TextureBarrierCmdState texture_barrier_state = {
                 .vk_dst_stage_mask  = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                 .vk_dst_access_mask = VK_ACCESS_SHADER_READ_BIT,
-                .vk_src_layout      = VK_IMAGE_LAYOUT_PREINITIALIZED,
+                .vk_src_layout      = VK_IMAGE_LAYOUT_UNDEFINED,
                 .vk_dst_layout      = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
             };
 
             command_buffer->SetTextureStateTransition(util::GetPointer(vk_texture_view1)->GetTexture(), std::addressof(texture_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
-
-            texture_view1_slot = util::GetPointer(vk_texture_descriptor_pool)->RegisterTexture(util::GetPointer(vk_texture_view1));
         }
 
         /* Bind */
