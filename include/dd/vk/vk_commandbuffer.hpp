@@ -49,14 +49,14 @@ namespace dd::vk {
             vk_op_state_front.failOp      = VK_STENCIL_OP_KEEP;
             vk_op_state_front.passOp      = VK_STENCIL_OP_KEEP;
             vk_op_state_front.depthFailOp = VK_STENCIL_OP_KEEP;
-            vk_op_state_front.compareOp   = VK_COMPARE_OP_NEVER;
+            vk_op_state_front.compareOp   = VK_COMPARE_OP_ALWAYS;
             vk_op_state_front.compareMask = 0;
             vk_op_state_front.writeMask   = 0;
             vk_op_state_front.reference   = 0;
             vk_op_state_back.failOp       = VK_STENCIL_OP_KEEP;
             vk_op_state_back.passOp       = VK_STENCIL_OP_KEEP;
             vk_op_state_back.depthFailOp  = VK_STENCIL_OP_KEEP;
-            vk_op_state_back.compareOp    = VK_COMPARE_OP_NEVER;
+            vk_op_state_back.compareOp    = VK_COMPARE_OP_ALWAYS;
             vk_op_state_back.compareMask  = 0;
             vk_op_state_back.writeMask    = 0;
             vk_op_state_back.reference    = 0;
@@ -79,14 +79,14 @@ namespace dd::vk {
         float           line_width;
 
         constexpr void SetDefaults() {
-            vk_cull_mode               = VK_CULL_MODE_FRONT_BIT;
+            vk_cull_mode               = VK_CULL_MODE_NONE;
             vk_front_face              = VK_FRONT_FACE_CLOCKWISE;
             rasterizer_discard_enable  = false;
             primitive_restart_enable   = false;
             depth_bias_enable          = false;
-            depth_bias_constant_factor = 1.0f;
-            depth_bias_clamp           = 1.0f;
-            depth_bias_slope_factor    = 1.0f;
+            depth_bias_constant_factor = 0.0f;
+            depth_bias_clamp           = 0.0f;
+            depth_bias_slope_factor    = 0.0f;
             line_width                 = 1.0f;
         }
     };

@@ -23,7 +23,7 @@ namespace dd::vk {
 
         constexpr void SetDefaults() {
             depth_clamp_enable = false;
-            vk_polygon_mode    = VK_POLYGON_MODE_LINE;
+            vk_polygon_mode    = VK_POLYGON_MODE_FILL;
         }
     };
 

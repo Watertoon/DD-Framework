@@ -40,8 +40,7 @@ namespace dd::vk {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
             VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME,
             VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME,
-            VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME,
-            VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME
+            VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME
         };
         constexpr u32 DeviceExtensionCount = sizeof(DeviceExtensions) / sizeof(const char*);
         
