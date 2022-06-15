@@ -67,7 +67,7 @@ namespace dd::vk {
                 .colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
             };
             
-            static constexpr VkFormat TargetDepthStencilFormat = VK_FORMAT_D32_SFLOAT_S8_UINT;
+            static constexpr VkFormat TargetDepthStencilFormat = VK_FORMAT_D24_UNORM_S8_UINT;
 
             /* Decide we will can have up to 8 color attachments per Render Pass */
             static constexpr size_t TargetColorAttachmentCount = 8;

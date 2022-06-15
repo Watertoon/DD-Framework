@@ -114,7 +114,7 @@ namespace dd::vk {
 
                 const VkDescriptorImageInfo image_info = {
                     .imageView   = texture_view->GetImageView(),
-                    .imageLayout = texture_view->GetTexture()->GetImageLayout()
+                    .imageLayout = VK_IMAGE_LAYOUT_GENERAL
                 };
                 const VkWriteDescriptorSet write_set = {
                     .sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,

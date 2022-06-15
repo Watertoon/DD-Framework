@@ -451,7 +451,9 @@ namespace dd::learn {
             util::GetReference(vk_image_memory).Relocate(command_buffer->GetCommandBuffer());
 
             const dd::vk::TextureBarrierCmdState texture_barrier_state = {
-                .vk_dst_stage_mask  = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                .vk_src_stage_mask  = VK_PIPELINE_STAGE_TRANSFER_BIT,
+                .vk_dst_stage_mask  = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+                .vk_src_access_mask = VK_ACCESS_TRANSFER_WRITE_BIT,
                 .vk_dst_access_mask = VK_ACCESS_SHADER_READ_BIT,
                 .vk_src_layout      = VK_IMAGE_LAYOUT_UNDEFINED,
                 .vk_dst_layout      = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
@@ -462,7 +464,9 @@ namespace dd::learn {
         if (util::GetPointer(vk_texture_view1)->GetTexture()->GetImageLayout() == VK_IMAGE_LAYOUT_UNDEFINED) {
 
             const dd::vk::TextureBarrierCmdState texture_barrier_state = {
-                .vk_dst_stage_mask  = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                .vk_src_stage_mask  = VK_PIPELINE_STAGE_TRANSFER_BIT,
+                .vk_dst_stage_mask  = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+                .vk_src_access_mask = VK_ACCESS_TRANSFER_WRITE_BIT,
                 .vk_dst_access_mask = VK_ACCESS_SHADER_READ_BIT,
                 .vk_src_layout      = VK_IMAGE_LAYOUT_UNDEFINED,
                 .vk_dst_layout      = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL

@@ -30,14 +30,10 @@ layout (set = 1, binding = 0) uniform sampler        sampler_location[];
 #define texture3DIndex(idx) texture3D_location[nonuniformEXT(idx)]
 #define samplerIndex(idx)   sampler_location[nonuniformEXT(idx)]
 
-#define TEXTURE2D(idx) texture2DIndex(rb[resource_index].texture_ids[idx])
-#define SAMPLER(idx) samplerIndex(rb[resource_index].sampler_ids[idx])
+#define TEXTURE2D(idx) texture2DIndex(rb.texture_ids[idx])
+#define SAMPLER(idx) samplerIndex(rb.sampler_ids[idx])
 
 #define SAMPLER2D(idx) sampler2D(TEXTURE2D(idx), SAMPLER(idx))
-
-layout(buffer_reference) buffer _DummyBufferRef {
-    uint reserve0;
-};
 
 struct DummyAddress {
     uint _ref0;
@@ -61,14 +57,10 @@ struct DummyAddress {
     #define DD_RESOURCE_INDEX_OFFSET 0
 #elif defined(DD_FRAGMENT_SHADER)
     #define DD_RESOURCE_BUFFER_BINDING set = 2, binding = 4
-    #define DD_RESOURCE_INDEX_OFFSET 16
+    #define DD_RESOURCE_INDEX_OFFSET 32
 #endif
 
-layout (push_constant) uniform ResourceIndex {
-    layout(offset = DD_RESOURCE_INDEX_OFFSET) uint resource_index;
-};
-
-struct DefaultResourceBuffer {
+layout(buffer_reference) buffer _DefaultResourceBuffer {
     ADDRESS_PADDING(30);
     uint texture_ids[MAX_TEXTURES];
     uint sampler_ids[MAX_SAMPLERS];
@@ -78,8 +70,14 @@ struct DefaultResourceBuffer {
     uint reserve3;
 };
 
-#define DECLARE_DEFAULT_RESOURCE_BUFFER layout (DD_RESOURCE_BUFFER_BINDING, scalar) uniform _RB { DefaultResourceBuffer rb[120]; }
+#define DECLARE_DEFAULT_RESOURCE_BUFFER \
+    layout (push_constant) uniform ResourceIndex { \
+        layout(offset = DD_RESOURCE_INDEX_OFFSET) _DefaultResourceBuffer rb; \
+    };
 
-#define DECLARE_RESOURCE_BUFFER(structure) layout (DD_RESOURCE_BUFFER_BINDING, scalar) uniform _RB { structure rb[120]; }
+#define DECLARE_RESOURCE_BUFFER(BufferReference) \
+    layout (push_constant) uniform ResourceIndex { \
+        layout(offset = DD_RESOURCE_INDEX_OFFSET) BufferReference rb; \
+    };
 
-#define RB(var) rb[resource_index].var
+#define RB(var) rb.var

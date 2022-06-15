@@ -30,7 +30,7 @@
         TransformMatrices matrices[10];
     };
 
-    struct ResourceBuffer {
+    layout(buffer_reference) buffer ResourceBuffer {
         VertexUbo ubo;
         ADDRESS_PADDING(29);
         TEXTURE_PADDING;

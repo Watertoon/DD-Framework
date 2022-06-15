@@ -103,61 +103,52 @@ namespace dd::vk {
         
         /* Map and copy resource data for necessary stages */
         if (m_need_vertex_resource_update == true) {
-            ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_resource_buffer_mapped_address) + VertexBufferMemoryOffset + (sizeof(ResourceBuffer) * m_vertex_resource_update_count)), std::addressof(m_resource_buffer_per_stage_array[ShaderStage_Vertex]), sizeof(ResourceBuffer));
-            m_vertex_resource_update_count += 1;
+            ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_resource_buffer_mapped_address) + (sizeof(ResourceBuffer) * m_resource_update_count)), std::addressof(m_resource_buffer_per_stage_array[ShaderStage_Vertex]), sizeof(ResourceBuffer));
+            const VkDeviceAddress offset_address = m_vk_resource_buffer_address + (sizeof(ResourceBuffer) * m_resource_update_count);
+            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, sizeof(VkDeviceAddress) * 0, sizeof(VkDeviceAddress), std::addressof(offset_address));
+            m_resource_update_count += 1;
+            m_need_vertex_resource_update = false;
         }
         if (m_need_tessellation_control_resource_update == true) {
-            ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_resource_buffer_mapped_address) + TessellationControlBufferMemoryOffset + (sizeof(ResourceBuffer) * m_tessellation_control_resource_update_count)), std::addressof(m_resource_buffer_per_stage_array[ShaderStage_TessellationControl]), sizeof(ResourceBuffer));
-            m_tessellation_control_resource_update_count += 1;
+            ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_resource_buffer_mapped_address) + (sizeof(ResourceBuffer) * m_resource_update_count)), std::addressof(m_resource_buffer_per_stage_array[ShaderStage_TessellationControl]), sizeof(ResourceBuffer));
+            const VkDeviceAddress offset_address = m_vk_resource_buffer_address + (sizeof(ResourceBuffer) * m_resource_update_count);
+            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT, sizeof(VkDeviceAddress) * 1, sizeof(VkDeviceAddress), std::addressof(offset_address));
+            m_resource_update_count += 1;
+            m_need_tessellation_control_resource_update = false;
         }
         if (m_need_tessellation_evaluation_resource_update == true) {
-            ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_resource_buffer_mapped_address) + TessellationEvaluationBufferMemoryOffset + (sizeof(ResourceBuffer) * m_tessellation_evaluation_resource_update_count)), std::addressof(m_resource_buffer_per_stage_array[ShaderStage_TessellationEvaluation]), sizeof(ResourceBuffer));
-            m_tessellation_evaluation_resource_update_count += 1;
+            ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_resource_buffer_mapped_address) + (sizeof(ResourceBuffer) * m_resource_update_count)), std::addressof(m_resource_buffer_per_stage_array[ShaderStage_TessellationEvaluation]), sizeof(ResourceBuffer));
+            const VkDeviceAddress offset_address = m_vk_resource_buffer_address + (sizeof(ResourceBuffer) * m_resource_update_count);
+            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT, sizeof(VkDeviceAddress) * 2, sizeof(VkDeviceAddress), std::addressof(offset_address));
+            m_resource_update_count += 1;
+            m_need_tessellation_evaluation_resource_update = false;
         }
         if (m_need_geometry_resource_update == true) {
-            ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_resource_buffer_mapped_address) + GeometryBufferMemoryOffset + (sizeof(ResourceBuffer) * m_geometry_resource_update_count)), std::addressof(m_resource_buffer_per_stage_array[ShaderStage_Geometry]), sizeof(ResourceBuffer));
-            m_geometry_resource_update_count += 1;
+            ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_resource_buffer_mapped_address) + (sizeof(ResourceBuffer) * m_resource_update_count)), std::addressof(m_resource_buffer_per_stage_array[ShaderStage_Geometry]), sizeof(ResourceBuffer));
+            const VkDeviceAddress offset_address = m_vk_resource_buffer_address + (sizeof(ResourceBuffer) * m_resource_update_count);
+            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_GEOMETRY_BIT, sizeof(VkDeviceAddress) * 3, sizeof(VkDeviceAddress), std::addressof(offset_address));
+            m_resource_update_count += 1;
+            m_need_geometry_resource_update = false;
         }
         if (m_need_fragment_resource_update == true) {
-            ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_resource_buffer_mapped_address) + FragmentBufferMemoryOffset + (sizeof(ResourceBuffer) * m_fragment_resource_update_count)), std::addressof(m_resource_buffer_per_stage_array[ShaderStage_Fragment]), sizeof(ResourceBuffer));
-            m_fragment_resource_update_count += 1;
+            ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_resource_buffer_mapped_address) + (sizeof(ResourceBuffer) * m_resource_update_count)), std::addressof(m_resource_buffer_per_stage_array[ShaderStage_Fragment]), sizeof(ResourceBuffer));
+            const VkDeviceAddress offset_address = m_vk_resource_buffer_address + (sizeof(ResourceBuffer) * m_resource_update_count);
+            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(VkDeviceAddress) * 4, sizeof(VkDeviceAddress), std::addressof(offset_address));
+            m_resource_update_count += 1;
+            m_need_fragment_resource_update = false;
         }
         if (m_need_compute_resource_update == true) {
-            ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_resource_buffer_mapped_address) + ComputeBufferMemoryOffset + (sizeof(ResourceBuffer) * m_compute_resource_update_count)), std::addressof(m_resource_buffer_per_stage_array[ShaderStage_Compute]), sizeof(ResourceBuffer));
-            m_compute_resource_update_count += 1;
-        }
-    }
-
-    void CommandBuffer::PushResourceBufferIndices() {
-        if (m_vertex_resource_update_count != 0) {
-            const u32 resource_index = m_vertex_resource_update_count - 1;
-            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(u32), std::addressof(resource_index));
-        }
-        if (m_tessellation_control_resource_update_count != 0) {
-            const u32 resource_index = m_tessellation_control_resource_update_count - 1;
-            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT, sizeof(u32), sizeof(u32), std::addressof(resource_index));
-        }
-        if (m_tessellation_evaluation_resource_update_count != 0) {
-            const u32 resource_index = m_tessellation_evaluation_resource_update_count - 1;
-            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT, sizeof(u32) * 2, sizeof(u32), std::addressof(resource_index));
-        }
-        if (m_geometry_resource_update_count != 0) {
-            const u32 resource_index = m_geometry_resource_update_count - 1;
-            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_GEOMETRY_BIT, sizeof(u32) * 3, sizeof(u32), std::addressof(resource_index));
-        }
-        if (m_fragment_resource_update_count != 0) {
-            const u32 resource_index = m_fragment_resource_update_count - 1;
-            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(u32) * 4, sizeof(u32), std::addressof(resource_index));
-        }
-        if (m_compute_resource_update_count != 0) {
-            const u32 resource_index = m_compute_resource_update_count - 1;
-            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, sizeof(u32) * 5, sizeof(u32), std::addressof(resource_index));
+            ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_resource_buffer_mapped_address) + (sizeof(ResourceBuffer) * m_resource_update_count)), std::addressof(m_resource_buffer_per_stage_array[ShaderStage_Compute]), sizeof(ResourceBuffer));
+            const VkDeviceAddress offset_address = m_vk_resource_buffer_address + (sizeof(ResourceBuffer) * m_resource_update_count);
+            ::pfn_vkCmdPushConstants(m_vk_command_buffer, GetGlobalContext()->GetPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, sizeof(VkDeviceAddress) * 5, sizeof(VkDeviceAddress), std::addressof(offset_address));
+            m_resource_update_count += 1;
+            m_need_compute_resource_update = false;
         }
     }
 
     /* Public */
 
-    void CommandBuffer::Initialize(const Context *context) {
+    void CommandBuffer::Initialize(const Context *context, size_t draw_memory_size) {
 
         /* Allocate Commmand Buffer */
         const VkCommandBufferAllocateInfo allocate_info = {
@@ -170,41 +161,18 @@ namespace dd::vk {
         const u32 result0 = ::pfn_vkAllocateCommandBuffers(context->GetDevice(), std::addressof(allocate_info), std::addressof(m_vk_command_buffer));
         DD_ASSERT(result0 == VK_SUCCESS);
 
-        /* Create resource buffer descriptor pool */
-        const VkDescriptorPoolSize pool_size = {
-            .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = 6
-        };
-
-        const VkDescriptorPoolCreateInfo buffer_pool_info = {
-            .sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-            .maxSets       = 1,
-            .poolSizeCount = 1,
-            .pPoolSizes    = std::addressof(pool_size)
-        };
-
-        const u32 result1 = ::pfn_vkCreateDescriptorPool(context->GetDevice(), std::addressof(buffer_pool_info), nullptr, std::addressof(m_vk_resource_buffer_descriptor_pool));
-        DD_ASSERT(result1 == VK_SUCCESS);
-
-        /* Create resource buffer descriptor set */
-        VkDescriptorSetLayout vk_buffer_descriptor_set_layout = context->GetResourceBufferDescriptorSetLayout();
-        const VkDescriptorSetAllocateInfo buffer_set_info = {
-            .sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-            .descriptorPool     = m_vk_resource_buffer_descriptor_pool,
-            .descriptorSetCount = 1,
-            .pSetLayouts        = std::addressof(vk_buffer_descriptor_set_layout)
-        };
-
-        const u32 result2 = ::pfn_vkAllocateDescriptorSets(context->GetDevice(), std::addressof(buffer_set_info), std::addressof(m_vk_resource_buffer_descriptor_set));
-        DD_ASSERT(result2 == VK_SUCCESS);
-
         /* Allocate resource buffer memory */
         const s32 device_memory_type = context->FindMemoryHeapIndex(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
         DD_ASSERT(device_memory_type != -1);
 
+        const VkMemoryAllocateFlagsInfo device_allocate_flags = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO,
+            .flags = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT
+        };
         const VkMemoryAllocateInfo device_allocate_info =  {
             .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-            .allocationSize = TargetResourceBufferMemorySize,
+            .pNext = std::addressof(device_allocate_flags),
+            .allocationSize = draw_memory_size,
             .memoryTypeIndex = static_cast<u32>(device_memory_type)
         };
         const u32 result3 = ::pfn_vkAllocateMemory(context->GetDevice(), std::addressof(device_allocate_info), nullptr, std::addressof(m_vk_resource_buffer_memory));
@@ -214,155 +182,37 @@ namespace dd::vk {
         const u32 queue_family_index = context->GetGraphicsQueueFamilyIndex();
         const VkBufferCreateInfo buffer_create_info = {
             .sType                 = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-            .size                  = TargetResourceBufferPerStageSize,
-            .usage                 = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            .size                  = draw_memory_size,
+            .usage                 = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
             .sharingMode           = VK_SHARING_MODE_EXCLUSIVE,
             .queueFamilyIndexCount = 1,
             .pQueueFamilyIndices   = std::addressof(queue_family_index)
         };
 
-        const u32 result4 = ::pfn_vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(m_vk_resource_buffer_per_stage_array[ShaderStage_Vertex]));
+        const u32 result4 = ::pfn_vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(m_vk_resource_buffer));
         DD_ASSERT(result4 == VK_SUCCESS);
 
-        const u32 result5 = ::pfn_vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(m_vk_resource_buffer_per_stage_array[ShaderStage_TessellationEvaluation]));
-        DD_ASSERT(result5 == VK_SUCCESS);
-
-        const u32 result6 = ::pfn_vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(m_vk_resource_buffer_per_stage_array[ShaderStage_TessellationControl]));
-        DD_ASSERT(result6 == VK_SUCCESS);
-
-        const u32 result7 = ::pfn_vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(m_vk_resource_buffer_per_stage_array[ShaderStage_Geometry]));
-        DD_ASSERT(result7 == VK_SUCCESS);
-
-        const u32 result8 = ::pfn_vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(m_vk_resource_buffer_per_stage_array[ShaderStage_Fragment]));
-        DD_ASSERT(result8 == VK_SUCCESS);
-
-        const u32 result9 = ::pfn_vkCreateBuffer(context->GetDevice(), std::addressof(buffer_create_info), nullptr, std::addressof(m_vk_resource_buffer_per_stage_array[ShaderStage_Compute]));
-        DD_ASSERT(result9 == VK_SUCCESS);
-
         /* Bind resource buffer memory to resource buffers */
-        const u32 result10 = ::pfn_vkBindBufferMemory(context->GetDevice(), m_vk_resource_buffer_per_stage_array[ShaderStage_Vertex], m_vk_resource_buffer_memory, VertexBufferMemoryOffset);
+        const u32 result10 = ::pfn_vkBindBufferMemory(context->GetDevice(), m_vk_resource_buffer, m_vk_resource_buffer_memory, 0);
         DD_ASSERT(result10 == VK_SUCCESS);
 
-        const u32 result11 = ::pfn_vkBindBufferMemory(context->GetDevice(), m_vk_resource_buffer_per_stage_array[ShaderStage_TessellationEvaluation], m_vk_resource_buffer_memory, TessellationEvaluationBufferMemoryOffset);
-        DD_ASSERT(result11 == VK_SUCCESS);
-
-        const u32 result12 = ::pfn_vkBindBufferMemory(context->GetDevice(), m_vk_resource_buffer_per_stage_array[ShaderStage_TessellationControl], m_vk_resource_buffer_memory, TessellationControlBufferMemoryOffset);
-        DD_ASSERT(result12 == VK_SUCCESS);
-
-        const u32 result13 = ::pfn_vkBindBufferMemory(context->GetDevice(), m_vk_resource_buffer_per_stage_array[ShaderStage_Geometry], m_vk_resource_buffer_memory, GeometryBufferMemoryOffset);
-        DD_ASSERT(result13 == VK_SUCCESS);
-
-        const u32 result14 = ::pfn_vkBindBufferMemory(context->GetDevice(), m_vk_resource_buffer_per_stage_array[ShaderStage_Fragment], m_vk_resource_buffer_memory, FragmentBufferMemoryOffset);
-        DD_ASSERT(result14 == VK_SUCCESS);
-
-        const u32 result15 = ::pfn_vkBindBufferMemory(context->GetDevice(), m_vk_resource_buffer_per_stage_array[ShaderStage_Compute], m_vk_resource_buffer_memory, ComputeBufferMemoryOffset);
-        DD_ASSERT(result15 == VK_SUCCESS);
-
         /* Map the resource buffer memory */
-        const u32 result16 = ::pfn_vkMapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory, 0, VK_WHOLE_SIZE , 0, std::addressof(m_resource_buffer_mapped_address));
+        const u32 result16 = ::pfn_vkMapMemory(context->GetDevice(), m_vk_resource_buffer_memory, 0, VK_WHOLE_SIZE , 0, std::addressof(m_resource_buffer_mapped_address));
         DD_ASSERT(result16 == VK_SUCCESS);
 
-        /* Update resource buffer descriptor */
-        const VkDescriptorBufferInfo descriptor_buffer_info[Context::TargetShaderStages] = {
-            {
-                .buffer = m_vk_resource_buffer_per_stage_array[ShaderStage_Vertex],
-                .offset = 0,
-                .range  = VK_WHOLE_SIZE
-            },
-            {
-                .buffer = m_vk_resource_buffer_per_stage_array[ShaderStage_TessellationEvaluation],
-                .offset = 0,
-                .range  = VK_WHOLE_SIZE
-            },
-            {
-                .buffer = m_vk_resource_buffer_per_stage_array[ShaderStage_TessellationControl],
-                .offset = 0,
-                .range  = VK_WHOLE_SIZE
-            },
-            {
-                .buffer = m_vk_resource_buffer_per_stage_array[ShaderStage_Geometry],
-                .offset = 0,
-                .range  = VK_WHOLE_SIZE
-            },
-            {
-                .buffer = m_vk_resource_buffer_per_stage_array[ShaderStage_Fragment],
-                .offset = 0,
-                .range  = VK_WHOLE_SIZE
-            },
-            {
-                .buffer = m_vk_resource_buffer_per_stage_array[ShaderStage_Compute],
-                .offset = 0,
-                .range  = VK_WHOLE_SIZE
-            }
+        /* Store the device address */
+        const VkBufferDeviceAddressInfo address_info = {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+            .buffer = m_vk_resource_buffer
         };
-        const VkWriteDescriptorSet write_set[Context::TargetShaderStages] = {
-            {
-                .sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstSet          = m_vk_resource_buffer_descriptor_set,
-                .dstBinding      = Context::TargetVertexResourceBufferDescriptorBinding,
-                .dstArrayElement = 0,
-                .descriptorCount = 1,
-                .descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                .pBufferInfo     = std::addressof(descriptor_buffer_info[ShaderStage_Vertex]),
-            },
-            {
-                .sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstSet          = m_vk_resource_buffer_descriptor_set,
-                .dstBinding      = Context::TargetTessellationEvaluationResourceBufferDescriptorBinding,
-                .dstArrayElement = 0,
-                .descriptorCount = 1,
-                .descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                .pBufferInfo     = std::addressof(descriptor_buffer_info[ShaderStage_TessellationEvaluation]),
-            },
-            {
-                .sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstSet          = m_vk_resource_buffer_descriptor_set,
-                .dstBinding      = Context::TargetTessellationControlResourceBufferDescriptorBinding,
-                .dstArrayElement = 0,
-                .descriptorCount = 1,
-                .descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                .pBufferInfo     = std::addressof(descriptor_buffer_info[ShaderStage_TessellationControl]),
-            },
-            {
-                .sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstSet          = m_vk_resource_buffer_descriptor_set,
-                .dstBinding      = Context::TargetGeometryResourceBufferDescriptorBinding,
-                .dstArrayElement = 0,
-                .descriptorCount = 1,
-                .descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                .pBufferInfo     = std::addressof(descriptor_buffer_info[ShaderStage_Geometry]),
-            },
-            {
-                .sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstSet          = m_vk_resource_buffer_descriptor_set,
-                .dstBinding      = Context::TargetFragmentResourceBufferDescriptorBinding,
-                .dstArrayElement = 0,
-                .descriptorCount = 1,
-                .descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                .pBufferInfo     = std::addressof(descriptor_buffer_info[ShaderStage_Fragment]),
-            },
-            {
-                .sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstSet          = m_vk_resource_buffer_descriptor_set,
-                .dstBinding      = Context::TargetComputeResourceBufferDescriptorBinding,
-                .dstArrayElement = 0,
-                .descriptorCount = 1,
-                .descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                .pBufferInfo     = std::addressof(descriptor_buffer_info[ShaderStage_Compute]),
-            }
-        };
-
-        ::pfn_vkUpdateDescriptorSets(context->GetDevice(), sizeof(write_set) / sizeof(VkWriteDescriptorSet), write_set, 0, nullptr);
+        m_vk_resource_buffer_address = ::pfn_vkGetBufferDeviceAddress(context->GetDevice(), std::addressof(address_info));
     }
 
     void CommandBuffer::Finalize(const Context *context) {
 
         ::pfn_vkFreeCommandBuffers(context->GetDevice(), context->GetGraphicsCommandPool(), 1, std::addressof(m_vk_command_buffer));
 
-        for (u32 i = 0; i < Context::TargetShaderStages; ++i) {
-            ::pfn_vkDestroyBuffer(context->GetDevice(), m_vk_resource_buffer_per_stage_array[i], nullptr);
-        }
-        ::pfn_vkDestroyDescriptorPool(context->GetDevice(), m_vk_resource_buffer_descriptor_pool, nullptr);
+        ::pfn_vkDestroyBuffer(context->GetDevice(), m_vk_resource_buffer, nullptr);
 
         if (m_resource_buffer_mapped_address != nullptr) {
             ::pfn_vkUnmapMemory(GetGlobalContext()->GetDevice(), m_vk_resource_buffer_memory);
@@ -383,21 +233,13 @@ namespace dd::vk {
         const u32 result = ::pfn_vkBeginCommandBuffer(m_vk_command_buffer, std::addressof(begin_info));
         DD_ASSERT(result == VK_SUCCESS);
 
-        /* Bind Resource buffer */
-        ::pfn_vkCmdBindDescriptorSets(m_vk_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetGlobalContext()->GetPipelineLayout(), 2, 1, std::addressof(m_vk_resource_buffer_descriptor_set), 0, nullptr);
-
         m_resource_buffer_per_stage_array[ShaderStage_Vertex].SetDefaults();
         m_resource_buffer_per_stage_array[ShaderStage_TessellationControl].SetDefaults();
         m_resource_buffer_per_stage_array[ShaderStage_TessellationEvaluation].SetDefaults();
         m_resource_buffer_per_stage_array[ShaderStage_Geometry].SetDefaults();
         m_resource_buffer_per_stage_array[ShaderStage_Fragment].SetDefaults();
         m_resource_buffer_per_stage_array[ShaderStage_Compute].SetDefaults();
-        m_vertex_resource_update_count = 0;
-        m_tessellation_evaluation_resource_update_count = 0;
-        m_tessellation_control_resource_update_count = 0;
-        m_geometry_resource_update_count = 0;
-        m_fragment_resource_update_count = 0;
-        m_compute_resource_update_count = 0;
+        m_resource_update_count = 0;
     }
 
     void CommandBuffer::End() {
@@ -462,9 +304,6 @@ namespace dd::vk {
         this->UpdateResourceBufferIfNecessary();
         this->BeginRenderingIfNotRendering();
 
-        /* Set resource indices */
-        this->PushResourceBufferIndices();
-
         /* Draw */
         ::pfn_vkCmdSetPrimitiveTopology(m_vk_command_buffer, vk_primitive_topology);
         ::pfn_vkCmdDraw(m_vk_command_buffer, vertex_count, 1, base_vertex, 0);
@@ -485,9 +324,6 @@ namespace dd::vk {
         const VkDeviceSize offset = 0;
         ::pfn_vkCmdBindIndexBuffer(m_vk_command_buffer, index_buffer->GetBuffer(), offset, index_format);
 
-        /* Set resource indices */
-        this->PushResourceBufferIndices();
-
         /* Draw */
         ::pfn_vkCmdSetPrimitiveTopology(m_vk_command_buffer, vk_primitive_topology);
         ::pfn_vkCmdDrawIndexed(m_vk_command_buffer, index_count, 1, base_index, 0, 0);
@@ -497,9 +333,6 @@ namespace dd::vk {
 
         this->UpdateResourceBufferIfNecessary();
         this->BeginRenderingIfNotRendering();
-
-        /* Set resource indices */
-        this->PushResourceBufferIndices();
 
         /* Draw */
         ::pfn_vkCmdSetPrimitiveTopology(m_vk_command_buffer, vk_primitive_topology);
@@ -520,9 +353,6 @@ namespace dd::vk {
         /* Bind index buffer */
         const VkDeviceSize offset = 0;
         ::pfn_vkCmdBindIndexBuffer(m_vk_command_buffer, index_buffer->GetBuffer(), offset, index_format);
-
-        /* Set resource indices */
-        this->PushResourceBufferIndices();
 
         /* Draw */
         ::pfn_vkCmdSetPrimitiveTopology(m_vk_command_buffer, vk_primitive_topology);

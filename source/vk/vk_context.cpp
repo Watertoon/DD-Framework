@@ -29,7 +29,6 @@ namespace dd::vk {
         constexpr const char *InstanceExtensions[] = {
             #if defined(DD_DEBUG)
                 VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
-                VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME,
             #endif
             VK_KHR_SURFACE_EXTENSION_NAME,
             VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME,
@@ -41,7 +40,8 @@ namespace dd::vk {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
             VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME,
             VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME,
-            VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME
+            VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME,
+            VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME
         };
         constexpr u32 DeviceExtensionCount = sizeof(DeviceExtensions) / sizeof(const char*);
         
@@ -182,8 +182,8 @@ namespace dd::vk {
 
         for (u32 i = 0; i < m_vk_physical_device_count; ++i) {
             /* Query Physical Device */
-            pfn_vkGetPhysicalDeviceProperties2(m_vk_physical_device_array[i], std::addressof(m_vk_physical_device_properties));
-            pfn_vkGetPhysicalDeviceFeatures2(m_vk_physical_device_array[i], std::addressof(m_vk_physical_device_supported_features));
+            ::pfn_vkGetPhysicalDeviceProperties2(m_vk_physical_device_array[i], std::addressof(m_vk_physical_device_properties));
+            ::pfn_vkGetPhysicalDeviceFeatures2(m_vk_physical_device_array[i], std::addressof(m_vk_physical_device_supported_features));
 
             /*  Ensure Vulkan 1.3 support */
             if (!(TargetMinimumApiVersion <= m_vk_physical_device_properties.properties.apiVersion)) { DD_ASSERT(false); continue; }
@@ -406,7 +406,7 @@ namespace dd::vk {
             .ppEnabledExtensionNames = InstanceExtensions
         };
 
-        s32 result = pfn_vkCreateInstance(std::addressof(instance_info), nullptr, std::addressof(m_vk_instance));
+        s32 result = ::pfn_vkCreateInstance(std::addressof(instance_info), nullptr, std::addressof(m_vk_instance));
         DD_ASSERT(result == VK_SUCCESS);
 
         /* Load instance procs */
@@ -422,7 +422,7 @@ namespace dd::vk {
                 .pUserData = nullptr
             };
 
-            result = pfn_vkCreateDebugUtilsMessengerEXT(m_vk_instance, std::addressof(debug_messenger_info), nullptr, std::addressof(m_debug_messenger));
+            result = ::pfn_vkCreateDebugUtilsMessengerEXT(m_vk_instance, std::addressof(debug_messenger_info), nullptr, std::addressof(m_debug_messenger));
             DD_ASSERT(result == VK_SUCCESS);
         #endif
 
@@ -516,55 +516,7 @@ namespace dd::vk {
         /* Query physical device memory properties */
         pfn_vkGetPhysicalDeviceMemoryProperties(m_vk_physical_device, std::addressof(m_vk_physical_device_memory_properties));
 
-        /* Create resource buffer descriptor layout */
-        const VkDescriptorSetLayoutBinding buffer_set_binding[] = { 
-            {
-                .binding         = Context::TargetVertexResourceBufferDescriptorBinding,
-                .descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                .descriptorCount = 1,
-                .stageFlags      = VK_SHADER_STAGE_VERTEX_BIT,
-            },
-            {
-                .binding         = Context::TargetTessellationEvaluationResourceBufferDescriptorBinding,
-                .descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                .descriptorCount = 1,
-                .stageFlags      = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
-            },
-            {
-                .binding         = Context::TargetTessellationControlResourceBufferDescriptorBinding,
-                .descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                .descriptorCount = 1,
-                .stageFlags      = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
-            },
-            {
-                .binding         = Context::TargetGeometryResourceBufferDescriptorBinding,
-                .descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                .descriptorCount = 1,
-                .stageFlags      = VK_SHADER_STAGE_GEOMETRY_BIT,
-            },
-            {
-                .binding         = Context::TargetFragmentResourceBufferDescriptorBinding,
-                .descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                .descriptorCount = 1,
-                .stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT,
-            },
-            {
-                .binding         = Context::TargetComputeResourceBufferDescriptorBinding,
-                .descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                .descriptorCount = 1,
-                .stageFlags      = VK_SHADER_STAGE_COMPUTE_BIT,
-            }
-        };
-
-        const VkDescriptorSetLayoutCreateInfo buffer_set_layout_info = {
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-            .bindingCount = sizeof(buffer_set_binding) / sizeof(VkDescriptorSetLayoutBinding),
-            .pBindings = buffer_set_binding
-        };
-        const u32 result4 = pfn_vkCreateDescriptorSetLayout(m_vk_device, std::addressof(buffer_set_layout_info), nullptr, std::addressof(m_vk_resource_buffer_descriptor_set_layout));
-        DD_ASSERT(result4 == VK_SUCCESS);
-
-        /* Create texture descriptor layout */
+                /* Create texture descriptor layout */
         const VkDescriptorBindingFlags  texture_set_binding_flag[] = {
             VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT | VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT
         };
@@ -625,40 +577,39 @@ namespace dd::vk {
         /* Create global pipeline */
         const VkDescriptorSetLayout descriptor_set_layouts[] = {
             m_vk_texture_descriptor_set_layout,
-            m_vk_sampler_descriptor_set_layout,
-            m_vk_resource_buffer_descriptor_set_layout
+            m_vk_sampler_descriptor_set_layout
         };
         
         const VkPushConstantRange resource_index_push_constant_ranges[] = {
             {
                 .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
                 .offset = 0,
-                .size = sizeof(u32)
+                .size = sizeof(VkDeviceAddress)
             },
             {
                 .stageFlags = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
-                .offset = sizeof(u32),
-                .size = sizeof(u32)
+                .offset = sizeof(VkDeviceAddress),
+                .size = sizeof(VkDeviceAddress)
             },
             {
                 .stageFlags = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,
-                .offset = sizeof(u32) * 2,
-                .size = sizeof(u32)
+                .offset = sizeof(VkDeviceAddress) * 2,
+                .size = sizeof(VkDeviceAddress)
             },
             {
                 .stageFlags = VK_SHADER_STAGE_GEOMETRY_BIT,
-                .offset = sizeof(u32) * 3,
-                .size = sizeof(u32)
+                .offset = sizeof(VkDeviceAddress) * 3,
+                .size = sizeof(VkDeviceAddress)
             },
             {
                 .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-                .offset = sizeof(u32) * 4,
-                .size = sizeof(u32)
+                .offset = sizeof(VkDeviceAddress) * 4,
+                .size = sizeof(VkDeviceAddress)
             },
             {
                 .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-                .offset = sizeof(u32) * 5,
-                .size = sizeof(u32)
+                .offset = sizeof(VkDeviceAddress) * 5,
+                .size = sizeof(VkDeviceAddress)
             },
         };
 

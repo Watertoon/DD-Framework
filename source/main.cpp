@@ -43,7 +43,7 @@ long unsigned int ContextMain(void *arg) {
     
     for (u32 i = 0; i < dd::vk::DisplayBuffer::FramesInFlight; ++i) {
         dd::util::ConstructAt(command_buffers[i]);
-        dd::util::GetReference(command_buffers[i]).Initialize(dd::util::GetPointer(context));
+        dd::util::GetReference(command_buffers[i]).Initialize(dd::util::GetPointer(context), dd::vk::CommandBuffer::GetDrawMemorySize(2, 2));
     }
 
     dd::vk::SetGlobalContext(dd::util::GetPointer(context));
@@ -110,15 +110,22 @@ void Draw(dd::vk::Context *global_context, dd::vk::CommandBuffer *global_command
     global_context->EnterDraw();
 
     /* Transition render targets to attachment */
-    const dd::vk::TextureBarrierCmdState clear_barrier_state = {
-        .vk_src_stage_mask  = 0,
-        .vk_dst_stage_mask  = VK_PIPELINE_STAGE_TRANSFER_BIT,
-        .vk_dst_access_mask = VK_ACCESS_TRANSFER_WRITE_BIT,
+    const dd::vk::TextureBarrierCmdState color_barrier_state = {
+        .vk_src_stage_mask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        .vk_dst_stage_mask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        .vk_dst_access_mask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
         .vk_src_layout      = VK_IMAGE_LAYOUT_UNDEFINED,
         .vk_dst_layout      = VK_IMAGE_LAYOUT_GENERAL
     };
-    global_command_buffer->SetTextureStateTransition(color_target_texture, std::addressof(clear_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
-    global_command_buffer->SetTextureStateTransition(depth_target_texture, std::addressof(clear_barrier_state), static_cast<VkImageAspectFlagBits>(VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT));
+    global_command_buffer->SetTextureStateTransition(color_target_texture, std::addressof(color_barrier_state), VK_IMAGE_ASPECT_COLOR_BIT);
+    const dd::vk::TextureBarrierCmdState depth_barrier_state = {
+        .vk_src_stage_mask  = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+        .vk_dst_stage_mask  = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+        .vk_dst_access_mask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+        .vk_src_layout      = VK_IMAGE_LAYOUT_UNDEFINED,
+        .vk_dst_layout      = VK_IMAGE_LAYOUT_GENERAL
+    };
+    global_command_buffer->SetTextureStateTransition(depth_target_texture, std::addressof(depth_barrier_state), static_cast<VkImageAspectFlagBits>(VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT));
 
     /* Set render target */
     global_command_buffer->SetRenderTargets(1 , std::addressof(current_color_target), depth_stencil_target);

@@ -60,7 +60,7 @@ namespace dd::vk {
             vk_op_state_back.compareMask  = 0;
             vk_op_state_back.writeMask    = 0;
             vk_op_state_back.reference    = 0;
-            vk_depth_compare_op           = VK_COMPARE_OP_GREATER_OR_EQUAL;
+            vk_depth_compare_op           = VK_COMPARE_OP_GREATER;
             min_depth_bounds              = 0.0f;
             max_depth_bounds              = 1.0f;
         }
@@ -182,12 +182,11 @@ namespace dd::vk {
             static constexpr size_t ComputeBufferMemoryOffset                = TargetResourceBufferPerStageSize * 5;
         private:
             VkCommandBuffer           m_vk_command_buffer;
-            VkDescriptorPool          m_vk_resource_buffer_descriptor_pool;
-            VkDescriptorSet           m_vk_resource_buffer_descriptor_set;
             ResourceBuffer            m_resource_buffer_per_stage_array[Context::TargetShaderStages];
             void                     *m_resource_buffer_mapped_address;
             VkDeviceMemory            m_vk_resource_buffer_memory;
-            VkBuffer                  m_vk_resource_buffer_per_stage_array[Context::TargetShaderStages];
+            VkBuffer                  m_vk_resource_buffer;
+            VkDeviceAddress           m_vk_resource_buffer_address;
             ColorTargetView          *m_color_targets[8];
             DepthStencilTargetView   *m_depth_stencil_target;
             bool                      m_is_rendering;
@@ -198,12 +197,7 @@ namespace dd::vk {
             bool                      m_need_geometry_resource_update;
             bool                      m_need_fragment_resource_update;
             bool                      m_need_compute_resource_update;
-            u32                       m_vertex_resource_update_count;
-            u32                       m_tessellation_control_resource_update_count;
-            u32                       m_tessellation_evaluation_resource_update_count;
-            u32                       m_geometry_resource_update_count;
-            u32                       m_fragment_resource_update_count;
-            u32                       m_compute_resource_update_count;
+            u32                       m_resource_update_count;
             VkClearColorValue         m_vk_clear_color;
             VkClearDepthStencilValue  m_vk_clear_depth_stencil;
             bool                      m_fast_clear_color;
@@ -214,12 +208,10 @@ namespace dd::vk {
             void EndRenderingIfRendering();
 
             void UpdateResourceBufferIfNecessary();
-
-            void PushResourceBufferIndices();
         public:
             constexpr CommandBuffer() { /*...*/ }
 
-            void Initialize(const Context *context);
+            void Initialize(const Context *context, size_t draw_memory_size);
             void Finalize(const Context *context);
 
             void Begin();
@@ -261,5 +253,6 @@ namespace dd::vk {
             void SetTextureAndSampler(u32 location, ShaderStage shader_stage, const DescriptorSlot texture_slot, const DescriptorSlot sampler_slot);
 
             constexpr VkCommandBuffer GetCommandBuffer() const { return m_vk_command_buffer; }
+            static constexpr size_t GetDrawMemorySize(u32 max_shader_stages, u32 max_draws) { return max_shader_stages * max_draws * TargetResourceBufferPerStageSize; }
     };
 }
