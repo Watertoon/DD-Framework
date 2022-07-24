@@ -19,28 +19,28 @@ namespace dd::util {
 
     template<typename T>
         requires std::is_pointer<T>::value
-    constexpr T AlignUp(T value, size_t align) {
+    ALWAYS_INLINE T AlignUp(T value, size_t align) {
         const size_t alignment = align - 1;
         return reinterpret_cast<T>((reinterpret_cast<uintptr_t>(value) + alignment) & ~alignment);
     }
 
     template<typename T>
         requires (std::is_pointer<T>::value == false)
-    constexpr T AlignUp(T value, size_t align) {
+    constexpr ALWAYS_INLINE T AlignUp(T value, size_t align) {
         const size_t alignment = align - 1;
         return static_cast<T>((value + alignment) & ~alignment);
     }
 
     template<typename T>
         requires std::is_pointer<T>::value
-    constexpr T AlignDown(T value, size_t align) {
+    ALWAYS_INLINE T AlignDown(T value, size_t align) {
         const size_t alignment = align - 1;
         return reinterpret_cast<T>(reinterpret_cast<uintptr_t>(value) & ~alignment);
     }
 
     template<typename T>
         requires (std::is_pointer<T>::value == false)
-    constexpr T AlignDown(T value, size_t align) {
+    constexpr ALWAYS_INLINE T AlignDown(T value, size_t align) {
         const size_t alignment = align - 1;
         return static_cast<T>(value & ~alignment);
     }

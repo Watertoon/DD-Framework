@@ -38,36 +38,65 @@ namespace dd::util {
     template <auto M>
     using ParentType = ParentOfMemberTraits<decltype(M)>::Parent;
 
-    template <auto M>
-    struct OffsetOfImpl {
-        using Parent = ParentOfMemberTraits<decltype(M)>::Parent;
-        using Member = ParentOfMemberTraits<decltype(M)>::Member;
-        union PStorage {
-            Parent parent;
-            unsigned char c;
+    namespace {
 
-            constexpr  PStorage() : c() {}
-            constexpr ~PStorage() {}
+        #pragma pack(push, 1)
+        template<typename Member, size_t Size>
+        struct _UnionPadding {
+            char _pad[Size];
+            Member member;
         };
-        static constexpr PStorage d = {};
+        #pragma pack(pop)
 
-        static ptrdiff_t GetOffset () {
-            return reinterpret_cast<const unsigned char *>(std::addressof(d.parent.*M)) - std::addressof(d.c);
-        }
+        template<typename Member>
+        struct _UnionPadding<Member, 0> {
+            Member member;
+        };
 
-        static ptrdiff_t GetOffsetAfter () {
-            return util::AlignUp(sizeof(Member) + (reinterpret_cast<const unsigned char *>(std::addressof(d.parent.*M)) - std::addressof(d.c)), alignof(Parent));
-        }
-    };
+        template <typename Parent, typename Member, size_t Size>
+        struct _OffsetOfUnion {
+            union Impl {
+                char c;
+                Parent parent;
+                _UnionPadding<Member, Size> pad;
 
-    template<auto Ptr>
-    ptrdiff_t OffsetOf() {
-        return OffsetOfImpl<Ptr>::GetOffset();
+                constexpr Impl() : c{} {};
+            };
+            constexpr static Impl impl{};
+        };
+
+        template <typename Parent, typename Member>
+        struct _OffsetOfImpl {
+
+            template<size_t Size, auto Union = &_OffsetOfUnion<Parent, Member, Size>::impl>
+            static constexpr size_t GetOffset(Member Parent::* member) {
+                if constexpr(sizeof(Parent) > Size) {
+                    const     auto parent_member_offset = std::addressof((static_cast<const Parent*>(std::addressof(Union->parent)))->*member);
+                    constexpr auto union_member_offset  = std::addressof(Union->pad.member);
+
+                    if (parent_member_offset > union_member_offset) {
+                        constexpr auto min = sizeof(Member) < alignof(Parent) ? sizeof(Member) : alignof(Parent);
+                        return GetOffset<Size + min>(member);
+                    } else {
+                        return Size;
+                    }
+                } else {
+                    return Size;
+                }
+            }
+        };
     }
 
-    template<auto Ptr>
-    ptrdiff_t OffsetOfElementAfter() {
-        return OffsetOfImpl<Ptr>::GetOffsetAfter();
+    constexpr size_t OffsetOf(auto member) {
+        using Parent = typename ParentOfMemberTraits<decltype(member)>::Parent;
+        using Member = typename ParentOfMemberTraits<decltype(member)>::Member;
+        return _OffsetOfImpl<Parent, Member>::template GetOffset<0>(member);
+    }
+
+    constexpr size_t OffsetOfElementAfter(auto member) {
+        using Parent = typename ParentOfMemberTraits<decltype(member)>::Parent;
+        using Member = typename ParentOfMemberTraits<decltype(member)>::Member;
+        return _OffsetOfImpl<Parent, Member>::template GetOffset<0>(member) + sizeof(Member);
     }
 
     /* Only use on virtual functions */

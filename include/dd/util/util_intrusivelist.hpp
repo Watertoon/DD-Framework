@@ -64,10 +64,10 @@ namespace dd::util {
                 public:
                     constexpr Iterator(IntrusiveListNode *node) : m_node(node) {}
 
-                    reference operator*() {
+                    ALWAYS_INLINE reference operator*() {
                         return Traits::GetParentReference(m_node);
                     }
-                    const_reference operator*() const {
+                    ALWAYS_INLINE const_reference operator*() const {
                         return Traits::GetParentReference(m_node);
                     }
 
@@ -112,17 +112,17 @@ namespace dd::util {
                 return const_iterator(std::addressof(m_list));
             }
 
-            reference Front() {
+            ALWAYS_INLINE reference Front() {
                 return Traits::GetParentReference(m_list.m_next);
             }
-            const_reference Front() const {
+            ALWAYS_INLINE const_reference Front() const {
                 return Traits::GetParentReference(m_list.m_next);
             }
 
-            reference Back() {
+            ALWAYS_INLINE reference Back() {
                 return Traits::GetParentReference(m_list.m_prev);
             }
-            const_reference Back() const {
+            ALWAYS_INLINE const_reference Back() const {
                 return Traits::GetParentReference(m_list.m_prev);
             }
 
@@ -130,15 +130,15 @@ namespace dd::util {
                 return m_list.IsLinked();
             }
 
-            void PushBack(reference obj) {
+            void ALWAYS_INLINE PushBack(reference obj) {
                 m_list.LinkNext(Traits::GetListNode(std::addressof(obj)));
             }
 
-            void PushFront(reference obj) {
+            void ALWAYS_INLINE PushFront(reference obj) {
                 m_list.m_next->LinkNext(Traits::GetListNode(std::addressof(obj)));
             }
 
-            static void Remove(reference obj) {
+            static ALWAYS_INLINE void Remove(reference obj) {
                 Traits::GetListNode(std::addressof(obj)).Unlink();
             }
 
@@ -154,22 +154,22 @@ namespace dd::util {
     template<class RP, auto M>
     struct IntrusiveListMemberTraits {
 
-        static RP *GetParent(IntrusiveListNode *node) {
-            return reinterpret_cast<RP*>(reinterpret_cast<uintptr_t>(node) - OffsetOf<M>());
+        static ALWAYS_INLINE RP *GetParent(IntrusiveListNode *node) {
+            return reinterpret_cast<RP*>(reinterpret_cast<uintptr_t>(node) - OffsetOf(M));
         }
-        static RP &GetParentReference(IntrusiveListNode *node) {
-            return *reinterpret_cast<RP*>(reinterpret_cast<uintptr_t>(node) - OffsetOf<M>());
-        }
-
-        static const RP *GetParent(const IntrusiveListNode *node) {
-            return reinterpret_cast<RP*>(reinterpret_cast<uintptr_t>(node) - OffsetOf<M>());
-        }
-        static const RP &GetParentReference(const IntrusiveListNode *node) {
-            return *reinterpret_cast<const RP*>(reinterpret_cast<uintptr_t>(node) - OffsetOf<M>());
+        static ALWAYS_INLINE RP &GetParentReference(IntrusiveListNode *node) {
+            return *reinterpret_cast<RP*>(reinterpret_cast<uintptr_t>(node) - OffsetOf(M));
         }
 
-        static IntrusiveListNode *GetListNode(const RP *parent) {
-            return reinterpret_cast<IntrusiveListNode*>(reinterpret_cast<uintptr_t>(parent) + OffsetOf<M>());
+        static ALWAYS_INLINE const RP *GetParent(const IntrusiveListNode *node) {
+            return reinterpret_cast<RP*>(reinterpret_cast<uintptr_t>(node) - OffsetOf(M));
+        }
+        static ALWAYS_INLINE const RP &GetParentReference(const IntrusiveListNode *node) {
+            return *reinterpret_cast<const RP*>(reinterpret_cast<uintptr_t>(node) - OffsetOf(M));
+        }
+
+        static ALWAYS_INLINE IntrusiveListNode *GetListNode(const RP *parent) {
+            return reinterpret_cast<IntrusiveListNode*>(reinterpret_cast<uintptr_t>(parent) + OffsetOf(M));
         }
     };
 
