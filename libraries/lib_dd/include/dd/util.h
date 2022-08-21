@@ -18,6 +18,10 @@
 #include <dd/util/util_includes.h>
 #include <dd/util/util_typedefs.h>
 #include <dd/util/util_defines.h>
+
+#include <dd/util/util_result.hpp>
+#include <dd/util/util_result_trace.h>
+
 #include <dd/util/util_alignment.hpp>
 #include <dd/util/util_member.hpp>
 #include <dd/util/util_intrusivelist.hpp>

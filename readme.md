@@ -11,7 +11,6 @@ My public repository for the DD framework.
 * A test application based on learnopengl.com
 
 # Pending integration
-* A user mode scheduler for Win32 Fibers to create a cooperative threading environment
 * A CPU memory manager based on a couple of heap structures
 * Hash algorithms, Murmur64, Murmur32, CRC32 using pclmul, SHA256
 
@@ -19,6 +18,9 @@ My public repository for the DD framework.
 * A parameter system based on the BYAML file format
 * A job queue system for graphics, actors, and modules
 * An environment built on the Vulkan wrapper library for managing 3d models and graphics techniques
+
+# Cut features
+* A user mode scheduler for Win32 Fibers to create a cooperative threading environment (In consideration of blocking Vulkan functions)
 
 # Project Stipulations
 * I wish to limit the usage of external dependencies when possible. I currently rely on Win32 and Vulkan 1.3. I plan to integrate cURL and OpenSSL in the future.

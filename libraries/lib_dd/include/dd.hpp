@@ -15,6 +15,10 @@
  */
 #pragma once
 
+#include <dd/util/util_includes.h>
+#include <dd/util/util_typedefs.h>
+#include <dd/util/util_defines.h>
+
 #include <dd/trace.h>
 #include <dd/util.h>
 #include <dd/res.h>

@@ -4,14 +4,11 @@ namespace dd::trace {
 
     #if defined(DD_DEBUG)
         
-        void OnAssertFailure(int line, const char *file);
-        void OnAssertFailureV(int line, const char *file, ...);
-        
         #define DD_ASSERT(expression) \
         { \
             const auto _temp_result = (expression); \
             if (__builtin_expect((!_temp_result), 0)) { \
-                dd::trace::OnAssertFailure(__LINE__, __FILE__); \
+                dd::trace::impl::AbortImpl("Assert failed!!!", __PRETTY_FUNCTION__, __FILE__, __LINE__, dd::trace::ResultAssertFailed, "Failed: %s\n", TOSTRING(expression)); \
             } \
         }
 
@@ -19,7 +16,7 @@ namespace dd::trace {
         { \
             const auto _temp_result = (expression); \
             if (__builtin_expect((!_temp_result), 0)) { \
-                dd::trace::OnAssertFailureV(__LINE__, __FILE__, __VA_ARGS__); \
+                dd::trace::impl::AbortImpl("Assert failed!!!", __PRETTY_FUNCTION__, __FILE__, __LINE__, dd::trace::ResultAssertFailed, "Failed: %s\n", TOSTRING(expression)); \
             } \
         }
 

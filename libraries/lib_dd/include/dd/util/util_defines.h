@@ -15,9 +15,12 @@
  */
 #pragma once
 
-#define ALWAYS_INLINE __attribute__((always_inline))
+#define ALWAYS_INLINE __attribute__((always_inline)) inline
 #define NO_INLINE __attribute__((noinline))
 #define NO_CONSTANT_PROPAGATION __attribute__((optimize("-fno-ipa-cp")))
+#define NO_RETURN __attribute__((noreturn))
 
 #define DD_UNLIKELY(expression) __builtin_expect((expression), 0)
 #define DD_LIKELY(expression)   __builtin_expect((expression), 1)
+
+#define TOSTRING(var) #var
