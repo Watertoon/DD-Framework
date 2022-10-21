@@ -40,17 +40,28 @@ namespace dd::vk {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
             VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME,
             VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME,
-            VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME
+            VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME,
+            VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME
         };
         constexpr u32 DeviceExtensionCount = sizeof(DeviceExtensions) / sizeof(const char*);
         
-        constinit VkPhysicalDeviceExtendedDynamicState2FeaturesEXT TargetDeviceExtendedDynamicStateFeatures = {
+        constinit VkPhysicalDeviceExtendedDynamicState3FeaturesEXT TargetDeviceExtendedDynamicState3Features = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT,
+            .extendedDynamicState3DepthClampEnable   = VK_TRUE,
+            .extendedDynamicState3PolygonMode        = VK_TRUE,
+            .extendedDynamicState3LogicOpEnable      = VK_TRUE,
+            .extendedDynamicState3ColorBlendEnable   = VK_TRUE,
+            .extendedDynamicState3ColorBlendEquation = VK_TRUE,
+            .extendedDynamicState3ColorWriteMask     = VK_TRUE
+        };
+        constinit VkPhysicalDeviceExtendedDynamicState2FeaturesEXT TargetDeviceExtendedDynamicState2Features = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT,
+            .pNext = std::addressof(TargetDeviceExtendedDynamicState3Features),
             .extendedDynamicState2LogicOp = VK_TRUE
         };
         constinit VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT TargetDeviceVertexInputDynamicStateFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_INPUT_DYNAMIC_STATE_FEATURES_EXT,
-            .pNext = std::addressof(TargetDeviceExtendedDynamicStateFeatures),
+            .pNext = std::addressof(TargetDeviceExtendedDynamicState2Features),
             .vertexInputDynamicState = VK_TRUE
         };
         constinit VkPhysicalDeviceVulkan13Features TargetDeviceFeatures13 = {
@@ -154,26 +165,30 @@ namespace dd::vk {
     bool Context::PickValidPhysicalDevice() {
 
         /* Hookup physical device properties chain*/
-        m_vk_physical_device_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
-        m_vk_physical_device_properties.pNext = std::addressof(m_vk_physical_device_properties_11);
-        m_vk_physical_device_properties_11.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_PROPERTIES;
-        m_vk_physical_device_properties_11.pNext = std::addressof(m_vk_physical_device_properties_12);
-        m_vk_physical_device_properties_12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES;
-        m_vk_physical_device_properties_12.pNext = std::addressof(m_vk_physical_device_properties_13);
-        m_vk_physical_device_properties_13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_PROPERTIES;
+        m_vk_physical_device_properties.sType                         = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+        m_vk_physical_device_properties.pNext                         = std::addressof(m_vk_physical_device_properties_11);
+        m_vk_physical_device_properties_11.sType                      = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_PROPERTIES;
+        m_vk_physical_device_properties_11.pNext                      = std::addressof(m_vk_physical_device_properties_12);
+        m_vk_physical_device_properties_12.sType                      = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES;
+        m_vk_physical_device_properties_12.pNext                      = std::addressof(m_vk_physical_device_properties_13);
+        m_vk_physical_device_properties_13.sType                      = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_PROPERTIES;
+        m_vk_physical_device_properties_13.pNext                      = std::addressof(m_vk_physical_device_extended_dynamic_state3_properties);
+        m_vk_physical_device_extended_dynamic_state3_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_PROPERTIES_EXT;
 
         /* Hookup physical device features chain */
-        m_vk_physical_device_supported_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-        m_vk_physical_device_supported_features.pNext = std::addressof(m_vk_physical_device_supported_features_11);
-        m_vk_physical_device_supported_features_11.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
-        m_vk_physical_device_supported_features_11.pNext = std::addressof(m_vk_physical_device_supported_features_12);
-        m_vk_physical_device_supported_features_12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
-        m_vk_physical_device_supported_features_12.pNext = std::addressof(m_vk_physical_device_supported_features_13);
-        m_vk_physical_device_supported_features_13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
-        m_vk_physical_device_supported_features_13.pNext = std::addressof(m_vk_physical_device_vertex_input_dynamic_state_features);
+        m_vk_physical_device_supported_features.sType                  = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+        m_vk_physical_device_supported_features.pNext                  = std::addressof(m_vk_physical_device_supported_features_11);
+        m_vk_physical_device_supported_features_11.sType               = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+        m_vk_physical_device_supported_features_11.pNext               = std::addressof(m_vk_physical_device_supported_features_12);
+        m_vk_physical_device_supported_features_12.sType               = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+        m_vk_physical_device_supported_features_12.pNext               = std::addressof(m_vk_physical_device_supported_features_13);
+        m_vk_physical_device_supported_features_13.sType               = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+        m_vk_physical_device_supported_features_13.pNext               = std::addressof(m_vk_physical_device_vertex_input_dynamic_state_features);
         m_vk_physical_device_vertex_input_dynamic_state_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_INPUT_DYNAMIC_STATE_FEATURES_EXT;
-        m_vk_physical_device_vertex_input_dynamic_state_features.pNext = std::addressof(m_vk_physical_device_extended_dynamic_state_features);
-        m_vk_physical_device_extended_dynamic_state_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT;
+        m_vk_physical_device_vertex_input_dynamic_state_features.pNext = std::addressof(m_vk_physical_device_extended_dynamic_state2_features);
+        m_vk_physical_device_extended_dynamic_state2_features.sType     = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT;
+        m_vk_physical_device_extended_dynamic_state2_features.pNext     = std::addressof(m_vk_physical_device_extended_dynamic_state3_features);
+        m_vk_physical_device_extended_dynamic_state3_features.sType    = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT;
 
         for (u32 i = 0; i < m_vk_physical_device_count; ++i) {
             /* Query Physical Device */
@@ -274,6 +289,7 @@ namespace dd::vk {
             if (m_vk_physical_device_properties_12.maxDescriptorSetUpdateAfterBindSampledImages  < TargetMaxTextureDescriptors) { DD_ASSERT(false); continue; }
             if (m_vk_physical_device_properties_12.maxDescriptorSetUpdateAfterBindSamplers       < TargetMaxSamplerDescriptors) { DD_ASSERT(false); continue; }
             if (m_vk_physical_device_properties.properties.limits.maxDescriptorSetUniformBuffers < TargetMaxBufferDescriptors)  { DD_ASSERT(false); continue; }
+            //if (m_vk_physical_device_extended_dynamic_state3_properties.dynamicPrimitiveTopologyUnrestricted == VK_TRUE)        { DD_ASSERT(false); continue; }
 
             /* Misc feature checks */
             if (m_vk_physical_device_supported_features.features.independentBlend == false)                        { DD_ASSERT(false); continue; }
@@ -316,7 +332,14 @@ namespace dd::vk {
 
             if (m_vk_physical_device_vertex_input_dynamic_state_features.vertexInputDynamicState == false)         { DD_ASSERT(false); continue; }
 
-            if (m_vk_physical_device_extended_dynamic_state_features.extendedDynamicState2LogicOp == false)        { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_extended_dynamic_state2_features.extendedDynamicState2LogicOp == false)       { DD_ASSERT(false); continue; }
+
+            if (m_vk_physical_device_extended_dynamic_state3_features.extendedDynamicState3DepthClampEnable == false)   { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_extended_dynamic_state3_features.extendedDynamicState3PolygonMode == false)        { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_extended_dynamic_state3_features.extendedDynamicState3LogicOpEnable == false)      { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_extended_dynamic_state3_features.extendedDynamicState3ColorBlendEnable == false)   { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_extended_dynamic_state3_features.extendedDynamicState3ColorBlendEquation == false) { DD_ASSERT(false); continue; }
+            if (m_vk_physical_device_extended_dynamic_state3_features.extendedDynamicState3ColorWriteMask == false)     { DD_ASSERT(false); continue; }
 
             m_vk_physical_device = m_vk_physical_device_array[i];
             m_physical_device_index = i;

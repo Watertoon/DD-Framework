@@ -327,6 +327,12 @@ DEFINE_VK_PROC(vkWaitSemaphores);
 DEFINE_VK_PROC(vkGetMemoryHostPointerPropertiesEXT);
 DEFINE_VK_PROC(vkCmdSetLogicOpEXT);
 DEFINE_VK_PROC(vkCmdSetVertexInputEXT);
+DEFINE_VK_PROC(vkCmdSetColorBlendEnableEXT);
+DEFINE_VK_PROC(vkCmdSetColorBlendEquationEXT);
+DEFINE_VK_PROC(vkCmdSetColorWriteMaskEXT);
+DEFINE_VK_PROC(vkCmdSetDepthClampEnableEXT);
+DEFINE_VK_PROC(vkCmdSetLogicOpEnableEXT);
+DEFINE_VK_PROC(vkCmdSetPolygonModeEXT);
 
 void LoadCProcsDevice(VkDevice device) {
     LOAD_DEVICE_VK_PROC(vkAcquireNextImage2KHR);
@@ -525,4 +531,10 @@ void LoadCProcsDevice(VkDevice device) {
     LOAD_DEVICE_VK_PROC(vkGetMemoryHostPointerPropertiesEXT);
     LOAD_DEVICE_VK_PROC(vkCmdSetLogicOpEXT);
     LOAD_DEVICE_VK_PROC(vkCmdSetVertexInputEXT);
+    LOAD_DEVICE_VK_PROC(vkCmdSetColorBlendEnableEXT);
+    LOAD_DEVICE_VK_PROC(vkCmdSetColorBlendEquationEXT);
+    LOAD_DEVICE_VK_PROC(vkCmdSetColorWriteMaskEXT);
+    LOAD_DEVICE_VK_PROC(vkCmdSetDepthClampEnableEXT);
+    LOAD_DEVICE_VK_PROC(vkCmdSetLogicOpEnableEXT);
+    LOAD_DEVICE_VK_PROC(vkCmdSetPolygonModeEXT);
 }

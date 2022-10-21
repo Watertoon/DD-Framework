@@ -17,25 +17,25 @@
 
 namespace dd::vk {
 
-    class DisplayBuffer : public dd::util::LogicalFramebuffer {
+    class DisplayBuffer : public util::LogicalFrameBuffer {
         public:
             static constexpr u32 FramesInFlight = 2;
             static constexpr u32 BufferedFrames = 3;
             static constexpr u32 ColorTargetPerFrame = 1;
             static constexpr u32 DepthStencilTargetPerFrame = 1;
         private:
-            VkSwapchainKHR   m_vk_swapchain;
-            VkSemaphore      m_vk_queue_present_semaphore[FramesInFlight];
-            VkFence          m_vk_queue_submit_fence[FramesInFlight];
-            VkFence          m_vk_image_acquire_fence;
-            Texture          m_vk_swapchain_textures[BufferedFrames];
-            ColorTargetView  m_vk_swapchain_targets[BufferedFrames];
-            VkDeviceMemory   m_vk_depth_stencil_image_memory;
-            MemoryPool       m_depth_stencil_memory;
-            Texture          m_depth_stencil_texture;
-            DepthStencilTargetView  m_depth_stencil_target;
-            u32              m_current_target_index;
-            u32              m_current_frame;
+            VkSwapchainKHR         m_vk_swapchain;
+            VkSemaphore            m_vk_queue_present_semaphore[FramesInFlight];
+            VkFence                m_vk_queue_submit_fence[FramesInFlight];
+            VkFence                m_vk_image_acquire_fence;
+            Texture                m_vk_swapchain_textures[BufferedFrames];
+            ColorTargetView        m_vk_swapchain_targets[BufferedFrames];
+            VkDeviceMemory         m_vk_depth_stencil_image_memory;
+            MemoryPool             m_depth_stencil_memory;
+            Texture                m_depth_stencil_texture;
+            DepthStencilTargetView m_depth_stencil_target;
+            u32                    m_current_target_index;
+            u32                    m_current_frame;
         public:
             constexpr DisplayBuffer() {/*...*/}
 

@@ -19,7 +19,8 @@ namespace dd::util {
             constexpr IntrusiveListNode *prev() const {
                 return m_prev;
             }
-
+            
+            
             constexpr bool IsLinked() const {
                 return m_prev != m_next;
             }
@@ -61,13 +62,14 @@ namespace dd::util {
                     using const_pointer   = const T*;
                 private:
                     IntrusiveListNode *m_node;
+                    IntrusiveListNode *m_next;
                 public:
-                    constexpr Iterator(IntrusiveListNode *node) : m_node(node) {}
+                    constexpr Iterator(IntrusiveListNode *node) : m_node(node), m_next(node->next()) {}
 
-                    ALWAYS_INLINE reference operator*() {
+                    reference operator*() {
                         return Traits::GetParentReference(m_node);
                     }
-                    ALWAYS_INLINE const_reference operator*() const {
+                    const_reference operator*() const {
                         return Traits::GetParentReference(m_node);
                     }
 
@@ -76,12 +78,8 @@ namespace dd::util {
                     }
 
                     constexpr Iterator<IsConst> &operator++() {
-                        m_node = m_node->next();
-                        return *this;
-                    }
-
-                    constexpr Iterator<IsConst> &operator--() {
-                        m_node = m_node->prev();
+                        m_node = m_next;
+                        m_next = m_next->next();
                         return *this;
                     }
             };
@@ -136,6 +134,30 @@ namespace dd::util {
 
             void ALWAYS_INLINE PushFront(reference obj) {
                 m_list.m_next->LinkNext(Traits::GetListNode(std::addressof(obj)));
+            }
+            
+            constexpr reference PopFront() {
+                IntrusiveListNode *front = m_list.m_next;
+                front->Unlink();
+                return Traits::GetParentReference(front);
+            }
+
+            constexpr const_reference PopFront() {
+                IntrusiveListNode *front = m_list.m_next;
+                front->Unlink();
+                return Traits::GetParentReference(front);
+            }
+
+            constexpr reference PopBack() {
+                IntrusiveListNode *back = m_list.m_prev;
+                back->Unlink();
+                return Traits::GetParentReference(back);
+            }
+
+            constexpr const_reference PopBack() {
+                IntrusiveListNode *back = m_list.m_prev;
+                back->Unlink();
+                return Traits::GetParentReference(back);
             }
 
             static ALWAYS_INLINE void Remove(reference obj) {

@@ -18,8 +18,13 @@
 namespace dd::vk {
 
     struct ColorBlendCmdState {
-        VkLogicOp vk_logic_op;
-        float     blend_constants[4];
+        u32                     color_blend_count;
+        VkBool32                color_blend_enables[Context::TargetColorAttachmentCount];
+        VkColorBlendEquationEXT vk_color_blend_equations[Context::TargetColorAttachmentCount];
+        VkColorComponentFlags   vk_color_blend_write_masks[Context::TargetColorAttachmentCount];
+        bool                    logic_op_enable;
+        VkLogicOp               vk_logic_op;
+        float                   blend_constants[4];
 
         constexpr void SetDefaults() {
             vk_logic_op        = VK_LOGIC_OP_COPY,
@@ -27,6 +32,11 @@ namespace dd::vk {
             blend_constants[1] = 0.0f;
             blend_constants[2] = 0.0f;
             blend_constants[3] = 1.0f;
+            for (u32 i = 0; i < Context::TargetColorAttachmentCount; ++i) {
+                color_blend_enables[i]        = false;
+                vk_color_blend_write_masks[i] = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+            }
+            color_blend_count = 1;
         }
     };
 
@@ -69,10 +79,11 @@ namespace dd::vk {
     struct RasterizerCmdState {
         VkCullModeFlags vk_cull_mode;
         VkFrontFace     vk_front_face;
+        VkPolygonMode   vk_polygon_mode;
         bool            rasterizer_discard_enable;
         bool            primitive_restart_enable;
         bool            depth_bias_enable;
-        u8              reserve;
+        bool            depth_clamp_enable;
         float           depth_bias_constant_factor;
         float           depth_bias_clamp;
         float           depth_bias_slope_factor;
@@ -84,6 +95,8 @@ namespace dd::vk {
             rasterizer_discard_enable  = false;
             primitive_restart_enable   = false;
             depth_bias_enable          = false;
+            depth_clamp_enable         = false;
+            vk_polygon_mode            = VK_POLYGON_MODE_FILL;
             depth_bias_constant_factor = 0.0f;
             depth_bias_clamp           = 0.0f;
             depth_bias_slope_factor    = 0.0f;
@@ -97,7 +110,7 @@ namespace dd::vk {
         const VkVertexInputBindingDescription2EXT   *vertex_binding_array;
         const VkVertexInputAttributeDescription2EXT *vertex_attribute_array;
 
-        void SetDefaults() {
+        constexpr void SetDefaults() {
             vertex_binding_count   = 0;
             vertex_attribute_count = 0;
             vertex_binding_array   = nullptr;
@@ -228,8 +241,8 @@ namespace dd::vk {
             void DrawInstanced(VkPrimitiveTopology vk_primitive_topology, u32 vertex_count, u32 base_vertex, u32 instance_count, u32 base_instance);
             void DrawInstancedIndexed(VkPrimitiveTopology vk_primitive_topology, VkIndexType index_format, Buffer *index_buffer, u32 index_count, u32 base_index, u32 instance_count, u32 base_instance);
 
-            void SetPipeline(Pipeline *pipeline);
-            void SetPipelineState(const PipelineCmdState *pipeline);
+            void SetShader(Shader *shader);
+            void SetPipelineState(const PipelineCmdState *pipeline_state);
             void SetColorBlendState(const ColorBlendCmdState *color_blend_state);
             void SetDepthStencilState(const DepthStencilCmdState *depth_stencil_state);
             void SetRasterizerState(const RasterizerCmdState *rasterizer_state);

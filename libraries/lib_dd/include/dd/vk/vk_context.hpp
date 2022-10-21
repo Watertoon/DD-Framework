@@ -96,13 +96,15 @@ namespace dd::vk {
             VkPhysicalDeviceVulkan11Properties                  m_vk_physical_device_properties_11;
             VkPhysicalDeviceVulkan12Properties                  m_vk_physical_device_properties_12;
             VkPhysicalDeviceVulkan13Properties                  m_vk_physical_device_properties_13;
+            VkPhysicalDeviceExtendedDynamicState3PropertiesEXT  m_vk_physical_device_extended_dynamic_state3_properties;
 
             VkPhysicalDeviceFeatures2                           m_vk_physical_device_supported_features;
             VkPhysicalDeviceVulkan11Features                    m_vk_physical_device_supported_features_11;
             VkPhysicalDeviceVulkan12Features                    m_vk_physical_device_supported_features_12;
             VkPhysicalDeviceVulkan13Features                    m_vk_physical_device_supported_features_13;
             VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT  m_vk_physical_device_vertex_input_dynamic_state_features;
-            VkPhysicalDeviceExtendedDynamicState2FeaturesEXT    m_vk_physical_device_extended_dynamic_state_features;
+            VkPhysicalDeviceExtendedDynamicState2FeaturesEXT    m_vk_physical_device_extended_dynamic_state2_features;
+            VkPhysicalDeviceExtendedDynamicState3FeaturesEXT    m_vk_physical_device_extended_dynamic_state3_features;
 
             VkPhysicalDeviceMemoryProperties                    m_vk_physical_device_memory_properties;
 

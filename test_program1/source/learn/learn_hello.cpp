@@ -21,6 +21,7 @@ namespace dd::learn {
 
         /* Vulkan objects */
         util::TypeStorage<vk::Shader>         vk_shader;
+        vk::PipelineCmdState                  vk_pipeline_cmd_state;
         util::TypeStorage<vk::DescriptorPool> vk_texture_descriptor_pool;
         util::TypeStorage<vk::DescriptorPool> vk_sampler_descriptor_pool;
 
@@ -41,10 +42,10 @@ namespace dd::learn {
         vk::DescriptorSlot                    sampler_slot;
 
         /* Resources */
-        const char *vertex_shader_path = "resource/shader/primitive.vert.spv";
-        const char *fragment_shader_path = "resource/shader/primitive.frag.spv";
+        constexpr const char *vertex_shader_path = "resource/shader/primitive.vert.spv";
+        constexpr const char *fragment_shader_path = "resource/shader/primitive.frag.spv";
 
-        const float vertices[] = {
+        constexpr const float vertices[] = {
             /* Position */       /* Tex Coords */
             -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
              0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
@@ -96,7 +97,7 @@ namespace dd::learn {
             1, 2, 3
         };
 
-        const util::math::Vector3f CubePositions[] = {
+        constexpr const util::math::Vector3f CubePositions[] = {
             util::math::Vector3f( 0.0f,  0.0f,  0.0f), 
             util::math::Vector3f( 2.0f,  5.0f, -15.0f), 
             util::math::Vector3f(-1.5f, -2.2f, -2.5f),  
@@ -110,9 +111,9 @@ namespace dd::learn {
         };
         constexpr inline u32 CubeCount = sizeof(CubePositions) / sizeof(util::math::Vector3f);
 
-        dd::util::math::Matrix34f model_matrix = util::math::IdentityMatrix34<float>;
-        dd::util::LookAtCamera camera = {{ 0.0f, 0.0f, 3.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }};
-        dd::util::PerspectiveProjection perspective_projection(0.1f, 100.0f, util::math::TRadians<float, 45.0f>, 1280.0f / 720.0f);
+        constinit dd::util::math::Matrix34f model_matrix = util::math::IdentityMatrix34<float>;
+        constinit dd::util::LookAtCamera camera = {{ 0.0f, 0.0f, 3.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }};
+        constinit dd::util::PerspectiveProjection perspective_projection(0.1f, 100.0f, util::math::TRadians<float, 45.0f>, 1280.0f / 720.0f);
 
         struct ViewArg {
             dd::util::math::Matrix34f model_matrix;
@@ -127,10 +128,6 @@ namespace dd::learn {
 
         char *memory_buffer = nullptr;
         char *memory_image = nullptr;
-
-        /* Vulkan pipeline state */
-        util::TypeStorage<vk::Pipeline>       vk_pipeline;
-        vk::PipelineCmdState                  vk_pipeline_cmd_state;
 
         const VkVertexInputBindingDescription2EXT vk_input_binding_description = {
             .sType     = VK_STRUCTURE_TYPE_VERTEX_INPUT_BINDING_DESCRIPTION_2_EXT,
@@ -174,6 +171,7 @@ namespace dd::learn {
         /* Create Shader */
         dd::util::ConstructAt(vk_shader);
         const vk::ShaderInfo shader_info = {
+            .color_attachment_count = 1,
             .vertex_code_size = vertex_size,
             .vertex_code = reinterpret_cast<u32*>(vertex_shader),
             .fragment_code_size = fragment_size,
@@ -334,14 +332,6 @@ namespace dd::learn {
         util::ConstructAt(vk_sampler);
         util::GetReference(vk_sampler).Initialize(context, std::addressof(sampler_info));
 
-        /* Create pipeline */
-        vk::PipelineInfo pipeline_info = {};
-        pipeline_info.SetDefaults();
-        pipeline_info.shader = util::GetPointer(vk_shader);
-
-        util::ConstructAt(vk_pipeline);
-        util::GetReference(vk_pipeline).Initialize(context, std::addressof(pipeline_info));
-
         /* Set our cmd state */
         vk_pipeline_cmd_state.SetDefaults();
         vk_pipeline_cmd_state.vertex_state.vertex_binding_count = input_binding_count;
@@ -478,7 +468,7 @@ namespace dd::learn {
         /* Bind */
         command_buffer->SetDescriptorPool(util::GetPointer(vk_sampler_descriptor_pool));
         command_buffer->SetDescriptorPool(util::GetPointer(vk_texture_descriptor_pool));
-        command_buffer->SetPipeline(util::GetPointer(vk_pipeline));
+        command_buffer->SetShader(util::GetPointer(vk_shader));
         command_buffer->SetPipelineState(std::addressof(vk_pipeline_cmd_state));
 
         command_buffer->SetVertexBuffer(0, util::GetPointer(vk_vertex_buffer), VerticeStride, sizeof(vertices));
@@ -513,9 +503,6 @@ namespace dd::learn {
 
         util::GetReference(vk_shader).Finalize(context);
         dd::util::DestructAt(vk_shader);
-
-        util::GetReference(vk_pipeline).Finalize(context);
-        dd::util::DestructAt(vk_pipeline);
 
         util::GetReference(vk_texture_descriptor_pool).UnregisterResourceBySlot(texture_view1_slot);
         util::GetReference(vk_texture_descriptor_pool).UnregisterResourceBySlot(texture_view0_slot);

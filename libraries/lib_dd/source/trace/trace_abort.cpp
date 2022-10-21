@@ -10,6 +10,7 @@ namespace dd::trace::impl {
         /* Open an output file for out crash data */
         HANDLE crash_file = ::CreateFile("save/crash_report.txt", GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
         if (crash_file == INVALID_HANDLE_VALUE) {
+            ::puts("failed to create file");
             Abort(result);
         }
 

@@ -15,10 +15,6 @@
  */
 #pragma once
 
-#include <dd/util/util_includes.h>
-#include <dd/util/util_typedefs.h>
-#include <dd/util/util_defines.h>
-
 #include <dd/util/util_result.hpp>
 #include <dd/util/util_result_trace.h>
 
@@ -34,7 +30,10 @@
 #include <dd/util/util_delegate2.hpp>
 #include <dd/util/util_messagequeue.hpp>
 #include <dd/util/util_delegatethread.hpp>
+#include <dd/util/util_runtimetypeinfo.hpp>
+#include <dd/util/util_fixedobjectallocator.hpp>
 
+#include <dd/util/util_spinloopintrinsics.x64.hpp>
 #include <dd/util/math/util_constants.hpp>
 #include <dd/util/math/util_int128.sse4.hpp>
 #include <dd/util/math/util_float128.sse4.hpp>

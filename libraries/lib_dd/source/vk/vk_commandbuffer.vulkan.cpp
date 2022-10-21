@@ -358,11 +358,9 @@ namespace dd::vk {
         ::pfn_vkCmdSetPrimitiveTopology(m_vk_command_buffer, vk_primitive_topology);
         ::pfn_vkCmdDrawIndexed(m_vk_command_buffer, index_count, instance_count, base_index, 0, base_instance);
     }
-    
-    
 
-    void CommandBuffer::SetPipeline(Pipeline *pipeline) {
-        ::pfn_vkCmdBindPipeline(m_vk_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetPipeline());
+    void CommandBuffer::SetShader(Shader *shader) {
+        ::pfn_vkCmdBindPipeline(m_vk_command_buffer, shader->IsCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS, shader->GetPipeline());
     }
 
     void CommandBuffer::SetPipelineState(const PipelineCmdState *pipeline_state) {
@@ -373,8 +371,14 @@ namespace dd::vk {
     }
 
     void CommandBuffer::SetColorBlendState(const ColorBlendCmdState *color_blend_state) {
-        pfn_vkCmdSetLogicOpEXT(m_vk_command_buffer, color_blend_state->vk_logic_op);
+        ::pfn_vkCmdSetLogicOpEnableEXT(m_vk_command_buffer, color_blend_state->logic_op_enable);
+        ::pfn_vkCmdSetLogicOpEXT(m_vk_command_buffer, color_blend_state->vk_logic_op);
         ::pfn_vkCmdSetBlendConstants(m_vk_command_buffer, color_blend_state->blend_constants);
+        
+        /* Color Blend */
+        ::pfn_vkCmdSetColorBlendEnableEXT(m_vk_command_buffer, 0, color_blend_state->color_blend_count, color_blend_state->color_blend_enables);
+        ::pfn_vkCmdSetColorBlendEquationEXT(m_vk_command_buffer, 0, color_blend_state->color_blend_count, color_blend_state->vk_color_blend_equations);
+        ::pfn_vkCmdSetColorWriteMaskEXT(m_vk_command_buffer, 0, color_blend_state->color_blend_count, color_blend_state->vk_color_blend_write_masks);
     }
 
     void CommandBuffer::SetDepthStencilState(const DepthStencilCmdState *depth_stencil_state) {
@@ -405,6 +409,9 @@ namespace dd::vk {
         ::pfn_vkCmdSetLineWidth(m_vk_command_buffer, rasterizer_state->line_width);
         ::pfn_vkCmdSetCullMode(m_vk_command_buffer, rasterizer_state->vk_cull_mode);
         ::pfn_vkCmdSetFrontFace(m_vk_command_buffer, rasterizer_state->vk_front_face);
+        
+        ::pfn_vkCmdSetDepthClampEnableEXT(m_vk_command_buffer, rasterizer_state->depth_clamp_enable);
+        ::pfn_vkCmdSetPolygonModeEXT(m_vk_command_buffer, rasterizer_state->vk_polygon_mode);
     }
 
     void CommandBuffer::SetVertexState(const VertexCmdState *vertex_state) {

@@ -1,5 +1,5 @@
 # DD Framework
-My public repository for the DD framework.
+My public repository for the DD application framework.
 
 # Current Features
 * A Vulkan 1.3 wrapper library to simplify using Vulkan while taking advantage of graphics pipeline libraries, dynamic rendering, buffer device addresses, and descriptor indexing
@@ -19,9 +19,6 @@ My public repository for the DD framework.
 * A job queue system for graphics, actors, and modules
 * An environment built on the Vulkan wrapper library for managing 3d models and graphics techniques
 
-# Cut features
-* A user mode scheduler for Win32 Fibers to create a cooperative threading environment (In consideration of blocking Vulkan functions)
-
 # Project Stipulations
 * I wish to limit the usage of external dependencies when possible. I currently rely on Win32 and Vulkan 1.3. I plan to integrate cURL and OpenSSL in the future.
 * The project should be simple to build beyond setting up MSYS2, installing the relevant MSYS2 packages, and running make.
@@ -35,4 +32,4 @@ Only the code and resources I've personally made are subject to copyright under 
 
 I'm informed mainly by learnopengl.com, reverse engineering, and documentation. I am not an expert on liscensing.
 
-If there are any problems of any kind please file an issue or contact me and I'll do my best to resolve it. At the moment this project is not intended for commercial use and might never be.
+If there are any problems of any kind please file an issue or contact me and I'll do my best to resolve it.

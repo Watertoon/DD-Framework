@@ -17,14 +17,14 @@
 
 namespace dd::util {
 
-    class LogicalFramebuffer {
-        private:
+    class LogicalFrameBuffer {
+        protected:
             math::Vector2f m_virtual_size;
             math::Vector2f m_dimensions;
-        private:
+        protected:
             virtual void BindImpl() {/*...*/}
         public:
-            constexpr LogicalFramebuffer() : m_virtual_size(), m_dimensions() {/*...*/}
+            constexpr LogicalFrameBuffer() : m_virtual_size(), m_dimensions() {/*...*/}
 
             void Bind() {
                 this->BindImpl();

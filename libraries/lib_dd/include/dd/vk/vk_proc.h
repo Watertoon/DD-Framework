@@ -268,5 +268,11 @@ DEFINE_EXTERN_VK_PROC(vkWaitSemaphores);
 DEFINE_EXTERN_VK_PROC(vkGetMemoryHostPointerPropertiesEXT);
 DEFINE_EXTERN_VK_PROC(vkCmdSetLogicOpEXT);
 DEFINE_EXTERN_VK_PROC(vkCmdSetVertexInputEXT);
+DEFINE_EXTERN_VK_PROC(vkCmdSetColorBlendEnableEXT);
+DEFINE_EXTERN_VK_PROC(vkCmdSetColorBlendEquationEXT);
+DEFINE_EXTERN_VK_PROC(vkCmdSetColorWriteMaskEXT);
+DEFINE_EXTERN_VK_PROC(vkCmdSetDepthClampEnableEXT);
+DEFINE_EXTERN_VK_PROC(vkCmdSetLogicOpEnableEXT);
+DEFINE_EXTERN_VK_PROC(vkCmdSetPolygonModeEXT);
 
 void LoadCProcsDevice(VkDevice device);
