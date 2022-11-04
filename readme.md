@@ -13,6 +13,7 @@ My public repository for the DD application framework.
 # Pending integration
 * A CPU memory manager based on a couple of heap structures
 * Hash algorithms, Murmur64, Murmur32, CRC32 using pclmul, SHA256
+* Graphics pipeline library system
 
 # Future Features (in active development, or pending integration)
 * A parameter system based on the BYAML file format
