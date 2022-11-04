@@ -142,7 +142,7 @@ namespace dd::util {
                 return Traits::GetParentReference(front);
             }
 
-            constexpr const_reference PopFront() {
+            constexpr const_reference PopFront() const {
                 IntrusiveListNode *front = m_list.m_next;
                 front->Unlink();
                 return Traits::GetParentReference(front);
@@ -154,7 +154,7 @@ namespace dd::util {
                 return Traits::GetParentReference(back);
             }
 
-            constexpr const_reference PopBack() {
+            constexpr const_reference PopBack() const {
                 IntrusiveListNode *back = m_list.m_prev;
                 back->Unlink();
                 return Traits::GetParentReference(back);

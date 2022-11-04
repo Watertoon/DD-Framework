@@ -31,17 +31,6 @@ namespace dd::util {
         system_frequency = frequency.QuadPart;
     }
 
-    s64 GetSystemTickFrequency() {
-        return system_frequency;
-    }
-
-    s64 GetSystemTick() {
-        LARGE_INTEGER tick = {};
-        const bool result = ::QueryPerformanceCounter(std::addressof(tick));
-        DD_ASSERT(result == true);
-        return tick.QuadPart;
-    }
-
     void BeginFrame() {
         const s64 last_last_frame = last_frame_time;
         last_frame_time = GetSystemTick();

@@ -8,8 +8,6 @@ namespace dd::util {
         public:
             explicit constexpr RuntimeTypeInfo() : m_next(nullptr) {/*...*/}
             explicit RuntimeTypeInfo(const RuntimeTypeInfo *base_class) : m_next(base_class) {/*...*/}
-
-            constexpr ALWAYS_INLINE bool IsSameType(const RuntimeTypeInfo *other_info) const { return this == other_info; }
     };
 
     #define RTTI_BASE(class_name) \
@@ -39,9 +37,9 @@ namespace dd::util {
                 const RuntimeTypeInfo *target     = other_obj->GetRuntimeTypeInfo(); \
                 const RuntimeTypeInfo *class_info = GetRuntimeTypeInfoStatic(); \
                 do { \
-                    if (target->IsSameType(class_info) == true) { return true; } \
+                    if (class_info != target) { return true; } \
                     class_info = class_info->m_next; \
                 } while (class_info != 0); \
-                return false; \
+                return class_info == target; \
             }
 }

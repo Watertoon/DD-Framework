@@ -16,9 +16,12 @@
 #pragma once
 
 #include <dd/util/util_result.hpp>
+#include <dd/util/util_result_ukern.h>
 #include <dd/util/util_result_trace.h>
 
 #include <dd/util/util_alignment.hpp>
+#include <dd/util/util_sizeconstants.hpp>
+#include <dd/util/util_countbits.hpp>
 #include <dd/util/util_member.hpp>
 #include <dd/util/util_intrusivelist.hpp>
 #include <dd/util/util_intrusivetreenode.hpp>
@@ -32,6 +35,8 @@
 #include <dd/util/util_delegatethread.hpp>
 #include <dd/util/util_runtimetypeinfo.hpp>
 #include <dd/util/util_fixedobjectallocator.hpp>
+#include <dd/util/util_timestamp.h>
+#include <dd/util/util_timespan.hpp>
 
 #include <dd/util/util_spinloopintrinsics.x64.hpp>
 #include <dd/util/math/util_constants.hpp>
@@ -52,4 +57,4 @@
 #include <dd/util/util_camera.hpp>
 #include <dd/util/util_projection.hpp>
 
-#include <dd/util/util_time.h>
+#include <dd/util/util_deltatime.h>

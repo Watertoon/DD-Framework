@@ -18,7 +18,7 @@ namespace dd::util {
                 FreeList  m_free_node_array[Count];
             };
         public:
-            constexpr ALWAYS_INLINE FixedObjectAllocator() : m_free_node_array{}, m_free_list(m_free_node_array) {
+            constexpr ALWAYS_INLINE FixedObjectAllocator() : m_free_list(m_free_node_array), m_free_node_array{} {
 
                 /* Construct a free list of objects */
                 for (u32 i = 0; i < (Count - 1); ++i) {
@@ -43,7 +43,7 @@ namespace dd::util {
             }
             
             ALWAYS_INLINE void Free(T *allocated_object) {
-                DD_ASSERT(m_free_node_array < allocated_object && allocated_object < m_free_node_array + Count);
+                DD_ASSERT(m_object_array < allocated_object && allocated_object < m_object_array + Count);
 
                 /* Destruct the object */
                 std::destroy_at(allocated_object);

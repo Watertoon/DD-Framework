@@ -19,15 +19,8 @@ namespace dd::util {
 
     void   InitializeTime();
 
-    s64    GetSystemTickFrequency();
-
-    s64    GetSystemTick();
-
     void   BeginFrame();
-
     s64    GetMillisecondsFromTick(s64 tick);
-
     double GetDeltaTime();
-
     double CalcFps();
 }
