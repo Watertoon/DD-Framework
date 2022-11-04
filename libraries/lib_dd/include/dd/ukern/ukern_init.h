@@ -2,5 +2,5 @@
 
 namespace dd::ukern {
 
-    void InitializeUKern();
+    void InitializeUKern(u64 core_mask);
 }

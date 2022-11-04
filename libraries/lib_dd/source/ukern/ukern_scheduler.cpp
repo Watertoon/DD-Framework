@@ -64,7 +64,6 @@ namespace dd::ukern::impl {
         if (m_runnable_fibers == 0 && m_active_cores == 0) { 
             /* Kill process */
             DD_ASSERT(false);
-            ::ExitProcess(1);
         } else if (m_active_cores == 0) {
             /* Alert another waiting core to check if they can run a fiber */
             ::WakeByAddressSingle(std::addressof(m_runnable_fibers));
@@ -153,15 +152,14 @@ namespace dd::ukern::impl {
 
 		const bool result = m_handle_table.ReserveHandle(std::addressof(main_fiber_local->ukern_fiber_handle), main_fiber_local);
         DD_ASSERT(result == true);
-		
+
 		this->SetInitialFiberNameUnsafe(main_fiber_local);
-		
-		m_normal_priority_list.PushBack(*main_fiber_local);
+
 		++m_runnable_fibers;
-		
+
 		/* Set current fiber fls slot */
 		::FlsSetValue(m_current_fiber_fls_slot, std::addressof(main_fiber_local));
-		
+
 		/* Allocate scheduler worker fibers */
 		for (u32 i = 1; i < core_count; ++i) {
 			m_scheduler_thread_table[i] = ::CreateThread(nullptr, 0x1000, InternalSchedulerThreadMain, reinterpret_cast<void*>(core_count), CREATE_SUSPENDED, nullptr);
@@ -169,7 +167,7 @@ namespace dd::ukern::impl {
 			::SetThreadAffinityMask(m_scheduler_thread_table[i], secondary_mask);
 			::ResumeThread(m_scheduler_thread_table[i]);
 		}
-		
+
 		return;
 	}
 

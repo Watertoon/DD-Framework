@@ -2,7 +2,7 @@
 
 namespace dd::ukern {
 
-    ALWAYS_INLINE bool FiberLocalStorage::IsSchedulable(u32 core_number, u64 time) {
+    bool FiberLocalStorage::IsSchedulable(u32 core_number, u64 time) {
         if (core_mask & (1 << core_number)) { return false; }
         if (waitable_object != nullptr && timeout < time) { waitable_object->CancelWait(this, ResultTimeout); return true; }
         if (timeout < time) { return true; }

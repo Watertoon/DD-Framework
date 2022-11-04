@@ -155,6 +155,7 @@ void Draw(dd::vk::Context *global_context, dd::vk::CommandBuffer *global_command
 
 int main() {
     /* Initialize System Time */
+    dd::util::InitializeTimeStamp();
     dd::util::InitializeTime();
 
     /* Set flush denormals to 0 */

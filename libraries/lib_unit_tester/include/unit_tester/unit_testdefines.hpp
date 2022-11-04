@@ -2,8 +2,10 @@
 
 namespace unit {
     
-    #define TOSTRING(name) #name
-    
+    #ifndef TOSTRING
+        #define TOSTRING(name) #name
+    #endif
+
     #define TEST(test_name) \
         class _Test##test_name final : public unit::TestBase { \
             public: \
