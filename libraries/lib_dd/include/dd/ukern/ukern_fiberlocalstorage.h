@@ -34,7 +34,7 @@ namespace dd::ukern {
     }
 
     struct FiberLocalStorage {
-        u32                      priority;
+        s32                      priority;
         u32                      current_core;
         UKernCoreMask            core_mask;
         size_t                   stack_size;
@@ -61,6 +61,8 @@ namespace dd::ukern {
         char                     fiber_name_storage[MaxFiberNameLength];
 
         static constexpr u32 HasChildWaitersBit = 0x4000'0000;
+
+        constexpr ALWAYS_INLINE FiberLocalStorage() {/*...*/}
 
         bool IsSchedulable(u32 core_number, u64 time);
         void ReleaseLockWaitListUnsafe();

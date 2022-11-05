@@ -1,10 +1,10 @@
 #pragma once
 
 namespace dd::ukern {
-    
+
     namespace impl {
         class UserScheduler;
-        
+
         UserScheduler *GetScheduler();
     }
 

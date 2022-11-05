@@ -3,14 +3,14 @@
 namespace dd::ukern {
 
     namespace impl {
-        UserScheduler Scheduler = {};
+        UserScheduler SchedulerInstance = {};
 
         UserScheduler *GetScheduler() {
-            return std::addressof(Scheduler);
+            return std::addressof(SchedulerInstance);
         }
     }
 
     void InitializeUKern(u64 core_mask) {
-        impl::Scheduler.Initialize(core_mask);
+        impl::SchedulerInstance.Initialize(core_mask);
     }
 }

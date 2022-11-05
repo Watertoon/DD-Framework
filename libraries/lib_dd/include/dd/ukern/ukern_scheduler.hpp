@@ -32,15 +32,14 @@ namespace dd::ukern::impl {
             SuspendList               m_suspended_list;
             WaitList                  m_wait_list;
             u64                       m_next_wakeup_time;
-            u32                       m_current_fiber_fls_slot;
-            u32                       m_allocated_user_threads;
             UKernCoreMask             m_core_mask;
+            u32                       m_allocated_user_threads;
             u32                       m_core_count;
             u32                       m_active_cores;
             u32                       m_runnable_fibers;
             HandleTable               m_handle_table;
         private:
-            static long unsigned int InternalSchedulerThreadMain(void *arg) {
+            static long unsigned int InternalSchedulerFiberMain(void *arg) {
 
                 /* Assume argument is the scheduler thread core number */
                 const size_t core_number = reinterpret_cast<size_t>(arg);
@@ -49,6 +48,11 @@ namespace dd::ukern::impl {
 
                 /* Convert thread to Fiber */
                 scheduler->m_scheduler_fiber_table[core_number] = ::ConvertThreadToFiber(nullptr);
+                DD_ASSERT(scheduler->m_scheduler_fiber_table[core_number] != 0);
+                DD_ASSERT(::GetLastError() == 0);
+
+                /* Acquire scheduler lock for first run */
+                ::AcquireSRWLockExclusive(std::addressof(scheduler->m_scheduler_lock));
 
                 /* Call into the scheduler */
                 scheduler->SchedulerFiberMain(core_number);
@@ -56,10 +60,14 @@ namespace dd::ukern::impl {
                 return 0;
             }
 
-            static void InternalSchedulerMainThreadFiberMain([[maybe_unused]] void *arg) {
+            static void InternalSchedulerMainThreadFiberMain(void *arg) {
+
+                UserScheduler *scheduler = impl::GetScheduler();
+
+                /* Add main fiber to scheduler */
+                scheduler->AddToSchedulerUnsafe(reinterpret_cast<FiberLocalStorage*>(arg));
 
                 /* Call into the scheduler */
-                UserScheduler *scheduler = impl::GetScheduler();
                 scheduler->SchedulerFiberMain(0);
             }
 
@@ -69,11 +77,8 @@ namespace dd::ukern::impl {
                 FiberLocalStorage *fiber_local = reinterpret_cast<FiberLocalStorage*>(arg);
                 UserScheduler *scheduler = impl::GetScheduler();
 
-                /* Add fiber local to fls */
-                ::FlsSetValue(scheduler->m_current_fiber_fls_slot, fiber_local);
-
-                /* Set fiber core number */
-                fiber_local->current_core = ::GetCurrentProcessorNumber();
+                /* Release scheduler lock for first run */
+                ::ReleaseSRWLockExclusive(std::addressof(scheduler->m_scheduler_lock));
 
                 /* Dispatch user fiber */
                 (fiber_local->user_function)(fiber_local->user_arg);
@@ -104,6 +109,8 @@ namespace dd::ukern::impl {
                     m_low_priority_list.PushBack(*fiber_local);
                 }
                 
+                fiber_local->fiber_state = FiberState_Scheduled;
+                
                 ++m_runnable_fibers;
                 
                 /* Wake a sleeping core */
@@ -112,7 +119,7 @@ namespace dd::ukern::impl {
             
             void Dispatch(FiberLocalStorage *fiber_local, u32 core_number);
         public:
-            constexpr ALWAYS_INLINE UserScheduler() {/*...*/}
+            constexpr ALWAYS_INLINE UserScheduler()  : m_scheduler_lock(0) , m_scheduler_thread_table{nullptr}, m_scheduler_fiber_table{nullptr} {/*...*/}
             
             void Initialize(UKernCoreMask core_mask);
         private:
@@ -123,7 +130,7 @@ namespace dd::ukern::impl {
             Result StartThread(UKernHandle handle);
             void   ExitThreadImpl();
             
-            Result SetPriorityImpl(UKernHandle handle, u32 priority);
+            Result SetPriorityImpl(UKernHandle handle, s32 priority);
             Result SetCoreMaskImpl(UKernHandle handle, u64 new_mask);
             Result SetActivityImpl(UKernHandle handle, u16 activity_level);
             
@@ -142,21 +149,22 @@ namespace dd::ukern::impl {
             Result WakeByAddressModifyLessThanImpl(u32 *address, u32 value, u32 count);
 
             ALWAYS_INLINE FiberLocalStorage *GetCurrentThreadImpl() {
-                return reinterpret_cast<FiberLocalStorage*>(::FlsGetValue(m_current_fiber_fls_slot));
+                return reinterpret_cast<FiberLocalStorage*>(::GetFiberData());
             }
 
             static void SetInitialFiberNameUnsafe(FiberLocalStorage *fiber_local) {
                 /* Special case for main thread */
-                if (fiber_local->ukern_fiber_handle == 1) { ::strncpy(fiber_local->fiber_name_storage, "MainThread", MaxFiberNameLength); return; }
+                if (fiber_local->user_function == nullptr) { ::strncpy(fiber_local->fiber_name_storage, "MainThread", MaxFiberNameLength); return; }
 
                 /* Otherwise use fiber's initial function address */
                 ::snprintf(fiber_local->fiber_name_storage, MaxFiberNameLength, "Thread0x%08x", reinterpret_cast<size_t>(fiber_local->user_function));
             }
 
             constexpr ALWAYS_INLINE void *GetSchedulerFiber(FiberLocalStorage *fiber_local) {
-                return m_scheduler_fiber_table[fiber_local->current_core];
+                DD_ASSERT(m_core_count > fiber_local->current_core);
+                return m_scheduler_fiber_table[0];
             }
-    
+
             FiberLocalStorage *GetFiberByHandle(UKernHandle handle);
         public:
             void SuspendAllOtherCoresImpl() {

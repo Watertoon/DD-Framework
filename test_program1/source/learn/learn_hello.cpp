@@ -369,7 +369,7 @@ namespace dd::learn {
 
         camera.GetPos(std::addressof(new_pos));
         camera.GetUp(std::addressof(up));
-        float speed = 2.5f * util::GetDeltaTime();
+        float speed = 1.0f;
 
         hid::MouseState mouse_state = hid::GetMouseState();
 

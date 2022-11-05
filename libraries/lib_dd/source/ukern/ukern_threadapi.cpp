@@ -64,5 +64,5 @@ namespace dd::ukern {
         impl::GetScheduler()->SleepThreadImpl(0);
     }
 
-    ALWAYS_INLINE ThreadType *GetCurrentThread() { return impl::GetScheduler()->GetCurrentThreadImpl(); }
+    ThreadType *GetCurrentThread() { return impl::GetScheduler()->GetCurrentThreadImpl(); }
 }
