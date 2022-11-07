@@ -15,18 +15,15 @@ namespace dd::ukern {
                 const FiberLocalStorage *fiber_local = ukern::GetCurrentThread();
                 const UKernHandle tag = fiber_local->ukern_fiber_handle;
 
-                while (true) {
-                    
-                    /* Try to acquire the critical section */
-                    const UKernHandle other_waiter = ::InterlockedCompareExchangeAcquire(std::addressof(m_handle), tag, 0);
-                    if (other_waiter == 0) { return; }
+                /* Try to acquire the critical section */
+                const UKernHandle other_waiter = ::InterlockedCompareExchangeAcquire(std::addressof(m_handle), tag, 0);
+                if (other_waiter == 0) { return; }
 
-                    /* Set tag bit */
-                    ::InterlockedBitTestAndSet(reinterpret_cast<volatile long int*>(std::addressof(m_handle)), 0x1e);
+                /* Set tag bit */
+                ::InterlockedBitTestAndSet(reinterpret_cast<volatile long int*>(std::addressof(m_handle)), 0x1e);
 
-                    /* If we fail, arbitrate lock */
-                    impl::GetScheduler()->ArbitrateLockImpl(other_waiter, std::addressof(m_handle), tag);
-                }
+                /* If we fail, arbitrate lock */
+                DD_ASSERT(impl::GetScheduler()->ArbitrateLockImpl(other_waiter, std::addressof(m_handle), tag) == ResultSuccess);
             }
             
             void Leave() {

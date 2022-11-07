@@ -13,10 +13,12 @@ namespace dd::util {
         }
     }
 
-    u32 sSystemFrequency = 0;
+    u32 sSystemFrequency   = 0;
+    u64 sMaxTickToTimeSpan = 0xFFFF'FFFF'FFFF'FFFF;
 
     void InitializeTimeStamp() {
         x64::rdtscp(std::addressof(sSystemFrequency));
+        sMaxTickToTimeSpan = 0xFFFF'FFFF'FFFF'FFFF - (0xFFFF'FFFF'FFFF'FFFF % sSystemFrequency);
     }
 
     u64 GetSystemTick() {
@@ -25,5 +27,9 @@ namespace dd::util {
 
     u32 GetSystemTickFrequency() {
         return sSystemFrequency;
+    }
+    
+    u64 GetMaxTickToTimeSpan() {
+        return sMaxTickToTimeSpan;
     }
 }

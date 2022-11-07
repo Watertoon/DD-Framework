@@ -21,10 +21,16 @@ void TestWaitMain(void *arg) {
     return;
 }
 
-TEST(SchedulerSingleCoreThreadValueSet) {
+TEST(SchedulerDualCoreThreadValueSet) {
 
-    /* Use a single thread */
-    dd::ukern::UKernCoreMask core_mask = 1;
+    /* Integrity check for 2 cores */
+    TEST_ASSERT(::GetActiveProcessorCount(0) > 2);
+
+    /* Init timestamp */
+    dd::util::InitializeTimeStamp();
+
+    /* Use two cores */
+    dd::ukern::UKernCoreMask core_mask = 3;
 
     /* Initialize scheduler */
     dd::ukern::InitializeUKern(core_mask);
@@ -34,7 +40,7 @@ TEST(SchedulerSingleCoreThreadValueSet) {
 
     /* Create a thread */
     dd::ukern::UKernHandle handle = 0;
-    const u32 result0 = dd::ukern::CreateThread(std::addressof(handle), TestWaitMain, reinterpret_cast<uintptr_t>(std::addressof(cs)), 0x1000, THREAD_PRIORITY_NORMAL, 0);
+    const u32 result0 = dd::ukern::CreateThread(std::addressof(handle), TestWaitMain, reinterpret_cast<uintptr_t>(std::addressof(cs)), 0x1000, THREAD_PRIORITY_NORMAL, 1);
     ::printf("0x%X\n", result0);
     TEST_ASSERT(result0 != dd::ukern::ResultInvalidThreadFunctionPointer);
     TEST_ASSERT(result0 != dd::ukern::ResultInvalidStackSize);
@@ -52,8 +58,8 @@ TEST(SchedulerSingleCoreThreadValueSet) {
     ::printf("0x%X\n", result1);
     TEST_ASSERT(result1 == dd::ResultSuccess);
 
-    /* Sleep for 1 second */
-    dd::ukern::YieldThread();
+    /* Sleep for 2 milliseconds */
+    dd::ukern::Sleep(dd::TimeSpan::FromMilliSeconds(2));
 
     /* Assert value hasn't changed */
     TEST_ASSERT(TestValue != 0);
@@ -61,7 +67,7 @@ TEST(SchedulerSingleCoreThreadValueSet) {
     /* Release CS */
     cs.Leave();
 
-    /* Wait for value to be set */
+    /* Barrier until value is set */
     while (TestValue != 1) {
         dd::ukern::YieldThread();
     }

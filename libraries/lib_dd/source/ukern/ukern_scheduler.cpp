@@ -20,10 +20,12 @@ namespace dd::ukern::impl {
         return absolute_time + 2;
     }
 
-    void UserScheduler::SchedulerFiberMain(size_t core_number) {
+    NO_RETURN void UserScheduler::SchedulerFiberMain(size_t core_num) {
 
         /* Label for post dispatch/rest restart */
         _ukern_scheduler_restart:
+        
+        const u32 core_number = core_num;
 
         /* Get current time for fibers on a timeout */
         const u64 tick = util::GetSystemTick();
@@ -67,11 +69,33 @@ namespace dd::ukern::impl {
         }
 
         do {
+            /* Find next wakeup time */
+            u64 timeout_tick = 0xffff'ffff'ffff'ffff;
+            for (FiberLocalStorage &waiting_fiber : m_wait_list) {
+                if ((waiting_fiber.core_mask & (1 << core_number)) != 0  && waiting_fiber.timeout < timeout_tick)  { timeout_tick = waiting_fiber.timeout; }
+            }
+            for (FiberLocalStorage &runnable_fiber : m_high_priority_list) {
+                if ((runnable_fiber.core_mask & (1 << core_number)) != 0 && runnable_fiber.timeout < timeout_tick) { timeout_tick = runnable_fiber.timeout; }
+            }
+            for (FiberLocalStorage &runnable_fiber : m_above_normal_priority_list) {
+                if ((runnable_fiber.core_mask & (1 << core_number)) != 0 && runnable_fiber.timeout < timeout_tick) { timeout_tick = runnable_fiber.timeout; }
+            }
+            for (FiberLocalStorage &runnable_fiber : m_normal_priority_list) {
+                if ((runnable_fiber.core_mask & (1 << core_number)) != 0 && runnable_fiber.timeout < timeout_tick) { timeout_tick = runnable_fiber.timeout; }
+            }
+            for (FiberLocalStorage &runnable_fiber : m_below_normal_priority_list) {
+                if ((runnable_fiber.core_mask & (1 << core_number)) != 0 && runnable_fiber.timeout < timeout_tick) { timeout_tick = runnable_fiber.timeout; }
+            }
+            for (FiberLocalStorage &runnable_fiber : m_low_priority_list) {
+                if ((runnable_fiber.core_mask & (1 << core_number)) != 0 && runnable_fiber.timeout < timeout_tick) { timeout_tick = runnable_fiber.timeout; }
+            }
+
             /* Release scheduler lock */
             ::ReleaseSRWLockExclusive(std::addressof(m_scheduler_lock));
 
             /* Rest core until a new fiber is schedulable, or another rester is looking to sleep */
-            ::WaitOnAddress(std::addressof(m_runnable_fibers), std::addressof(m_scheduler_lock), sizeof(u32), INFINITE);
+            u32 wait_value = m_runnable_fibers;
+            ::WaitOnAddress(std::addressof(m_runnable_fibers), std::addressof(wait_value), sizeof(u32), dd::TimeSpan::GetTimeLeftOnTarget(timeout_tick).GetMilliSeconds());
 
             /* Reacquire scheduler lock */
             ::AcquireSRWLockExclusive(std::addressof(m_scheduler_lock));
@@ -86,6 +110,7 @@ namespace dd::ukern::impl {
     void UserScheduler::Dispatch(FiberLocalStorage *fiber_local, u32 core_number) {
 
         /* Set fiber runtime args */
+        fiber_local->fiber_state = FiberState_Running;
         fiber_local->current_core = core_number;
         DD_ASSERT(m_core_count > fiber_local->current_core);
         
@@ -94,6 +119,8 @@ namespace dd::ukern::impl {
 
         /* Switch to user fiber */
         ::SwitchToFiber(fiber_local->win32_fiber_handle);
+
+        DD_ASSERT(core_number == fiber_local->current_core);
 
         /* Handle previous fiber */
         switch (fiber_local->fiber_state) {
@@ -146,12 +173,10 @@ namespace dd::ukern::impl {
 		main_fiber_local->activity_level     = ActivityLevel_Schedulable;
         main_fiber_local->win32_fiber_handle = ::ConvertThreadToFiber(main_fiber_local);
         DD_ASSERT(main_fiber_local->win32_fiber_handle != nullptr);
-        DD_ASSERT(::GetLastError() == 0);
 
         /* Create main thread scheduler fiber */
 		m_scheduler_fiber_table[0] = ::CreateFiber(0x2000, InternalSchedulerMainThreadFiberMain, main_fiber_local);
         DD_ASSERT(m_scheduler_fiber_table[0] != nullptr);
-        DD_ASSERT(::GetLastError() == 0);
 
         /* Reserve main thread */
 		const bool result = m_handle_table.ReserveHandle(std::addressof(main_fiber_local->ukern_fiber_handle), main_fiber_local);
@@ -163,7 +188,7 @@ namespace dd::ukern::impl {
 
 		/* Allocate scheduler worker fibers */
 		for (u32 i = 1; i < core_count; ++i) {
-			m_scheduler_thread_table[i] = ::CreateThread(nullptr, 0x1000, InternalSchedulerFiberMain, reinterpret_cast<void*>(core_count), CREATE_SUSPENDED, nullptr);
+			m_scheduler_thread_table[i] = ::CreateThread(nullptr, 0x1000, InternalSchedulerFiberMain, reinterpret_cast<void*>(i), CREATE_SUSPENDED, nullptr);
 			DD_ASSERT(m_scheduler_thread_table[i] != INVALID_HANDLE_VALUE);
 
             u64 secondary_mask = (1 << i);
@@ -201,7 +226,7 @@ namespace dd::ukern::impl {
         /* Set fiber args */
         fiber_local->priority       = priority + WindowsToUKernPriorityOffset;
         fiber_local->stack_size     = stack_size;
-        fiber_local->core_mask      =  (1 << core_id);
+        fiber_local->core_mask      = (1 << core_id);
         fiber_local->user_arg       = reinterpret_cast<void*>(arg);
         fiber_local->user_function  = thread_func;
         fiber_local->fiber_state    = FiberState_Suspended;
@@ -212,7 +237,6 @@ namespace dd::ukern::impl {
         /* Create win32 fiber */
         fiber_local->win32_fiber_handle = ::CreateFiber(stack_size, UserFiberMain, fiber_local);
         DD_ASSERT(fiber_local->win32_fiber_handle != nullptr);
-        DD_ASSERT(::GetLastError() == 0);
 
         /* Add to suspend list */
         m_suspended_list.PushBack(*fiber_local);
@@ -311,7 +335,7 @@ namespace dd::ukern::impl {
         return ResultSuccess;
     }
 
-    void UserScheduler::SleepThreadImpl(s64 absolute_timeout) {
+    void UserScheduler::SleepThreadImpl(u64 absolute_timeout) {
 
         /* Get current fiber */
         FiberLocalStorage *current_fiber = this->GetCurrentThreadImpl();
@@ -327,7 +351,7 @@ namespace dd::ukern::impl {
         }
 
         /* Switch to scheduler */
-        ::SwitchToFiber(m_scheduler_fiber_table[0]);
+        ::SwitchToFiber(this->GetSchedulerFiber(current_fiber));
 
         return;
     }
@@ -717,9 +741,7 @@ namespace dd::ukern::impl {
         ScopedSchedulerLock lock(this);
         
         /* Check address value */
-        if (*wait_address != value) {
-            return ResultValueOutOfRange;
-        }
+        RESULT_RETURN_IF(*wait_address != value, ResultValueOutOfRange);
 
         *wait_address = value + 1;
 

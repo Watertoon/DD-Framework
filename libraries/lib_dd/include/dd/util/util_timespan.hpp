@@ -14,11 +14,11 @@ namespace dd {
             constexpr ALWAYS_INLINE TimeSpan() : m_time_ns(0) {/*...*/}
             constexpr ALWAYS_INLINE TimeSpan(s64 time_ns) : m_time_ns(time_ns) {/*...*/}
             
-            static ALWAYS_INLINE TimeSpan FromSystemTick(s64 tick) {
+            static ALWAYS_INLINE TimeSpan FromTick(u64 tick) {
                 
                 /* Query frequency and limit */
                 const s64 frequency            = util::GetSystemTickFrequency();
-                const s64 max_tick_to_timespan = util::GetMaxTickToTimespan();
+                const s64 max_tick_to_timespan = util::GetMaxTickToTimeSpan();
 
                 /* Verify tick to timespan limit */
                 if (max_tick_to_timespan < tick)  { return MaxTime; }
@@ -37,14 +37,14 @@ namespace dd {
             static constexpr ALWAYS_INLINE TimeSpan GetTimeLeftOnTarget(s64 tick) {
                 if (tick == 0) { return 0; }
                 
-                const s64 tick_left = tick - util::GetSystemTick();
+                const u64 tick_left = tick - util::GetSystemTick();
                 
                 if (tick_left == 0 && tick <= tick_left) { return 0; }
                 
-                return FromSystemTick(tick_left);
+                return FromTick(tick_left);
             }
 
-            ALWAYS_INLINE s64 GetTick() const {
+            ALWAYS_INLINE u64 GetTick() const {
                 const s64 frequency = util::GetSystemTickFrequency();
                 const s64 seconds   = this->GetSeconds();
 

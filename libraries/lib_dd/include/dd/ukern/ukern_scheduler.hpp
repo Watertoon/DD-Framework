@@ -49,7 +49,6 @@ namespace dd::ukern::impl {
                 /* Convert thread to Fiber */
                 scheduler->m_scheduler_fiber_table[core_number] = ::ConvertThreadToFiber(nullptr);
                 DD_ASSERT(scheduler->m_scheduler_fiber_table[core_number] != 0);
-                DD_ASSERT(::GetLastError() == 0);
 
                 /* Acquire scheduler lock for first run */
                 ::AcquireSRWLockExclusive(std::addressof(scheduler->m_scheduler_lock));
@@ -134,7 +133,7 @@ namespace dd::ukern::impl {
             Result SetCoreMaskImpl(UKernHandle handle, u64 new_mask);
             Result SetActivityImpl(UKernHandle handle, u16 activity_level);
             
-            void   SleepThreadImpl(s64 absolute_timeout);
+            void   SleepThreadImpl(u64 absolute_timeout);
 
             Result ArbitrateLockImpl(UKernHandle handle, u32 *address, u32 tag);
             Result ArbitrateUnlockImpl(u32 *address);
@@ -162,7 +161,7 @@ namespace dd::ukern::impl {
 
             constexpr ALWAYS_INLINE void *GetSchedulerFiber(FiberLocalStorage *fiber_local) {
                 DD_ASSERT(m_core_count > fiber_local->current_core);
-                return m_scheduler_fiber_table[0];
+                return m_scheduler_fiber_table[fiber_local->current_core];
             }
 
             FiberLocalStorage *GetFiberByHandle(UKernHandle handle);

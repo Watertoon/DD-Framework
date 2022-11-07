@@ -6,7 +6,7 @@ namespace dd::ukern {
         if (fiber_state != FiberState_Scheduled)          { return false; }
         if ((core_mask & (1 << core_number)) == 0)        { return false; }
         if (waitable_object != nullptr && timeout < time) { waitable_object->CancelWait(this, ResultTimeout); return true; }
-        if (timeout < time) { return true; }
+        if (timeout < time)                               { return true; }
 
         return false;
     }

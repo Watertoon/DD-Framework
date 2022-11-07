@@ -10,22 +10,22 @@ namespace dd::util {
             IntrusiveListNode *m_prev;
             IntrusiveListNode *m_next;
         public:
-            constexpr IntrusiveListNode() : m_prev(this), m_next(this) {/*...*/}
+            constexpr ALWAYS_INLINE IntrusiveListNode() : m_prev(this), m_next(this) {/*...*/}
 
-            constexpr IntrusiveListNode *next() const {
+            constexpr ALWAYS_INLINE IntrusiveListNode *next() const {
                 return m_next;
             }
 
-            constexpr IntrusiveListNode *prev() const {
+            constexpr ALWAYS_INLINE IntrusiveListNode *prev() const {
                 return m_prev;
             }
             
             
-            constexpr bool IsLinked() const {
+            constexpr ALWAYS_INLINE bool IsLinked() const {
                 return m_prev != m_next;
             }
 
-            constexpr void LinkNext(IntrusiveListNode *new_node) {
+            constexpr ALWAYS_INLINE void LinkNext(IntrusiveListNode *new_node) {
                 IntrusiveListNode *new_prev = new_node->m_prev;
                 new_node->m_prev = m_prev;
                 new_prev->m_next = this;
@@ -33,7 +33,7 @@ namespace dd::util {
                 m_prev = new_prev;
             }
 
-            constexpr void LinkPrev(IntrusiveListNode *new_node) {
+            constexpr ALWAYS_INLINE void LinkPrev(IntrusiveListNode *new_node) {
                 IntrusiveListNode *new_prev = new_node->m_prev;
                 new_node->m_prev = m_prev->m_prev;
                 new_prev->m_next = m_prev;
@@ -41,7 +41,7 @@ namespace dd::util {
                 m_prev->m_prev = new_prev;
             }
 
-            constexpr void Unlink() {
+            constexpr ALWAYS_INLINE void Unlink() {
                 m_prev->m_next = m_next;
                 m_next->m_prev = m_prev;
                 m_next = this;
@@ -61,24 +61,22 @@ namespace dd::util {
                     using pointer         = T*;
                     using const_pointer   = const T*;
                 private:
-                    IntrusiveListNode *m_node;
                     IntrusiveListNode *m_next;
                 public:
-                    constexpr Iterator(IntrusiveListNode *node) : m_node(node), m_next(node->next()) {}
+                    constexpr ALWAYS_INLINE Iterator(IntrusiveListNode *node) : m_next(node->next()) {}
 
-                    reference operator*() {
-                        return Traits::GetParentReference(m_node);
+                    ALWAYS_INLINE reference operator*() {
+                        return Traits::GetParentReference(m_next->prev());
                     }
-                    const_reference operator*() const {
-                        return Traits::GetParentReference(m_node);
-                    }
-
-                    constexpr bool operator!=(const Iterator<IsConst> &rhs) {
-                        return m_node != rhs.m_node;
+                    ALWAYS_INLINE const_reference operator*() const {
+                        return Traits::GetParentReference(m_next->prev());
                     }
 
-                    constexpr Iterator<IsConst> &operator++() {
-                        m_node = m_next;
+                    constexpr ALWAYS_INLINE bool operator!=(const Iterator<IsConst> &rhs) {
+                        return m_next != rhs.m_next;
+                    }
+
+                    constexpr ALWAYS_INLINE Iterator<IsConst> &operator++() {
                         m_next = m_next->next();
                         return *this;
                     }
@@ -94,19 +92,19 @@ namespace dd::util {
         private:
             IntrusiveListNode m_list;
         public:
-            constexpr IntrusiveList() : m_list() {}
+            constexpr ALWAYS_INLINE IntrusiveList() : m_list() {}
 
-            constexpr iterator begin() {
+            constexpr ALWAYS_INLINE iterator begin() {
                 return iterator(m_list.m_next);
             }
-            constexpr const_iterator cbegin() const {
+            constexpr ALWAYS_INLINE const_iterator cbegin() const {
                 return const_iterator(m_list.m_next);
             }
 
-            constexpr iterator end() {
+            constexpr ALWAYS_INLINE iterator end() {
                 return iterator(std::addressof(m_list));
             }
-            constexpr const_iterator cend() const {
+            constexpr ALWAYS_INLINE const_iterator cend() const {
                 return const_iterator(std::addressof(m_list));
             }
 
@@ -124,7 +122,7 @@ namespace dd::util {
                 return Traits::GetParentReference(m_list.m_prev);
             }
 
-            constexpr bool IsEmpty() const {
+            constexpr ALWAYS_INLINE bool IsEmpty() const {
                 return m_list.IsLinked();
             }
 
@@ -136,25 +134,25 @@ namespace dd::util {
                 m_list.m_next->LinkNext(Traits::GetListNode(std::addressof(obj)));
             }
             
-            constexpr reference PopFront() {
+            constexpr ALWAYS_INLINE reference PopFront() {
                 IntrusiveListNode *front = m_list.m_next;
                 front->Unlink();
                 return Traits::GetParentReference(front);
             }
 
-            constexpr const_reference PopFront() const {
+            constexpr ALWAYS_INLINE const_reference PopFront() const {
                 IntrusiveListNode *front = m_list.m_next;
                 front->Unlink();
                 return Traits::GetParentReference(front);
             }
 
-            constexpr reference PopBack() {
+            constexpr ALWAYS_INLINE reference PopBack() {
                 IntrusiveListNode *back = m_list.m_prev;
                 back->Unlink();
                 return Traits::GetParentReference(back);
             }
 
-            constexpr const_reference PopBack() const {
+            constexpr ALWAYS_INLINE const_reference PopBack() const {
                 IntrusiveListNode *back = m_list.m_prev;
                 back->Unlink();
                 return Traits::GetParentReference(back);
@@ -164,11 +162,11 @@ namespace dd::util {
                 Traits::GetListNode(std::addressof(obj)).Unlink();
             }
 
-            static constexpr iterator IteratorTo(reference obj) {
+            static constexpr ALWAYS_INLINE iterator IteratorTo(reference obj) {
                 return iterator(Traits::GetListNode(std::addressof(obj)));
             }
 
-            static constexpr const_iterator IteratorTo(const_reference obj) {
+            static constexpr ALWAYS_INLINE const_iterator IteratorTo(const_reference obj) {
                 return const_iterator(Traits::GetListNode(std::addressof(obj)));
             }
     };

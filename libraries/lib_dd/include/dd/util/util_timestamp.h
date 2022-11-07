@@ -6,5 +6,5 @@ namespace dd::util {
 
     u64 GetSystemTick();
     u32 GetSystemTickFrequency();
-    s64 GetMaxTickToTimespan();
+    u64 GetMaxTickToTimeSpan();
 }
