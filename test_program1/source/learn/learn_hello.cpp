@@ -2,8 +2,8 @@
  *  Copyright (C) W. Michael Knudson
  *
  *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation.
+ *  it under the terms of the GNU General Public License version 2 as 
+ *  published by the Free Software Foundation.
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,7 +11,7 @@
  *  GNU General Public License for more details.
  *  
  *  You should have received a copy of the GNU General Public License along with this program; 
- *  if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *  if not, see <https://www.gnu.org/licenses/>
  */
 #include <dd.hpp>
 
@@ -203,7 +203,7 @@ namespace dd::learn {
             .size = sizeof(vertices),
             .vk_usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT
         };
-        
+
         vk::TextureInfo texture0_info = {
             .vk_usage_flags       = VK_IMAGE_USAGE_SAMPLED_BIT,
             .mip_levels           = 1,
@@ -218,7 +218,7 @@ namespace dd::learn {
             .array_layers         = 1,
             .memory_offset        = 0
         };
-        
+
         vk::TextureInfo texture1_info = {
             .vk_usage_flags       = VK_IMAGE_USAGE_SAMPLED_BIT,
             .mip_levels           = 1,
@@ -232,7 +232,7 @@ namespace dd::learn {
             .vk_tiling            = VK_IMAGE_TILING_LINEAR,
             .array_layers         = 1
         };
-        
+
         /* Calculate offsets */
         index_buffer_info.offset    = util::AlignUp(sizeof(vertices), vk::Buffer::GetAlignment(context, std::addressof(index_buffer_info)));
         uniform_buffer_info.offset  = util::AlignUp(index_buffer_info.offset + sizeof(indices), vk::Buffer::GetAlignment(context, std::addressof(uniform_buffer_info)));
@@ -248,7 +248,7 @@ namespace dd::learn {
         memory_image  = new(std::align_val_t(vk::Context::TargetMemoryPoolAlignment)) char[image_memory_size];
         DD_ASSERT(memory_buffer != nullptr);
         DD_ASSERT(memory_image != nullptr);
-        
+
         ::memcpy(memory_buffer, vertices, sizeof(vertices));
         ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(memory_buffer) + index_buffer_info.offset), indices, sizeof(indices));
 
@@ -257,7 +257,7 @@ namespace dd::learn {
             view_arg[i].model_matrix = model_matrix;
             view_arg[i].view_matrix = *camera.GetCameraMatrix();
             view_arg[i].projection_matrix = *perspective_projection.GetProjectionMatrix();
-            
+
             float rot_angle = 20.0f * i;
             dd::util::math::RotateLocalX(std::addressof(view_arg[i].model_matrix), rot_angle);
             dd::util::math::RotateLocalY(std::addressof(view_arg[i].model_matrix), 0.3f * rot_angle);
@@ -281,7 +281,7 @@ namespace dd::learn {
         };
         vk::MemoryPool *buffer_pool = util::GetPointer(vk_buffer_memory);
         buffer_pool->Initialize(context, std::addressof(buffer_pool_info));
-        
+
         /* Create image memory pool */
         util::ConstructAt(vk_image_memory);
         const vk::MemoryPoolInfo image_pool_info = {

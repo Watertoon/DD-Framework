@@ -62,7 +62,7 @@ TEST(SchedulerDualCoreThreadValueSet) {
     dd::ukern::Sleep(dd::TimeSpan::FromMilliSeconds(2));
 
     /* Assert value hasn't changed */
-    TEST_ASSERT(TestValue != 0);
+    TEST_ASSERT(TestValue == 0);
 
     /* Release CS */
     cs.Leave();

@@ -1,3 +1,18 @@
+ /*
+ *  Copyright (C) W. Michael Knudson
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License version 2 as 
+ *  published by the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License along with this program; 
+ *  if not, see <https://www.gnu.org/licenses/>.
+ */
 #pragma once
 
 namespace dd {
@@ -13,7 +28,7 @@ namespace dd {
         public:
             constexpr ALWAYS_INLINE TimeSpan() : m_time_ns(0) {/*...*/}
             constexpr ALWAYS_INLINE TimeSpan(s64 time_ns) : m_time_ns(time_ns) {/*...*/}
-            
+
             static ALWAYS_INLINE TimeSpan FromTick(u64 tick) {
                 
                 /* Query frequency and limit */
@@ -23,10 +38,10 @@ namespace dd {
                 /* Verify tick to timespan limit */
                 if (max_tick_to_timespan < tick)  { return MaxTime; }
                 if (tick < -max_tick_to_timespan) { return MinTime; }
-                
+
                 const s64 residual = ((tick % frequency) * 1'000'000'000) / frequency;
                 const s64 quotient = (tick / frequency) * 1'000'000'000;
-                
+
                 return TimeSpan(residual + quotient);
             }
             static constexpr ALWAYS_INLINE TimeSpan FromNanoSeconds(s64 time_ns)  { return TimeSpan(time_ns); }
@@ -36,11 +51,11 @@ namespace dd {
 
             static constexpr ALWAYS_INLINE TimeSpan GetTimeLeftOnTarget(s64 tick) {
                 if (tick == 0) { return 0; }
-                
+
                 const u64 tick_left = tick - util::GetSystemTick();
-                
+
                 if (tick_left == 0 && tick <= tick_left) { return 0; }
-                
+
                 return FromTick(tick_left);
             }
 

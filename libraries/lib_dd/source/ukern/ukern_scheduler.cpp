@@ -1,3 +1,18 @@
+ /*
+ *  Copyright (C) W. Michael Knudson
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License version 2 as 
+ *  published by the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License along with this program; 
+ *  if not, see <https://www.gnu.org/licenses/>
+ */
 #include <dd.hpp>
 
 namespace dd::ukern::impl {
@@ -157,6 +172,9 @@ namespace dd::ukern::impl {
 		/* Set main thread core mask to core 0 */
 		const u64 main_thread_mask = 1;
 		::SetThreadAffinityMask(::GetCurrentThread(), main_thread_mask);
+        
+        /* Initialize handle table */
+        m_handle_table.Initialize();
 
 		/* Set main thread handle */
 		HANDLE main_thread_handle = nullptr;
@@ -218,7 +236,7 @@ namespace dd::ukern::impl {
         /* Try to acquire a freed fiber slot from the free list */
         FiberLocalStorage *fiber_local = UserFiberLocalAllocator.Allocate();
         RESULT_RETURN_IF(fiber_local == nullptr, ResultThreadStorageExhaustion);
-        
+
         /* Try to reserve a ukern handle */
         const bool result = m_handle_table.ReserveHandle(std::addressof(fiber_local->ukern_fiber_handle), fiber_local);
         RESULT_RETURN_IF(result == false, ResultHandleExhaustion);
@@ -231,7 +249,7 @@ namespace dd::ukern::impl {
         fiber_local->user_function  = thread_func;
         fiber_local->fiber_state    = FiberState_Suspended;
         fiber_local->activity_level = ActivityLevel_Suspended;
-        
+
         this->SetInitialFiberNameUnsafe(fiber_local);
 
         /* Create win32 fiber */
@@ -240,7 +258,7 @@ namespace dd::ukern::impl {
 
         /* Add to suspend list */
         m_suspended_list.PushBack(*fiber_local);
-        
+
         *out_handle = fiber_local->ukern_fiber_handle;
 
         return ResultSuccess;
@@ -339,8 +357,6 @@ namespace dd::ukern::impl {
 
         /* Get current fiber */
         FiberLocalStorage *current_fiber = this->GetCurrentThreadImpl();
-        
-        ::printf("Core: %d\n", current_fiber->current_core);
 
         ScopedSchedulerLock lock(this);
 
@@ -366,7 +382,7 @@ namespace dd::ukern::impl {
 
         /* Lock scheduler */
         ScopedSchedulerLock lock(this);
-        
+
         /* Get fiber from handle table */
         FiberLocalStorage *handle_fiber = this->GetFiberByHandle(handle);
         RESULT_RETURN_IF(handle_fiber == nullptr, ResultInvalidHandle);
@@ -408,7 +424,7 @@ namespace dd::ukern::impl {
 
         /* Integrity checks */
         RESULT_RETURN_UNLESS(current_fiber->wait_list.IsEmpty() == false,   ResultRequiresLock);
-        RESULT_RETURN_UNLESS(current_fiber->ukern_fiber_handle == *lock_address, ResultInvalidAddress);
+        RESULT_RETURN_UNLESS(current_fiber->ukern_fiber_handle == ((*lock_address) & (~FiberLocalStorage::HasChildWaitersBit)), ResultInvalidAddress);
 
         /* Release lock */
         current_fiber->ReleaseLockWaitListUnsafe();
@@ -809,10 +825,10 @@ namespace dd::ukern::impl {
                 break;
             }
         }
-        
+
         /* Determine value to signal */
         u32 signal = -1;
-        
+
         if (address_fiber == nullptr) { 
             signal = 1; 
         } else if (0 < count) {

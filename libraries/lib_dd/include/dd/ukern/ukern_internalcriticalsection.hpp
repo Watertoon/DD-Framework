@@ -1,3 +1,18 @@
+ /*
+ *  Copyright (C) W. Michael Knudson
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License version 2 as 
+ *  published by the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License along with this program; 
+ *  if not, see <https://www.gnu.org/licenses/>
+ */
 #pragma once
 
 namespace dd::ukern {
@@ -9,7 +24,7 @@ namespace dd::ukern {
             UKernHandle m_handle;
         public:
             constexpr ALWAYS_INLINE InternalCriticalSection() : m_handle(0) {/*...*/}
-            
+
             void Enter() {
 
                 const FiberLocalStorage *fiber_local = ukern::GetCurrentThread();
@@ -23,7 +38,7 @@ namespace dd::ukern {
                 ::InterlockedBitTestAndSet(reinterpret_cast<volatile long int*>(std::addressof(m_handle)), 0x1e);
 
                 /* If we fail, arbitrate lock */
-                DD_ASSERT(impl::GetScheduler()->ArbitrateLockImpl(other_waiter, std::addressof(m_handle), tag) == ResultSuccess);
+                RESULT_ABORT_UNLESS(impl::GetScheduler()->ArbitrateLockImpl(other_waiter & (~FiberLocalStorage::HasChildWaitersBit), std::addressof(m_handle), tag), ResultSuccess);
             }
             
             void Leave() {
