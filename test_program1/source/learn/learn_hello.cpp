@@ -11,7 +11,7 @@
  *  GNU General Public License for more details.
  *  
  *  You should have received a copy of the GNU General Public License along with this program; 
- *  if not, see <https://www.gnu.org/licenses/>
+ *  if not, see <https://www.gnu.org/licenses/>.
  */
 #include <dd.hpp>
 
@@ -369,7 +369,7 @@ namespace dd::learn {
 
         camera.GetPos(std::addressof(new_pos));
         camera.GetUp(std::addressof(up));
-        float speed = 1.0f;
+        float speed = 2.5f * dd::util::GetDeltaTime();
 
         hid::MouseState mouse_state = hid::GetMouseState();
 

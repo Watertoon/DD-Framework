@@ -1,7 +1,22 @@
+ /*
+ *  Copyright (C) W. Michael Knudson
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License version 2 as 
+ *  published by the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License along with this program; 
+ *  if not, see <https://www.gnu.org/licenses/>.
+ */
 #include <dd.hpp>
 
 namespace dd::ukern {
-    
+
     Result ArbitrateLock(UKernHandle handle, uintptr_t address, u32 tag) {
         /* Call scheduler impl */
         impl::UserScheduler *scheduler = impl::GetScheduler();
@@ -13,12 +28,13 @@ namespace dd::ukern {
         impl::UserScheduler *scheduler = impl::GetScheduler();
         return scheduler->ArbitrateUnlockImpl(reinterpret_cast<u32*>(address));
     }
-    
+
     Result WaitKey(uintptr_t address, uintptr_t cv_key, u32 tag, s64 timeout_ns) {
         /* Call scheduler impl */
         impl::UserScheduler *scheduler = impl::GetScheduler();
         return scheduler->WaitKeyImpl(reinterpret_cast<u32*>(address), reinterpret_cast<u32*>(cv_key), tag, impl::GetAbsoluteTimeToWakeup(timeout_ns));
     }
+
     Result SignalKey(uintptr_t cv_key, u32 count) {
         /* Call scheduler impl */
         impl::UserScheduler *scheduler = impl::GetScheduler();
@@ -27,9 +43,9 @@ namespace dd::ukern {
 
     Result WaitForAddress(uintptr_t address, u32 arbitration_type, u32 value, s64 timeout_ns) {
         impl::UserScheduler *scheduler = impl::GetScheduler();
-        
+
         const u64 absolute_timeout = impl::GetAbsoluteTimeToWakeup(timeout_ns);
-        
+
         if (arbitration_type == ArbitrationType_WaitIfEqual) {
             return scheduler->WaitForAddressIfEqualImpl(reinterpret_cast<u32*>(address), value, absolute_timeout);
         } else if (arbitration_type == ArbitrationType_DecrementWaitIfLessThan) {
@@ -40,6 +56,7 @@ namespace dd::ukern {
 
         return ResultInvalidArbitrationType;
     }
+
     Result WakeByAddress(uintptr_t address, u32 signal_type, u32 value, u32 count) {
         impl::UserScheduler *scheduler = impl::GetScheduler();
         if (signal_type == SignalType_Signal) {

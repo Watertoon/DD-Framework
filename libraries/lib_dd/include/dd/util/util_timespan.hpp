@@ -30,7 +30,7 @@ namespace dd {
             constexpr ALWAYS_INLINE TimeSpan(s64 time_ns) : m_time_ns(time_ns) {/*...*/}
 
             static ALWAYS_INLINE TimeSpan FromTick(u64 tick) {
-                
+
                 /* Query frequency and limit */
                 const s64 frequency            = util::GetSystemTickFrequency();
                 const s64 max_tick_to_timespan = util::GetMaxTickToTimeSpan();

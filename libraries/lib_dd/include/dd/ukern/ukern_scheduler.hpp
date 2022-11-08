@@ -1,3 +1,18 @@
+ /*
+ *  Copyright (C) W. Michael Knudson
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License version 2 as 
+ *  published by the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License along with this program; 
+ *  if not, see <https://www.gnu.org/licenses/>.
+ */
 #pragma once
 
 namespace dd::ukern::impl {
@@ -87,14 +102,14 @@ namespace dd::ukern::impl {
             }
         private:
             void AddToSchedulerUnsafe(FiberLocalStorage *fiber_local) {
-                
+
                 /* Handle suspension */
                 if (fiber_local->activity_level == ActivityLevel_Suspended) {
                     fiber_local->fiber_state = FiberState_Suspended;
                     m_suspended_list.PushBack(*fiber_local);
                     return;
                 }
-                
+
                 /* Insert into runnable list based on priority */
                 if (fiber_local->priority == (THREAD_PRIORITY_NORMAL + WindowsToUKernPriorityOffset)) {
                     m_normal_priority_list.PushBack(*fiber_local);
@@ -107,32 +122,32 @@ namespace dd::ukern::impl {
                 } else if (fiber_local->priority == (THREAD_PRIORITY_LOWEST + WindowsToUKernPriorityOffset)) {
                     m_low_priority_list.PushBack(*fiber_local);
                 }
-                
+
                 fiber_local->fiber_state = FiberState_Scheduled;
-                
+
                 ++m_runnable_fibers;
-                
+
                 /* Wake a sleeping core */
                 ::WakeByAddressSingle(std::addressof(m_runnable_fibers));
             }
-            
+
             void Dispatch(FiberLocalStorage *fiber_local, u32 core_number);
         public:
             constexpr ALWAYS_INLINE UserScheduler()  : m_scheduler_lock(0) , m_scheduler_thread_table{nullptr}, m_scheduler_fiber_table{nullptr} {/*...*/}
-            
+
             void Initialize(UKernCoreMask core_mask);
         private:
             void SwapLockForSignalKey(FiberLocalStorage *waiting_fiber);
         public:
             Result CreateThreadImpl(UKernHandle *out_handle, ThreadFunction thread_func, uintptr_t arg, size_t stack_size, s32 priority, u32 core_id);
-            
+
             Result StartThread(UKernHandle handle);
             void   ExitThreadImpl();
-            
+
             Result SetPriorityImpl(UKernHandle handle, s32 priority);
             Result SetCoreMaskImpl(UKernHandle handle, u64 new_mask);
             Result SetActivityImpl(UKernHandle handle, u16 activity_level);
-            
+
             void   SleepThreadImpl(u64 absolute_timeout);
 
             Result ArbitrateLockImpl(UKernHandle handle, u32 *address, u32 tag);
@@ -167,11 +182,11 @@ namespace dd::ukern::impl {
             FiberLocalStorage *GetFiberByHandle(UKernHandle handle);
         public:
             void SuspendAllOtherCoresImpl() {
-                
+
                 /* Get current core number */
                 FiberLocalStorage *current_fiber = this->GetCurrentThreadImpl();
                 const u32 current_core = current_fiber->current_core;
-    
+
                 /* Suspend all cores except current */
                 for (u32 i = 0; i < m_core_count; ++i) {
                     if (current_core != i) {
@@ -179,7 +194,7 @@ namespace dd::ukern::impl {
                     }
                 }
             }
-            
+
             void OutputBackTraceImpl(HANDLE file) {
 
                 /* Print backtrace for this fiber */
@@ -190,7 +205,7 @@ namespace dd::ukern::impl {
                 
             }
     };
-    
+
     class ScopedSchedulerLock {
         private:
             UserScheduler *m_scheduler;

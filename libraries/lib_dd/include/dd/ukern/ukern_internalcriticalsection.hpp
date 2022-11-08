@@ -11,7 +11,7 @@
  *  GNU General Public License for more details.
  *  
  *  You should have received a copy of the GNU General Public License along with this program; 
- *  if not, see <https://www.gnu.org/licenses/>
+ *  if not, see <https://www.gnu.org/licenses/>.
  */
 #pragma once
 
@@ -38,7 +38,7 @@ namespace dd::ukern {
 
                     /* Set tag bit */
                     if (((other_waiter >> 0x1e) & 1) == 0) {
-                        const UKernHandle prev_value = ::InterlockedOr(reinterpret_cast<volatile long int*>(std::addressof(m_handle)), 0x1e);
+                        const UKernHandle prev_value = ::InterlockedOr(reinterpret_cast<volatile long int*>(std::addressof(m_handle)), FiberLocalStorage::HasChildWaitersBit);
                         if (prev_value != other_waiter) { continue; }
                     }
 

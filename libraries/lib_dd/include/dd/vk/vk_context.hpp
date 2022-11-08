@@ -2,8 +2,8 @@
  *  Copyright (C) W. Michael Knudson
  *
  *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation.
+ *  it under the terms of the GNU General Public License version 2 as 
+ *  published by the Free Software Foundation.
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,7 +11,7 @@
  *  GNU General Public License for more details.
  *  
  *  You should have received a copy of the GNU General Public License along with this program; 
- *  if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *  if not, see <https://www.gnu.org/licenses/>.
  */
 #pragma once
 
@@ -66,7 +66,7 @@ namespace dd::vk {
                 .format = VK_FORMAT_B8G8R8A8_SRGB,
                 .colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
             };
-            
+
             static constexpr VkFormat TargetDepthStencilFormat = VK_FORMAT_D24_UNORM_S8_UINT;
 
             /* Decide we will can have up to 8 color attachments per Render Pass */
@@ -135,7 +135,7 @@ namespace dd::vk {
             explicit Context();
 
             ~Context();
-            
+
             constexpr ALWAYS_INLINE u32 FindMemoryHeapIndex(u32 memory_properties) const {
                 for (u32 i = 0; i < m_vk_physical_device_memory_properties.memoryTypeCount; ++i) {
                     if ((m_vk_physical_device_memory_properties.memoryTypes[i].propertyFlags & memory_properties) == memory_properties) {

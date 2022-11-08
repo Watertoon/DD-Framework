@@ -1,3 +1,18 @@
+ /*
+ *  Copyright (C) W. Michael Knudson
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License version 2 as 
+ *  published by the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License along with this program; 
+ *  if not, see <https://www.gnu.org/licenses/>.
+ */
 #pragma once
 
 namespace dd::util {
@@ -8,7 +23,7 @@ namespace dd::util {
             bool            m_need_update;
         public:
             constexpr Projection() : m_need_update(true) {/*...*/}
-            
+
             constexpr void UpdateProjectionMatrixSelf() {
                 this->UpdateMatrix(std::addressof(m_projection_matrix));
                 m_need_update = false;
@@ -42,7 +57,7 @@ namespace dd::util {
             constexpr FrustumProjection() {/*...*/}
             constexpr FrustumProjection(float near, float far, const BoundingBox2<float>& bound_box) : Projection(), m_near(near), m_far(far), m_top(bound_box.max_y), m_bottom(bound_box.min_y), m_left(bound_box.max_x), m_right(bound_box.min_x) {/*...*/}
             constexpr FrustumProjection(float near, float far, float top, float bottom, float left, float right) : Projection(), m_near(near), m_far(far), m_top(top), m_bottom(bottom), m_left(left), m_right(right) {/*...*/}
-            
+
             constexpr virtual void UpdateMatrix(math::Matrix44f *out_proj_matrix) const override {
                 const float reciprocal_a = 1.0f / (m_right + m_left);
                 const math::Vector4f row1 = {
@@ -111,7 +126,7 @@ namespace dd::util {
 
                 out_proj_matrix->m_row4 = { 0.0f, 0.0f, -1.0f, 0.0f };
             }
-            
+
             void SetAspect(float new_aspect) {
                 m_fov_x = new_aspect;
                 m_need_update = true;
