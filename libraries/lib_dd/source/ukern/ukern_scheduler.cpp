@@ -423,8 +423,8 @@ namespace dd::ukern::impl {
         ScopedSchedulerLock lock(this);
 
         /* Integrity checks */
-        RESULT_RETURN_UNLESS(current_fiber->wait_list.IsEmpty() == false,   ResultRequiresLock);
-        RESULT_RETURN_UNLESS(current_fiber->ukern_fiber_handle == ((*lock_address) & (~FiberLocalStorage::HasChildWaitersBit)), ResultInvalidAddress);
+        RESULT_RETURN_UNLESS(current_fiber->wait_list.IsEmpty() == false,                                                       ResultRequiresLock);
+        RESULT_RETURN_UNLESS(current_fiber->ukern_fiber_handle == ((*lock_address) & (~FiberLocalStorage::HasChildWaitersBit)), ResultInvalidLockAddressValue);
 
         /* Release lock */
         current_fiber->ReleaseLockWaitListUnsafe();

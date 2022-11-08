@@ -41,7 +41,7 @@ TEST(SchedulerDualCoreThreadValueSet) {
     /* Create a thread */
     dd::ukern::UKernHandle handle = 0;
     const u32 result0 = dd::ukern::CreateThread(std::addressof(handle), TestWaitMain, reinterpret_cast<uintptr_t>(std::addressof(cs)), 0x1000, THREAD_PRIORITY_NORMAL, 1);
-    ::printf("0x%X\n", result0);
+    //::printf("0x%X\n", result0);
     TEST_ASSERT(result0 != dd::ukern::ResultInvalidThreadFunctionPointer);
     TEST_ASSERT(result0 != dd::ukern::ResultInvalidStackSize);
     TEST_ASSERT(result0 != dd::ukern::ResultInvalidPriority);
@@ -55,7 +55,7 @@ TEST(SchedulerDualCoreThreadValueSet) {
 
     /* Start other thread */
     const u32 result1 = dd::ukern::StartThread(handle);
-    ::printf("0x%X\n", result1);
+    //::printf("0x%X\n", result1);
     TEST_ASSERT(result1 == dd::ResultSuccess);
 
     /* Sleep for 2 milliseconds */
