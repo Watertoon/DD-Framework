@@ -264,7 +264,7 @@ namespace dd::ukern::impl {
         return ResultSuccess;
     }
 
-    void UserScheduler::ExitThreadImpl() {
+    void UserScheduler::ExitFiberImpl() {
 
         /* Get current fiber */
         FiberLocalStorage *fiber_local = this->GetCurrentThreadImpl();
@@ -277,6 +277,16 @@ namespace dd::ukern::impl {
 
         /* Swap to scheduler */
         ::SwitchToFiber(this->GetSchedulerFiber(fiber_local));
+    }
+
+    void UserScheduler::ExitThreadImpl(UKernHandle handle) {
+        FiberLocalStorage *exit_fiber = this->GetFiberByHandle(handle);
+
+        /* Sleep loop while handle is valid */
+        while (exit_fiber != nullptr) {
+            this->SleepThreadImpl(0);
+            exit_fiber = this->GetFiberByHandle(handle);
+        }
     }
 
     Result UserScheduler::SetPriorityImpl(UKernHandle handle, s32 priority) {

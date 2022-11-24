@@ -26,7 +26,7 @@ namespace dd::ukern {
     constexpr ALWAYS_INLINE size_t      MaxFiberNameLength           = 32;
     constexpr ALWAYS_INLINE s64         WindowsToUKernPriorityOffset = 2;
     constexpr ALWAYS_INLINE size_t      MainThreadHandle             = 1;
-    constexpr ALWAYS_INLINE size_t      MaxCoreCount                 = 16;
+    constexpr ALWAYS_INLINE size_t      MaxCoreCount                 = 32;
     constexpr ALWAYS_INLINE size_t      MaxThreadCount               = 256;
 
     static_assert(2 == (THREAD_PRIORITY_NORMAL + WindowsToUKernPriorityOffset));

@@ -27,13 +27,13 @@ namespace dd::ukern {
 
             void Enter() {
 
-                const FiberLocalStorage *fiber_local = ukern::GetCurrentThread();
-                const UKernHandle tag = fiber_local->ukern_fiber_handle;
+                const ThreadType *current_thread = ukern::GetCurrentThread();
+                const UKernHandle tag            = current_thread->ukern_fiber_handle;
 
                 /* Acquire loop */
                 for (;;) {
                     /* Try to acquire the critical section */
-                    const UKernHandle other_waiter = ::InterlockedCompareExchangeAcquire(std::addressof(m_handle), tag, 0);
+                    const UKernHandle other_waiter = ::InterlockedCompareExchange(std::addressof(m_handle), tag, 0);
                     if (other_waiter == 0) { return; }
 
                     /* Set tag bit */
@@ -44,10 +44,17 @@ namespace dd::ukern {
 
                     /* If we fail, lock the thread */
                     RESULT_ABORT_UNLESS(impl::GetScheduler()->ArbitrateLockImpl(other_waiter & (~FiberLocalStorage::HasChildWaitersBit), std::addressof(m_handle), tag), ResultSuccess);
-                    if ((m_handle & (~FiberLocalStorage::HasChildWaitersBit)) != tag) {
+                    if ((m_handle & (~FiberLocalStorage::HasChildWaitersBit)) == tag) {
                         return;
                     }
                 }
+            }
+
+            bool TryEnter() {
+                const ThreadType *current_thread = ukern::GetCurrentThread();
+                const UKernHandle tag            = current_thread->ukern_fiber_handle;
+                const UKernHandle other_waiter   = ::InterlockedCompareExchange(std::addressof(m_handle), tag, 0);
+                return other_waiter == 0;
             }
 
             void Leave() {
@@ -59,11 +66,19 @@ namespace dd::ukern {
                 if (((tag >> 0x1e) & 1) == 1) { RESULT_ABORT_UNLESS(impl::GetScheduler()->ArbitrateUnlockImpl(std::addressof(m_handle)), ResultSuccess); }
             }
 
-            void lock();
-            void unlock();
-            void try_lock();
-            
-            bool IsLockedByCurrentThread();
+            void lock() {
+                this->Enter();
+            }
+            void unlock() {
+                this->Leave();
+            }
+            bool try_lock() {
+                return this->TryEnter();
+            }
+
+            bool IsLockedByCurrentThread() {
+                return (m_handle & (~FiberLocalStorage::HasChildWaitersBit)) == ukern::GetCurrentThread()->ukern_fiber_handle;
+            }
     };
     static_assert(sizeof(InternalCriticalSection) == sizeof(UKernHandle));
 }

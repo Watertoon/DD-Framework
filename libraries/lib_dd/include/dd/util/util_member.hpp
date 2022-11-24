@@ -60,16 +60,17 @@ namespace dd::util {
                 Parent parent;
                 _UnionPadding<Member, Size> pad;
 
-                constexpr Impl() : c{} {};
+                constexpr ALWAYS_INLINE Impl() : c{} {};
+                constexpr ALWAYS_INLINE ~Impl() {};
             };
-            constexpr static Impl impl{};
+            constexpr ALWAYS_INLINE static Impl impl{};
         };
 
         template <typename Parent, typename Member>
         struct _OffsetOfImpl {
 
             template<size_t Size, auto Union = &_OffsetOfUnion<Parent, Member, Size>::impl>
-            static constexpr size_t GetOffset(Member Parent::* member) {
+            static constexpr ALWAYS_INLINE size_t GetOffset(Member Parent::* member) {
                 if constexpr(sizeof(Parent) > Size) {
                     const     auto parent_member_offset = std::addressof((static_cast<const Parent*>(std::addressof(Union->parent)))->*member);
                     constexpr auto union_member_offset  = std::addressof(Union->pad.member);
@@ -87,7 +88,7 @@ namespace dd::util {
         };
     }
 
-    constexpr size_t OffsetOf(auto member) {
+    constexpr ALWAYS_INLINE size_t OffsetOf(auto member) {
         using Parent = typename ParentOfMemberTraits<decltype(member)>::Parent;
         using Member = typename ParentOfMemberTraits<decltype(member)>::Member;
         return _OffsetOfImpl<Parent, Member>::template GetOffset<0>(member);

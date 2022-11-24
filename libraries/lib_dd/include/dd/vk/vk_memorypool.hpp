@@ -129,7 +129,7 @@ namespace dd::vk {
                 VkMemoryHostPointerPropertiesEXT host_properties = { 
                     .sType = VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT
                 };
-                const u32 result0 = pfn_vkGetMemoryHostPointerPropertiesEXT(context->GetDevice(), VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT, pool_info->import_memory, std::addressof(host_properties));
+                const u32 result0 = ::pfn_vkGetMemoryHostPointerPropertiesEXT(context->GetDevice(), VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT, pool_info->import_memory, std::addressof(host_properties));
                 DD_ASSERT(result0 == VK_SUCCESS);
 
                 /* Handle whether our host pointer needs a staging buffer */

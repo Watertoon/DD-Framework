@@ -98,8 +98,10 @@ namespace dd::ukern::impl {
                 (fiber_local->user_function)(fiber_local->user_arg);
 
                 /* Exit */
-                scheduler->ExitThreadImpl();
+                scheduler->ExitFiberImpl();
             }
+
+            void ExitFiberImpl();
         private:
             void AddToSchedulerUnsafe(FiberLocalStorage *fiber_local) {
 
@@ -142,7 +144,7 @@ namespace dd::ukern::impl {
             Result CreateThreadImpl(UKernHandle *out_handle, ThreadFunction thread_func, uintptr_t arg, size_t stack_size, s32 priority, u32 core_id);
 
             Result StartThread(UKernHandle handle);
-            void   ExitThreadImpl();
+            void   ExitThreadImpl(UKernHandle handle);
 
             Result SetPriorityImpl(UKernHandle handle, s32 priority);
             Result SetCoreMaskImpl(UKernHandle handle, u64 new_mask);

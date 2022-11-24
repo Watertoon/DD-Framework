@@ -24,7 +24,7 @@ namespace dd::ukern {
     }
 
     Result CreateThread(UKernHandle *out_handle, ThreadFunction thread_func, uintptr_t arg, size_t stack_size, u32 priority, u32 core_id);
-    void   ExitThread();
+    void   ExitThread(UKernHandle handle);
 
     Result StartThread(UKernHandle handle);
     Result ResumeThread (UKernHandle handle);
@@ -34,6 +34,9 @@ namespace dd::ukern {
     void   SetThreadNamePointer(UKernHandle handle, const char *name);
     Result SetThreadPriority(UKernHandle handle, u32 priority);
     Result SetThreadCoreMask(UKernHandle handle, UKernCoreMask core_mask);
+
+    Result GetThreadPriority(u32 *out_priority, UKernHandle handle);
+    Result GetThreadCoreMask(UKernCoreMask *out_core_mask, UKernHandle handle);
 
     void Sleep(TimeSpan timeout_span);
     void YieldThread();

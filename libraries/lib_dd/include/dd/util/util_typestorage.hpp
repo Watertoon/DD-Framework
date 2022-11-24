@@ -27,42 +27,42 @@ namespace dd::util {
     };
 
     template<typename T>
-    T::UnderlyingType &GetReference(T& storage) {
+    ALWAYS_INLINE T::UnderlyingType &GetReference(T& storage) {
         return *reinterpret_cast<T::UnderlyingType*>(std::addressof(storage._storage));
     }
 
     template<typename T>
-    const T::UnderlyingType &GetReference(const T& storage) {
+    ALWAYS_INLINE const T::UnderlyingType &GetReference(const T& storage) {
         return *reinterpret_cast<const T::UnderlyingType*>(std::addressof(storage._storage));
     }
 
     template<typename T>
-    T::UnderlyingType *GetPointer(T& storage) {
+    ALWAYS_INLINE T::UnderlyingType *GetPointer(T& storage) {
         return reinterpret_cast<T::UnderlyingType*>(std::addressof(storage._storage));
     }
 
     template<typename T>
-    const T::UnderlyingType *GetPointer(const T& storage) {
+    ALWAYS_INLINE const T::UnderlyingType *GetPointer(const T& storage) {
         return reinterpret_cast<const T::UnderlyingType*>(std::addressof(storage._storage));
     }
 
     template<typename T, class... Args>
-    void ConstructAt(T &storage, Args... args) {
+    ALWAYS_INLINE void ConstructAt(T &storage, Args... args) {
         std::construct_at(GetPointer(storage), std::forward<Args>(args)...);
     }
 
     template<typename T>
-    void ConstructAt(T &storage) {
+    ALWAYS_INLINE void ConstructAt(T &storage) {
         std::construct_at(GetPointer(storage));
     }
 
     template<typename T, class... Args>
-    void DestructAt(T &storage, Args... args) {
+    ALWAYS_INLINE void DestructAt(T &storage, Args... args) {
         std::destroy_at(GetPointer(storage), std::forward<Args>(args)...);
     }
 
     template<typename T>
-    void DestructAt(T &storage) {
+    ALWAYS_INLINE void DestructAt(T &storage) {
         std::destroy_at(GetPointer(storage));
     }
 }

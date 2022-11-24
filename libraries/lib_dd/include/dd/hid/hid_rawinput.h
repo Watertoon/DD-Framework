@@ -193,7 +193,7 @@ namespace dd::hid {
         VirtualKey_Pa1              = 0xFD,
         VirtualKey_OemClear         = 0xFE
     };
-    
+
     struct KeyState {
         union {
             u64 state_array[4];

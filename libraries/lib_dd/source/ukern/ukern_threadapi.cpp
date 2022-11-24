@@ -21,8 +21,8 @@ namespace dd::ukern {
         return impl::GetScheduler()->CreateThreadImpl(out_handle, thread_func, arg, stack_size, priority, core_id);
     }
 
-    void ExitThread() {
-        impl::GetScheduler()->ExitThreadImpl();
+    void ExitThread(UKernHandle handle) {
+        impl::GetScheduler()->ExitThreadImpl(handle);
     }
 
     Result StartThread(UKernHandle handle) {

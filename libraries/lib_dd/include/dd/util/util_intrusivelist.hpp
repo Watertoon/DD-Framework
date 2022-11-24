@@ -174,7 +174,7 @@ namespace dd::util {
             }
 
             static ALWAYS_INLINE void Remove(reference obj) {
-                Traits::GetListNode(std::addressof(obj)).Unlink();
+                Traits::GetListNode(std::addressof(obj))->Unlink();
             }
 
             static constexpr ALWAYS_INLINE iterator IteratorTo(reference obj) {

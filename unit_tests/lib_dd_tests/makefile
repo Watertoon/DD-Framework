@@ -105,8 +105,13 @@ all: build_tests/$(BUILD_EXES).exe
 
 # test runner
 
+define \n
+
+
+endef
+
 run_tests:
-	@$(foreach file,$(BUILD_EXES),build_tests/$(file).exe)
+	@$(foreach file,$(BUILD_EXES),build_tests/$(file).exe${\n})
 
 # Clean
 clean:
@@ -116,6 +121,7 @@ clean:
 # Output folders
 
 list:
+	@echo $(BUILD_EXES)
 	@echo $(UNFILTERED_CPP_FILES)
 	@echo $(FILTERED_CPP_FILES)
 	@echo $(CPP_FILES)

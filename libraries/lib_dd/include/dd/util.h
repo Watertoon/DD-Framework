@@ -19,6 +19,8 @@
 #include <dd/util/util_result_ukern.h>
 #include <dd/util/util_result_trace.h>
 
+#include <dd/util/util_new.h>
+
 #include <dd/util/util_alignment.hpp>
 #include <dd/util/util_sizeconstants.hpp>
 #include <dd/util/util_countbits.hpp>

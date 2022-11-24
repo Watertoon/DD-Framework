@@ -22,6 +22,8 @@
 #include <dd/trace.h>
 #include <dd/util.h>
 #include <dd/ukern.h>
+#include <dd/mem.h>
+#include <dd/sys.h>
 #include <dd/res.h>
 #include <dd/hid.h>
 #include <dd/vk.h>

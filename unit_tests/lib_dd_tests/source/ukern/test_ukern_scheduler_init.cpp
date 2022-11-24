@@ -20,6 +20,9 @@ DECLARE_UNIT_TESTER_INSTANCE;
 
 TEST(SchedulerInit) {
 
+    /* Init timestamp */
+    dd::util::InitializeTimeStamp();
+
     /* Query win32 core mask */
     dd::ukern::UKernCoreMask core_mask = 3;
 
