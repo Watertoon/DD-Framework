@@ -4,60 +4,58 @@ namespace dd::mem {
 
     namespace {
         constinit util::TypeStorage<HeapManager>  sHeapManagerStorage       = {};
-    //    constinit Heap                           *sRootHeap                 = nullptr;
+        constinit Heap                           *sRootHeap                 = nullptr;
         constinit sys::Mutex                      sHeapManagerMutex         = {};
         constinit bool                            sIsHeapManagerInitialized = false;
     }
 
-    //ALWAYS_INLINE void IntializeHeapManager(size_t size) {
-    //    std::scoped_lock l(sHeapManagerMutex);
-    //
-    //    util::ConstructAt(sHeapManagerStorage);
-    //    HeapManager *heap_mgr = util::GetPointer(sHeapManagerStorage);
-    //
-    //    /* Query our allocation granularity */
-    //    size_t allocation_granularity = sys::GetSystemInfo()->dwAllocationGranularity;
-    //
-    //    /* Create our program arena */
-    //    heap_mgr->memory = ::VirtualAlloc(nullptr, util::AlignUp(size, allocation_granularity), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-    //    DD_ASSERT(heap_mgr->memory != nullptr);
-    //
-    //    heap_mgr->memory_size = size;
-    //
-    //    /* Create our root heap spanning the arena */
-    //    sRootHeap = ExpHeap::TryCreate(heap_mgr->memory, heap_mgr->memory_size, "HeapManager::sRootHeap", false);
-    //    
-    //    sIsHeapManagerInitialized = true;
-    //}
-    //
-    //ALWAYS_INLINE void FinalizeHeapManager() {
-    //    std::scoped_lock l(sHeapManagerMutex);
-    //
-    //    /* Destroy root heap */
-    //    sRootHeap->Finalize();
-    //
-    //    /* Free our program's memory */
-    //    HeapManager *heap_mgr = util::GetPointer(sHeapManagerStorage);
-    //
-    //    bool result = ::VirtualFree(heap_mgr->memory, heap_mgr->m_memory_size, MEM_DECOMMIT | MEM_RELEASE);
-    //    DD_ASSERT(result == true);
-    //    heap_mgr->memory = nullptr;
-    //    heap_mgr->memory_size = 0;
-    //}
+    void InitializeHeapManager(size_t size) {
+    
+        util::ConstructAt(sHeapManagerStorage);
+        HeapManager *heap_mgr = util::GetPointer(sHeapManagerStorage);
+    
+        /* Query our allocation granularity */
+        size_t allocation_granularity = sys::GetSystemInfo()->dwAllocationGranularity;
+    
+        /* Create our program arena */
+        heap_mgr->memory = ::VirtualAlloc(nullptr, util::AlignUp(size, allocation_granularity), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+        DD_ASSERT(heap_mgr->memory != nullptr);
+    
+        heap_mgr->memory_size = util::AlignUp(size, allocation_granularity);
+    
+        /* Create our root heap spanning the arena */
+        sRootHeap = ExpHeap::TryCreate(heap_mgr->memory, heap_mgr->memory_size, "HeapManager::sRootHeap", false);
+        
+        sIsHeapManagerInitialized = true;
+    }
+    
+    void FinalizeHeapManager() {
+    
+        /* Destroy root heap */
+        sRootHeap->Finalize();
+    
+        /* Free our program's memory */
+        HeapManager *heap_mgr = util::GetPointer(sHeapManagerStorage);
+    
+        bool result = ::VirtualFree(heap_mgr->memory, 0, MEM_RELEASE);
+        DD_ASSERT(result != false);
+        heap_mgr->memory = nullptr;
+        heap_mgr->memory_size = 0;
+    }
 
     //Heap *FindContainedHeap(void *address) {
     //
     //    /* Try to acquire thread */
-    //    sys::impl::ThreadManager *thread_manager = sys::impl::ThreadManager::GetInstance();
+    //    sys::ThreadManager *thread_manager = sys::ThreadManager::GetInstance();
     //
-    //    sys::Thread *thread = nullptr;
+    //    sys::ThreadBase *thread = nullptr;
     //    if (thread_manager != nullptr) { thread = thread_manager->GetCurrentThread(); }
     //
     //    /* Try to lookup address in the thread heaps */
     //    Heap *thread_heap      = nullptr;
     //    Heap *last_lookup_heap = nullptr;
     //    if (thread != nullptr) {
-    //        thread_heap      = thread->GetCurrentHeap();
+    //        thread_heap      = thread->GetThreadHeap();
     //        last_lookup_heap = thread->GetLookupHeap();
     //
     //        /* Check lookup heap to see if we have no children and contain the address*/
@@ -92,38 +90,36 @@ namespace dd::mem {
     //
     //    return contained_heap;
     //}
-    //
-    //namespace {
-    //    Heap *FindHeapByNameImpl(Heap *parent_heap, const char *heap_name) {
-    //        /* Sift children recursively */
-    //        for (Heap &heap : parent_heap->m_child_list) {
-    //
-    //            /* Return heap on success */
-    //            int result = ::strcmp(heap.GetName(), heap_name);
-    //            if (result == 0) { return std::addressof(heap); }
-    //
-    //            /* Recurse through childs children on failure */
-    //            if (heap.m_child_list.IsEmpty() == false) {
-    //                Heap *candidate = FindHeapByName(std::addressof(heap), heap_name);
-    //                if (candidate != nullptr) { return candidate; }
-    //            }
-    //        }
-    //        return nullptr;
-    //    }
-    //}
-    //
-    //Heap *FindHeapByName(const char *heap_name) {
-    //    std::scoped_lock l(sHeapManagerMutex);
-    //    return FindHeapByNameImpl(sRootHeap, heap_name);
-    //}
-    //
-    //Heap *GetCurrentThreadHeap() {
-    //    sys::Thread *thread = sys::impl::ThreadManager::GetInstance()->GetCurrentThread();
-    //    if (thread != nullptr) {
-    //        return thread->GetThreadHeap();
-    //    }
-    //    return sRootHeap;
-    //}
+
+    Heap *FindHeapByNameImpl(Heap *parent_heap, const char *heap_name) {
+        /* Sift children recursively */
+        for (Heap &heap : parent_heap->m_child_list) {
+
+            /* Return heap on success */
+            int result = ::strcmp(heap.GetName(), heap_name);
+            if (result == 0) { return std::addressof(heap); }
+
+            /* Recurse through childs children on failure */
+            if (heap.m_child_list.IsEmpty() == false) {
+                Heap *candidate = FindHeapByNameImpl(std::addressof(heap), heap_name);
+                if (candidate != nullptr) { return candidate; }
+            }
+        }
+        return nullptr;
+    }
+
+    Heap *FindHeapByName(const char *heap_name) {
+        std::scoped_lock l(sHeapManagerMutex);
+        return FindHeapByNameImpl(sRootHeap, heap_name);
+    }
+
+    Heap *GetCurrentThreadHeap() {
+        sys::ThreadBase *thread = sys::ThreadManager::GetInstance()->GetCurrentThread();
+        if (thread != nullptr) {
+            return thread->GetThreadHeap();
+        }
+        return sRootHeap;
+    }
 
     bool IsHeapManagerInitialized() { return sIsHeapManagerInitialized; }
 
@@ -131,14 +127,14 @@ namespace dd::mem {
 
     constexpr ALWAYS_INLINE sys::Mutex *GetHeapManagerLock() { return std::addressof(sHeapManagerMutex); }
 
-    //void SetCurrentThreadHeap(Heap *heap) {
-    //    sys::ThreadBase *thread = sys::impl::ThreadManager::GetInstance()->GetCurrentThread();
-    //    if (thread != nullptr) {
-    //        thread->SetThreadCurrentHeap(heap);
-    //    }
-    //}
-    //
-    //bool IsAddressFromAnyHeap(void *address) {
-    //    return sRootHeap->IsAddressInHeap(address);
-    //}
+    void SetCurrentThreadHeap(Heap *heap) {
+        sys::ThreadBase *thread = sys::ThreadManager::GetInstance()->GetCurrentThread();
+        if (thread != nullptr) {
+            thread->SetThreadCurrentHeap(heap);
+        }
+    }
+
+    bool IsAddressFromAnyHeap(void *address) {
+        return sRootHeap->IsAddressInHeap(address);
+    }
 }

@@ -41,6 +41,7 @@ namespace dd::mem {
         public:
             friend class IDisposer;
             friend class ScopedHeapLock;
+            friend Heap *FindHeapByNameImpl(Heap *parent_heap, const char *heap_name);
         public:
             using DisposerList              = util::IntrusiveListTraits<IDisposer, &IDisposer::m_disposer_list_node>::List;
         protected:
@@ -107,6 +108,9 @@ namespace dd::mem {
             }
             virtual size_t GetTotalFreeSize() const;
             virtual size_t GetMaximumAllocatableSize(s32 alignment) const;
+
+            constexpr ALWAYS_INLINE const char *GetName() const { return m_name; }
+            constexpr ALWAYS_INLINE bool HasChldren() const { return m_child_list.IsEmpty(); }
     };
 
     constexpr ALWAYS_INLINE ScopedHeapLock::ScopedHeapLock(const Heap *heap) : m_heap(const_cast<Heap*>(heap)) {

@@ -6,7 +6,7 @@ namespace dd::sys {
         constinit util::TypeStorage<SystemManager> sSystemManagerStorage = {};
     }
 
-    ALWAYS_INLINE void InitializeSystemManager() {
+    void InitializeSystemManager() {
 
         /* Construct system manager */
         util::ConstructAt(sSystemManagerStorage);
@@ -30,17 +30,17 @@ namespace dd::sys {
         instance->process_core_count = util::CountOneBits64(instance->process_core_mask);
     }
 
-    ALWAYS_INLINE SystemManager *GetSystemManager() { return util::GetPointer(sSystemManagerStorage); }
+    SystemManager *GetSystemManager() { return util::GetPointer(sSystemManagerStorage); }
 
-    ALWAYS_INLINE u32 GetProcessProcessorCount() {
+    u32 GetProcessProcessorCount() {
         return GetSystemManager()->process_core_count;
     }
 
-    ALWAYS_INLINE u32 GetCurrentThreadCoreNumber() {
+    u32 GetCurrentThreadCoreNumber() {
         return ::GetCurrentProcessorNumber();
     }
 
-    ALWAYS_INLINE SYSTEM_INFO *GetSystemInfo() {
+    SYSTEM_INFO *GetSystemInfo() {
         return std::addressof(GetSystemManager()->system_info);
     }
 }

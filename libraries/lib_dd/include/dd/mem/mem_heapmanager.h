@@ -18,7 +18,7 @@ namespace dd::mem {
         util::IDelegate1<HeapAllocationFailedInfo*> *allocate_failed_callback;
     };
 
-    void IntializeHeapManager(size_t size);
+    void InitializeHeapManager(size_t size);
     void FinalizeHeapManager();
 
     HeapManager *GetHeapManager();

@@ -114,7 +114,7 @@ namespace dd::mem {
                 
                 m_allocated_block_list.PushBack(*used_block);
             }
-        protected:
+        public:
             static ExpHeap *TryCreate(void *address, size_t size, const char *name, bool is_thread_safe) {
 
                 if (address == nullptr || size < (sizeof(ExpHeap) + sizeof(ExpHeapMemoryBlock) + MinimumAllocationGranularity)) { return nullptr; }
