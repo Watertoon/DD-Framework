@@ -50,8 +50,6 @@ namespace dd::ukern::impl {
 
                 /* Remove from child list */
                 wait_fiber->ReleaseLockWaitListUnsafe();
-
-                EndFiberWaitImpl(wait_fiber, wait_result);
             }
     };
 

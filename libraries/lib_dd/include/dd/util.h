@@ -20,6 +20,7 @@
 #include <dd/util/util_result_trace.h>
 
 #include <dd/util/util_new.h>
+#include <dd/util/util_singleton.h>
 
 #include <dd/util/util_alignment.hpp>
 #include <dd/util/util_sizeconstants.hpp>

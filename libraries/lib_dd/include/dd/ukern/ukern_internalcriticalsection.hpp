@@ -59,11 +59,9 @@ namespace dd::ukern {
 
             void Leave() {
 
-                /* Clear the address */
-                const UKernHandle tag = ::InterlockedExchange(std::addressof(m_handle), 0);
-
                 /* Unlock waiters */
-                if (((tag >> 0x1e) & 1) == 1) { RESULT_ABORT_UNLESS(impl::GetScheduler()->ArbitrateUnlockImpl(std::addressof(m_handle)), ResultSuccess); }
+                if (((m_handle >> 0x1e) & 1) == 1) { RESULT_ABORT_UNLESS(impl::GetScheduler()->ArbitrateUnlockImpl(std::addressof(m_handle)), ResultSuccess); }
+                else { ::InterlockedExchange(std::addressof(m_handle), 0); }
             }
 
             void lock() {

@@ -79,6 +79,7 @@ namespace dd::util {
                     IntrusiveListNode *m_next;
                 public:
                     constexpr ALWAYS_INLINE Iterator(IntrusiveListNode *node) : m_next(node->next()) {}
+                    constexpr ALWAYS_INLINE Iterator(const IntrusiveListNode *node) : m_next(const_cast<IntrusiveListNode*>(node->next())) {}
 
                     ALWAYS_INLINE reference operator*() {
                         return Traits::GetParentReference(m_next->prev());
@@ -87,7 +88,7 @@ namespace dd::util {
                         return Traits::GetParentReference(m_next->prev());
                     }
 
-                    constexpr ALWAYS_INLINE bool operator!=(const Iterator<IsConst> &rhs) {
+                    constexpr ALWAYS_INLINE bool operator!=(const Iterator<IsConst> &rhs) const {
                         return m_next != rhs.m_next;
                     }
 
@@ -112,12 +113,18 @@ namespace dd::util {
             constexpr ALWAYS_INLINE iterator begin() {
                 return iterator(m_list.m_next);
             }
+            constexpr ALWAYS_INLINE const_iterator begin() const {
+                return const_iterator(m_list.m_next);
+            }
             constexpr ALWAYS_INLINE const_iterator cbegin() const {
                 return const_iterator(m_list.m_next);
             }
 
             constexpr ALWAYS_INLINE iterator end() {
                 return iterator(std::addressof(m_list));
+            }
+            constexpr ALWAYS_INLINE const_iterator end() const {
+                return const_iterator(std::addressof(m_list));
             }
             constexpr ALWAYS_INLINE const_iterator cend() const {
                 return const_iterator(std::addressof(m_list));

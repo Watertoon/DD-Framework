@@ -29,7 +29,7 @@ namespace dd::ukern {
     void FiberLocalStorage::ReleaseLockWaitListUnsafe() {
 
         /* Get waiter to signal */
-        FiberLocalStorage next_owner = this->wait_list.PopFront();
+        FiberLocalStorage &next_owner = this->wait_list.PopFront();
 
         /* Set wait tag and clear state */
         *next_owner.lock_address = (this->wait_list.IsEmpty() == true) ? next_owner.wait_tag : next_owner.wait_tag | HasChildWaitersBit;

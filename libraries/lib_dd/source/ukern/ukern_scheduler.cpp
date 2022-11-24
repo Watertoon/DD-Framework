@@ -296,6 +296,7 @@ namespace dd::ukern::impl {
         
         /* Get fiber by handle  */
         FiberLocalStorage *fiber_local = this->GetFiberByHandle(handle);
+        RESULT_RETURN_UNLESS(fiber_local != nullptr, ResultInvalidHandle)
 
         /* Lock scheduler */
         ScopedSchedulerLock lock(this);
@@ -319,6 +320,7 @@ namespace dd::ukern::impl {
         
         /* Get fiber by handle  */
         FiberLocalStorage *fiber_local = this->GetFiberByHandle(handle);
+        RESULT_RETURN_UNLESS(fiber_local != nullptr, ResultInvalidHandle);
 
         /* Lock scheduler */
         ScopedSchedulerLock lock(this);
@@ -403,10 +405,10 @@ namespace dd::ukern::impl {
 
         /* Set lock state */
         LockArbiter lock_arbiter = {};
-        current_fiber->waitable_object  = std::addressof(lock_arbiter);
-        current_fiber->lock_address = lock_address;
-        current_fiber->wait_tag     = tag;
-        current_fiber->fiber_state  = FiberState_Waiting;
+        current_fiber->waitable_object = std::addressof(lock_arbiter);
+        current_fiber->lock_address    = lock_address;
+        current_fiber->wait_tag        = tag;
+        current_fiber->fiber_state     = FiberState_Waiting;
 
         /* Push back thread waiter */
         handle_fiber->wait_list.PushBack(*current_fiber);

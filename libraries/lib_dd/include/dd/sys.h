@@ -2,6 +2,7 @@
 
 #include <dd/sys/sys_systemmanager.h>
 #include <dd/sys/sys_mutex.hpp>
+#include <dd/sys/sys_event.hpp>
 #include <dd/sys/sys_messagequeue.hpp>
 #include <dd/sys/sys_threadbase.h>
 #include <dd/sys/sys_mainthread.hpp>

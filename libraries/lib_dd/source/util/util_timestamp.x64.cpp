@@ -19,11 +19,16 @@ namespace dd::util {
 
     namespace x64 {
 
-        u64 rdtscp(u32 *frequency) {
-            return __builtin_ia32_rdtscp(frequency);
+        NO_INLINE u64 rdtscp(u32 *frequency) {
+            u64 low = 0;
+            u64 high = 0;
+            u32 freq = 0;
+            asm volatile ("rdtscp\n" : "=a" (low), "=d" (high), "=c" (freq) : : );
+            *frequency = freq;
+            return (high << 32) + low;
         }
 
-        u64 rdtsc() {
+        NO_INLINE u64 rdtsc() {
             return __builtin_ia32_rdtsc();
         }
     }
@@ -32,7 +37,11 @@ namespace dd::util {
     u64 sMaxTickToTimeSpan = 0xFFFF'FFFF'FFFF'FFFF;
 
     void InitializeTimeStamp() {
-        x64::rdtscp(std::addressof(sSystemFrequency));
+        u32 time = 0;
+        while (time == 0) {
+            x64::rdtscp(std::addressof(time));
+        }
+        sSystemFrequency = time;
         sMaxTickToTimeSpan = 0xFFFF'FFFF'FFFF'FFFF - (0xFFFF'FFFF'FFFF'FFFF % sSystemFrequency);
     }
 

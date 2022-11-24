@@ -1,6 +1,6 @@
 #include <dd.hpp>
 
-namespace dd::mem {
+namespace dd::sys {
 
     DD_SINGLETON_TRAITS_IMPL(ThreadManager);
 }

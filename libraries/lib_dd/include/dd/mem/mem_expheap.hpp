@@ -15,8 +15,6 @@ namespace dd::mem {
     };
 
     class ExpHeap final : public Heap {
-        protected:
-            friend class HeapManager;
         public:
             using FreeList      = util::IntrusiveListTraits<ExpHeapMemoryBlock, &ExpHeapMemoryBlock::exp_list_node>::List;
             using AllocatedList = util::IntrusiveListTraits<ExpHeapMemoryBlock, &ExpHeapMemoryBlock::exp_list_node>::List;
@@ -143,7 +141,7 @@ namespace dd::mem {
 
                 /* Use current heap if one is not provided */
                 if (parent_heap == nullptr) {
-                    parent_heap = HeapManager::GetInstance()->GetCurrentHeap();
+                    parent_heap = mem::GetCurrentThreadHeap();
                 }
 
                 /* Consume largest parent heap free node if size is not provided */
@@ -246,21 +244,21 @@ namespace dd::mem {
                 /* Ensure we found the block after and it is large enough */
                 ExpHeapMemoryBlock *block_after = std::addressof((*free_block));
                 const size_t after_size = block_after->block_size + sizeof(ExpHeapMemoryBlock);
-                if (free_block == m_free_block_list.end() || after_size + block->block_size < new_size) { return block->block_size; }
+                if (free_block != m_free_block_list.end() && after_size + block->block_size > new_size) { return block->block_size; }
 
                 /* Remove after block from free list */
                 block_after->exp_list_node.Unlink();
 
                 /* Find new free node address and size */
                 const uintptr_t     new_end_address = reinterpret_cast<uintptr_t>(block_after) + after_size;
-                ExpHeapMemoryBlock *new_free        = reinterpret_cast<uintptr_t>(address) + new_size + sizeof(ExpHeapMemoryBlock);
+                ExpHeapMemoryBlock *new_free        = reinterpret_cast<ExpHeapMemoryBlock*>(reinterpret_cast<uintptr_t>(address) + new_size + sizeof(ExpHeapMemoryBlock));
                 const size_t        new_free_size   = new_end_address - reinterpret_cast<uintptr_t>(new_free);
 
                 /* Adjust allocation */
                 if (sizeof(ExpHeapMemoryBlock) <= new_free_size) {
-                    new_free = reinterpret_cast<uintptr_t>(new_free) - new_free_size;
+                    new_free = reinterpret_cast<ExpHeapMemoryBlock*>(reinterpret_cast<uintptr_t>(new_free) - new_free_size);
                 }
-                block->block_size = (new_free) - reinterpret_cast<uintptr_t>(address);
+                block->block_size = reinterpret_cast<uintptr_t>(new_free) - reinterpret_cast<uintptr_t>(address);
 
                 if (sizeof(ExpHeapMemoryBlock) <= new_free_size) {
                     std::construct_at(new_free);

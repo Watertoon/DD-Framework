@@ -41,6 +41,7 @@ namespace dd::ukern {
 
         /* Get fiber from handle */
         FiberLocalStorage *fiber = impl::GetScheduler()->GetFiberByHandle(handle);
+        DD_ASSERT(fiber != nullptr);
 
         /* Set name */
         if (name == nullptr) {
@@ -54,6 +55,7 @@ namespace dd::ukern {
 
         /* Get fiber from handle */
         FiberLocalStorage *fiber = impl::GetScheduler()->GetFiberByHandle(handle);
+        DD_ASSERT(fiber != nullptr);
 
         /* Set name */
         if (name == nullptr) {
