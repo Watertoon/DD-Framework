@@ -38,6 +38,9 @@
 #include <dd/util/util_delegatethread.hpp>
 #include <dd/util/util_runtimetypeinfo.hpp>
 #include <dd/util/util_fixedobjectallocator.hpp>
+#include <dd/util/util_heapobjectallocator.hpp>
+#include <dd/util/util_pointerarray.hpp>
+#include <dd/util/util_heaparray.hpp>
 #include <dd/util/util_timestamp.h>
 #include <dd/util/util_timespan.hpp>
 
