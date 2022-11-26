@@ -170,7 +170,7 @@ namespace dd::learn {
 
         /* Create Shader */
         dd::util::ConstructAt(vk_shader);
-        const vk::ShaderInfo shader_info = {
+        const vk::PrimitiveShaderInfo shader_info = {
             .color_attachment_count = 1,
             .vertex_code_size = vertex_size,
             .vertex_code = reinterpret_cast<u32*>(vertex_shader),

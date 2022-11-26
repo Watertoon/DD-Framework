@@ -360,7 +360,7 @@ namespace dd::vk {
     }
 
     void CommandBuffer::SetShader(Shader *shader) {
-        ::pfn_vkCmdBindPipeline(m_vk_command_buffer, shader->IsCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS, shader->GetPipeline());
+        ::pfn_vkCmdBindPipeline(m_vk_command_buffer, shader->GetPipelineBindPoint(), shader->GetPipeline());
     }
 
     void CommandBuffer::SetPipelineState(const PipelineCmdState *pipeline_state) {

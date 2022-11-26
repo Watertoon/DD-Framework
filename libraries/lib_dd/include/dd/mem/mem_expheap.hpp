@@ -40,7 +40,6 @@ namespace dd::mem {
                             new_end = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(new_end) + next_block->block_size + sizeof(ExpHeapMemoryBlock));
                             next_block->exp_list_node.Unlink();
                         }
-                        
                     }
                 }
 
