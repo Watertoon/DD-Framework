@@ -24,7 +24,6 @@ namespace dd::util {
             u64 high = 0;
             u32 freq = 0;
             asm volatile ("rdtscp\n" : "=a" (low), "=d" (high), "=c" (freq) : : );
-            asm volatile ("lfence\n" : : : );
             *frequency = freq;
             return (high << 32) + low;
         }
@@ -34,18 +33,20 @@ namespace dd::util {
         }
     }
 
-    u32 sSystemFrequency   = 0;
+    u64 sSystemFrequency   = 0;
     u64 sMaxTickToTimeSpan = 0xFFFF'FFFF'FFFF'FFFF;
 
     void InitializeTimeStamp() {
-        u32 time = 0;
-        x64::rdtscp(std::addressof(time));
-        sSystemFrequency = time;
+        const bool result = ::QueryPerformanceFrequency(reinterpret_cast<LARGE_INTEGER*>(std::addressof(sSystemFrequency)));
+        DD_ASSERT(result == true);
         sMaxTickToTimeSpan = 0xFFFF'FFFF'FFFF'FFFF - (0xFFFF'FFFF'FFFF'FFFF % sSystemFrequency);
     }
 
     u64 GetSystemTick() {
-        return x64::rdtsc();
+        u64 time = 0;
+        const bool result = ::QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(std::addressof(time)));
+        DD_ASSERT(result == true);
+        return time;
     }
 
     u32 GetSystemTickFrequency() {
