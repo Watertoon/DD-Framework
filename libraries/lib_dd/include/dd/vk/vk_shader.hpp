@@ -46,16 +46,13 @@ namespace dd::vk {
         u32    *geometry_code;
         size_t  fragment_code_size;
         u32    *fragment_code;
-        size_t  compute_code_size;
-        u32    *compute_code;
     };
 
     struct ComputeShaderInfo {
         size_t  compute_code_size;
         u32    *compute_code;
     };
-    
-    
+
     struct MeshShaderInfo {
         u32     color_attachment_count;
         size_t  task_code_size;
@@ -67,7 +64,19 @@ namespace dd::vk {
     };
     
     struct RayTracingShaderInfo {
-        /* TODO */
+        u32     color_attachment_count;
+        size_t  ray_generation_code_size;
+        u32    *ray_generation_code;
+        size_t  intersection_code_size;
+        u32    *intersection_code;
+        size_t  any_hit_code_size;
+        u32    *any_hit_code;
+        size_t  closest_hit_code_size;
+        u32    *closest_hit_code;
+        size_t  miss_code_size;
+        u32    *miss_code;
+        size_t  callable_code_size;
+        u32    *callable_code;
     };
 
     class Shader {
@@ -332,7 +341,7 @@ namespace dd::vk {
                     ::pfn_vkDestroyShaderModule(context->GetDevice(), vk_compute_module, nullptr);
                 }
             }
-            
+
             void Initialize(const Context *context, const MeshShaderInfo *shader_info) {
                                 /* Create shader modules */
                 VkShaderModule vk_task_module = 0;
@@ -504,6 +513,8 @@ namespace dd::vk {
                     ::pfn_vkDestroyShaderModule(context->GetDevice(), vk_fragment_module, nullptr);
                 }
             }
+            
+            /* TODO; ray tracing pipeline */
 
             void Finalize(const Context *context) {
                 ::pfn_vkDestroyPipeline(context->GetDevice(), m_vk_pipeline, nullptr);
@@ -515,6 +526,8 @@ namespace dd::vk {
                     case PipelineType_Primitive:
                     case PipelineType_Mesh:
                         return VK_PIPELINE_BIND_POINT_GRAPHICS;
+                    case PipelineType_RayTracing:
+                        return VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR;
                     case PipelineType_Compute:
                         return VK_PIPELINE_BIND_POINT_COMPUTE;
                     default:

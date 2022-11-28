@@ -100,7 +100,7 @@ namespace dd::vk {
 
     void CommandBuffer::UpdateResourceBufferIfNecessary() {
         DD_ASSERT(m_resource_buffer_mapped_address != nullptr);
-        
+
         /* Map and copy resource data for necessary stages */
         if (m_need_vertex_resource_update == true) {
             ::memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_resource_buffer_mapped_address) + (sizeof(ResourceBuffer) * m_resource_update_count)), std::addressof(m_resource_buffer_per_stage_array[ShaderStage_Vertex]), sizeof(ResourceBuffer));

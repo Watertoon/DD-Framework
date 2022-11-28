@@ -675,7 +675,6 @@ namespace dd::vk {
         ::pfn_vkDeviceWaitIdle(m_vk_device);
 
         ::pfn_vkDestroyPipelineLayout(m_vk_device, m_vk_pipeline_layout, nullptr);
-        ::pfn_vkDestroyDescriptorSetLayout(m_vk_device, m_vk_resource_buffer_descriptor_set_layout, nullptr);
         ::pfn_vkDestroyDescriptorSetLayout(m_vk_device, m_vk_texture_descriptor_set_layout, nullptr);
         ::pfn_vkDestroyDescriptorSetLayout(m_vk_device, m_vk_sampler_descriptor_set_layout, nullptr);
 

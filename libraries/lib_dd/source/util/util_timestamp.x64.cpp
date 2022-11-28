@@ -24,6 +24,7 @@ namespace dd::util {
             u64 high = 0;
             u32 freq = 0;
             asm volatile ("rdtscp\n" : "=a" (low), "=d" (high), "=c" (freq) : : );
+            asm volatile ("lfence\n" : : : );
             *frequency = freq;
             return (high << 32) + low;
         }
@@ -38,9 +39,7 @@ namespace dd::util {
 
     void InitializeTimeStamp() {
         u32 time = 0;
-        while (time == 0) {
-            x64::rdtscp(std::addressof(time));
-        }
+        x64::rdtscp(std::addressof(time));
         sSystemFrequency = time;
         sMaxTickToTimeSpan = 0xFFFF'FFFF'FFFF'FFFF - (0xFFFF'FFFF'FFFF'FFFF % sSystemFrequency);
     }

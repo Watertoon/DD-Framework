@@ -83,7 +83,6 @@ namespace dd::vk {
             u32                                                 m_graphics_queue_family_index;
             VkCommandPool                                       m_vk_graphics_command_pool;
             VkSurfaceKHR                                        m_vk_surface;
-            VkDescriptorSetLayout                               m_vk_resource_buffer_descriptor_set_layout;
             VkDescriptorSetLayout                               m_vk_texture_descriptor_set_layout;
             VkDescriptorSetLayout                               m_vk_sampler_descriptor_set_layout;
             VkPipelineLayout                                    m_vk_pipeline_layout;
@@ -163,8 +162,6 @@ namespace dd::vk {
             constexpr ALWAYS_INLINE VkDescriptorSetLayout GetTextureDescriptorSetLayout() const        { return m_vk_texture_descriptor_set_layout; }
 
             constexpr ALWAYS_INLINE VkDescriptorSetLayout GetSamplerDescriptorSetLayout() const        { return m_vk_sampler_descriptor_set_layout; }
-
-            constexpr ALWAYS_INLINE VkDescriptorSetLayout GetResourceBufferDescriptorSetLayout() const { return m_vk_resource_buffer_descriptor_set_layout; }
 
             constexpr ALWAYS_INLINE VkPipelineLayout GetPipelineLayout() const                         { return m_vk_pipeline_layout; }
 
