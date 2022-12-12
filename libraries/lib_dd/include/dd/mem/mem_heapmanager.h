@@ -22,6 +22,7 @@ namespace dd::mem {
     void FinalizeHeapManager();
 
     HeapManager *GetHeapManager();
+    Heap        *GetRootHeap();
     
     bool IsHeapManagerInitialized();
 

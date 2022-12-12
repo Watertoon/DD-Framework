@@ -110,7 +110,9 @@ namespace dd::mem {
 
     Heap *FindHeapByName(const char *heap_name) {
         std::scoped_lock l(sHeapManagerMutex);
-        return FindHeapByNameImpl(sRootHeap, heap_name);
+        mem::Heap *heap = FindHeapByNameImpl(sRootHeap, heap_name);
+        if (heap == nullptr && ::strcmp(heap_name, sRootHeap->GetName()) == 0) { return sRootHeap; }
+        return heap;
     }
 
     Heap *GetCurrentThreadHeap() {
@@ -124,6 +126,8 @@ namespace dd::mem {
     bool IsHeapManagerInitialized() { return sIsHeapManagerInitialized; }
 
     ALWAYS_INLINE HeapManager *GetHeapManager() { return util::GetPointer(sHeapManagerStorage); }
+
+    mem::Heap *GetRootHeap() {return sRootHeap; }
 
     constexpr ALWAYS_INLINE sys::Mutex *GetHeapManagerLock() { return std::addressof(sHeapManagerMutex); }
 

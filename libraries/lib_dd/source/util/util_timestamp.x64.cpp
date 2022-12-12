@@ -19,41 +19,41 @@ namespace dd::util {
 
     namespace x64 {
 
-        NO_INLINE u64 rdtscp(u32 *frequency) {
-            u64 low = 0;
-            u64 high = 0;
-            u32 freq = 0;
+        NO_INLINE s64 rdtscp(u32 *frequency) {
+            s64 low = 0;
+            s64 high = 0;
+            s32 freq = 0;
             asm volatile ("rdtscp\n" : "=a" (low), "=d" (high), "=c" (freq) : : );
             *frequency = freq;
             return (high << 32) + low;
         }
 
-        NO_INLINE u64 rdtsc() {
+        NO_INLINE s64 rdtsc() {
             return __builtin_ia32_rdtsc();
         }
     }
 
-    u64 sSystemFrequency   = 0;
-    u64 sMaxTickToTimeSpan = 0xFFFF'FFFF'FFFF'FFFF;
+    s64 sSystemFrequency   = 0;
+    s64 sMaxTickToTimeSpan = TimeSpan::MaxTime;
 
     void InitializeTimeStamp() {
         const bool result = ::QueryPerformanceFrequency(reinterpret_cast<LARGE_INTEGER*>(std::addressof(sSystemFrequency)));
         DD_ASSERT(result == true);
-        sMaxTickToTimeSpan = 0xFFFF'FFFF'FFFF'FFFF - (0xFFFF'FFFF'FFFF'FFFF % sSystemFrequency);
+        sMaxTickToTimeSpan = ((TimeSpan::MaxTime - (TimeSpan::MaxTime % sSystemFrequency)) / 1'000'000'000) * sSystemFrequency;
     }
 
-    u64 GetSystemTick() {
-        u64 time = 0;
+    s64 GetSystemTick() {
+        s64 time = 0;
         const bool result = ::QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(std::addressof(time)));
         DD_ASSERT(result == true);
         return time;
     }
 
-    u32 GetSystemTickFrequency() {
+    s32 GetSystemTickFrequency() {
         return sSystemFrequency;
     }
     
-    u64 GetMaxTickToTimeSpan() {
+    s64 GetMaxTickToTimeSpan() {
         return sMaxTickToTimeSpan;
     }
 }

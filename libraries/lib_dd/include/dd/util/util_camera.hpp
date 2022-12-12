@@ -21,6 +21,8 @@ namespace dd::util {
         private:
             math::Matrix34f m_camera_mtx;
         public:
+            DD_RTTI_BASE(Camera);
+        public:
             constexpr Camera() {}
 
             void UpdateCameraMatrixSelf() {
@@ -35,7 +37,7 @@ namespace dd::util {
                 return std::addressof(m_camera_mtx);
             }
 
-            constexpr virtual void UpdateCameraMatrix(math::Matrix34f *out_view_matrix) const = 0;
+            constexpr inline virtual void UpdateCameraMatrix(math::Matrix34f *out_view_matrix) const = 0;
     };
 
     class LookAtCamera : public Camera {
@@ -44,9 +46,11 @@ namespace dd::util {
             math::Vector3d  m_at;
             math::Vector3f  m_up;
         public:
+            DD_RTTI_DERIVED(LookAtCamera, Camera);
+        public:
             constexpr LookAtCamera(const math::Vector3f& pos, const math::Vector3f& at, const math::Vector3f& up) : m_pos(pos), m_at(at), m_up(up) {/*...*/}
 
-            constexpr virtual void UpdateCameraMatrix(math::Matrix34f *out_view_matrix) const override {
+            constexpr inline virtual void UpdateCameraMatrix(math::Matrix34f *out_view_matrix) const override {
 
                 /* Calculate normalized direction */
                 math::Vector3f dir = m_pos - m_at;

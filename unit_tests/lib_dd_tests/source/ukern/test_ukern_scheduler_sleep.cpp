@@ -13,13 +13,24 @@
  *  You should have received a copy of the GNU General Public License along with this program; 
  *  if not, see <https://www.gnu.org/licenses/>.
  */
-#pragma once
+#include <dd.hpp>
+#include <unit_tester.hpp>
 
-namespace dd::util {
+DECLARE_UNIT_TESTER_INSTANCE;
 
-    void InitializeTimeStamp();
+TEST(SchedulerSleepSingle) {
 
-    s64 GetSystemTick();
-    s32 GetSystemTickFrequency();
-    s64 GetMaxTickToTimeSpan();
+    /* Init timestamp */
+    dd::util::InitializeTimeStamp();
+
+    /* Query win32 core mask */
+    dd::ukern::UKernCoreMask core_mask = 1;
+
+    /* Initialize scheduler */
+    dd::ukern::InitializeUKern(core_mask);
+
+    /* Sleep */
+    dd::ukern::Sleep(dd::TimeSpan::FromMilliSeconds(2));
+
+    TEST_SUCCESS;
 }

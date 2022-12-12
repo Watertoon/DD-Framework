@@ -28,7 +28,7 @@ namespace dd::util {
     #define RTTI_BASE(class_name) \
         protected: \
             using RootType = class_name; \
-            static constexpr const RuntimeTypeInfo RootRTTI = nullptr; \
+            static constexpr inline const RuntimeTypeInfo RootRTTI = nullptr; \
             static constexpr ALWAYS_INLINE const RuntimeTypeInfo *GetRuntimeTypeInfoStatic() { \
                 return std::addressof(RootRTTI); \
             } \
@@ -39,7 +39,7 @@ namespace dd::util {
 
     #define RTTI_DERIVED(derived_class, base_class) \
         protected: \
-            static constexpr const RuntimeTypeInfo DerivedRTTI = base_class::GetRuntimeTypeInfoStatic(); \
+            static constexpr inline const RuntimeTypeInfo DerivedRTTI = base_class::GetRuntimeTypeInfoStatic(); \
             static constexpr ALWAYS_INLINE const RuntimeTypeInfo *GetRuntimeTypeInfoStatic() { \
                 return std::addressof(DerivedRTTI); \
             } \

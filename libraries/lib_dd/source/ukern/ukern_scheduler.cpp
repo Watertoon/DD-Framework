@@ -110,7 +110,10 @@ namespace dd::ukern::impl {
 
             /* Rest core until a new fiber is schedulable, or another rester is looking to sleep */
             u32 wait_value = m_runnable_fibers;
-            ::WaitOnAddress(std::addressof(m_runnable_fibers), std::addressof(wait_value), sizeof(u32), dd::TimeSpan::GetTimeLeftOnTarget(timeout_tick).GetMilliSeconds());
+            u32 time_left = dd::TimeSpan::GetTimeLeftOnTarget(timeout_tick).GetMilliSeconds();
+            if (time_left == 0) { ::AcquireSRWLockExclusive(std::addressof(m_scheduler_lock)); break; }
+
+            ::WaitOnAddress(std::addressof(m_runnable_fibers), std::addressof(wait_value), sizeof(u32), time_left);
 
             /* Reacquire scheduler lock */
             ::AcquireSRWLockExclusive(std::addressof(m_scheduler_lock));
@@ -178,7 +181,8 @@ namespace dd::ukern::impl {
 
 		/* Set main thread handle */
 		HANDLE main_thread_handle = nullptr;
-		::DuplicateHandle(::GetCurrentProcess(), ::GetCurrentThread(), ::GetCurrentProcess(), std::addressof(main_thread_handle), 0, false, DUPLICATE_SAME_ACCESS);
+		const bool result0 = ::DuplicateHandle(::GetCurrentProcess(), ::GetCurrentThread(), ::GetCurrentProcess(), std::addressof(main_thread_handle), 0, false, DUPLICATE_SAME_ACCESS);
+        DD_ASSERT(result0 == true);
 		m_scheduler_thread_table[0] = main_thread_handle;
 
 		/* Setup main thread fiber local */
@@ -197,12 +201,10 @@ namespace dd::ukern::impl {
         DD_ASSERT(m_scheduler_fiber_table[0] != nullptr);
 
         /* Reserve main thread */
-		const bool result = m_handle_table.ReserveHandle(std::addressof(main_fiber_local->ukern_fiber_handle), main_fiber_local);
-        DD_ASSERT(result == true);
+		const bool result1 = m_handle_table.ReserveHandle(std::addressof(main_fiber_local->ukern_fiber_handle), main_fiber_local);
+        DD_ASSERT(result1 == true);
 
 		this->SetInitialFiberNameUnsafe(main_fiber_local);
-
-		++m_runnable_fibers;
 
 		/* Allocate scheduler worker fibers */
 		for (u32 i = 1; i < core_count; ++i) {

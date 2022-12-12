@@ -17,7 +17,7 @@
 
 namespace dd {
 
-    typedef u64 TickSpan;
+    typedef s64 TickSpan;
 
     class TimeSpan {
         public:
@@ -29,7 +29,7 @@ namespace dd {
             constexpr ALWAYS_INLINE TimeSpan() : m_time_ns(0) {/*...*/}
             constexpr ALWAYS_INLINE TimeSpan(s64 time_ns) : m_time_ns(time_ns) {/*...*/}
 
-            static ALWAYS_INLINE TimeSpan FromTick(u64 tick) {
+            static ALWAYS_INLINE TimeSpan FromTick(s64 tick) {
 
                 /* Query frequency and limit */
                 const s64 frequency            = util::GetSystemTickFrequency();
@@ -52,20 +52,40 @@ namespace dd {
             static constexpr ALWAYS_INLINE TimeSpan GetTimeLeftOnTarget(s64 tick) {
                 if (tick == 0) { return 0; }
 
-                const u64 tick_left = tick - util::GetSystemTick();
+                const s64 tick_left = tick - util::GetSystemTick();
 
-                if (tick_left == 0 && tick <= tick_left) { return 0; }
+                if (tick_left == 0 || tick_left < tick) { return 0; }
 
                 return FromTick(tick_left);
             }
 
-            ALWAYS_INLINE u64 GetTick() const {
-                const s64 frequency = util::GetSystemTickFrequency();
-                const s64 seconds   = this->GetSeconds();
+            ALWAYS_INLINE s64 GetTick() const {
 
-                const s64 residual = (((m_time_ns + (seconds * -1'000'000'000)) * frequency) + 999'999'999) / 1'000'000'000;
-                const s64 product  = seconds * frequency;
-                return residual + product;
+                if (m_time_ns == MinTime) {
+                    return MinTime;
+                }
+
+                const s64 frequency = util::GetSystemTickFrequency();
+
+                s64 r_coeff =  (m_time_ns % 1'000'000'000);
+                if (-1 >= m_time_ns) {
+                    r_coeff = -(m_time_ns % 1'000'000'000);
+                }
+
+                s64 p_coeff = (m_time_ns / 1'000'000'000);
+                if (-1 >= m_time_ns) {
+                    p_coeff = -(m_time_ns / 1'000'000'000);
+                }
+
+                const s64 residual = ((r_coeff * frequency) + 999'999'999) / 1'000'000'000;
+                const s64 product  = p_coeff * frequency;
+                
+                s64 result = residual + product;
+                if (-1 >= result) {
+                    result = -result;
+                }
+                
+                return result;
             }
             constexpr ALWAYS_INLINE s64 GetNanoSeconds()  const { return m_time_ns; }
             constexpr ALWAYS_INLINE s64 GetMicroSeconds() const { return (m_time_ns / 1'000); }

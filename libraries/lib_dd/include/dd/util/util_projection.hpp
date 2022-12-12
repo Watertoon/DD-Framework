@@ -22,6 +22,8 @@ namespace dd::util {
             math::Matrix44f m_projection_matrix;
             bool            m_need_update;
         public:
+            DD_RTTI_BASE(Projection);
+        public:
             constexpr Projection() : m_need_update(true) {/*...*/}
 
             constexpr void UpdateProjectionMatrixSelf() {
@@ -53,6 +55,8 @@ namespace dd::util {
             float m_bottom;
             float m_left;
             float m_right;
+        public:
+            DD_RTTI_DERIVED(FrustumProjection, Projection);
         public:
             constexpr FrustumProjection() {/*...*/}
             constexpr FrustumProjection(float near, float far, const BoundingBox2<float>& bound_box) : Projection(), m_near(near), m_far(far), m_top(bound_box.max_y), m_bottom(bound_box.min_y), m_left(bound_box.max_x), m_right(bound_box.min_x) {/*...*/}
@@ -93,6 +97,8 @@ namespace dd::util {
     class PerspectiveProjection : public FrustumProjection {
         private:
             float m_fov_x;
+        public:
+            DD_RTTI_DERIVED(PerspectiveProjection, FrustumProjection);
         public:
             constexpr PerspectiveProjection() : FrustumProjection(1.0f, 10000.0f, math::TRadians<float, 45.0f>, ::sinf(math::TRadians<float, 45.0f> / 2), ::cosf(math::TRadians<float, 45.0f> / 2), ::tanf(math::TRadians<float, 45.0f> / 2)), m_fov_x(4.0 / 3.0f) {/*...*/}
             /* For some reason GCC seems to act very strangely with the first 2 parameters */
