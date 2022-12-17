@@ -29,8 +29,17 @@ TEST(SchedulerSleepSingle) {
     /* Initialize scheduler */
     dd::ukern::InitializeUKern(core_mask);
 
+    /* Start time */
+    const s64 start = dd::util::GetSystemTick();
+
     /* Sleep */
     dd::ukern::Sleep(dd::TimeSpan::FromMilliSeconds(2));
+
+    /* End time */
+    const s64 end = dd::util::GetSystemTick();
+
+    /* Ensure 2 milliseconds have elapsed */
+    TEST_ASSERT(2 <= dd::TimeSpan::FromTick(end - start).GetMilliSeconds());
 
     TEST_SUCCESS;
 }

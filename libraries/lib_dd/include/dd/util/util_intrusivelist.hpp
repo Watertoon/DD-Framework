@@ -37,7 +37,7 @@ namespace dd::util {
             
             
             constexpr ALWAYS_INLINE bool IsLinked() const {
-                return m_prev != m_next;
+                return this != m_next;
             }
 
             constexpr ALWAYS_INLINE void LinkNext(IntrusiveListNode *new_node) {
@@ -145,7 +145,7 @@ namespace dd::util {
             }
 
             constexpr ALWAYS_INLINE bool IsEmpty() const {
-                return m_list.IsLinked();
+                return !m_list.IsLinked();
             }
 
             void ALWAYS_INLINE PushBack(reference obj) {

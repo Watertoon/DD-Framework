@@ -47,7 +47,7 @@ namespace dd::ukern::impl {
             }
 
             virtual void CancelWait(FiberLocalStorage *wait_fiber, Result wait_result) override {
-
+                DD_ASSERT(false);
                 /* Remove from child list */
                 wait_fiber->ReleaseLockWaitListUnsafe();
             }

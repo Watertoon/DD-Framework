@@ -30,7 +30,7 @@ TEST(SchedulerDualCoreThreadValueSet) {
     dd::util::InitializeTimeStamp();
 
     /* Use two cores */
-    dd::ukern::UKernCoreMask core_mask = 3;
+    dd::ukern::UKernCoreMask core_mask = 1;
 
     /* Initialize scheduler */
     dd::ukern::InitializeUKern(core_mask);
@@ -40,7 +40,7 @@ TEST(SchedulerDualCoreThreadValueSet) {
 
     /* Create a thread */
     dd::ukern::UKernHandle handle = 0;
-    const u32 result0 = dd::ukern::CreateThread(std::addressof(handle), TestWaitMain, reinterpret_cast<uintptr_t>(std::addressof(cs)), 0x1000, THREAD_PRIORITY_NORMAL, 1);
+    const u32 result0 = dd::ukern::CreateThread(std::addressof(handle), TestWaitMain, reinterpret_cast<uintptr_t>(std::addressof(cs)), 0x1000, THREAD_PRIORITY_NORMAL, 0);
     //::printf("0x%X\n", result0);
     TEST_ASSERT(result0 != dd::ukern::ResultInvalidThreadFunctionPointer);
     TEST_ASSERT(result0 != dd::ukern::ResultInvalidStackSize);

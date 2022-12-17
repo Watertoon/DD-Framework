@@ -399,7 +399,7 @@ namespace dd::ukern::impl {
 
         /* Get fiber from handle table */
         FiberLocalStorage *handle_fiber = this->GetFiberByHandle(handle);
-        RESULT_RETURN_IF(handle_fiber == nullptr, ResultInvalidHandle);
+        RESULT_RETURN_IF(handle_fiber == nullptr || handle_fiber == current_fiber, ResultInvalidHandle);
 
         /* Load value from address */
         const u32 address_tag = *lock_address;

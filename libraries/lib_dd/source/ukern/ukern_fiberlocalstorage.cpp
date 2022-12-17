@@ -28,6 +28,8 @@ namespace dd::ukern {
 
     void FiberLocalStorage::ReleaseLockWaitListUnsafe() {
 
+        DD_ASSERT(this->wait_list.IsEmpty() == false);
+
         /* Get waiter to signal */
         FiberLocalStorage &next_owner = this->wait_list.PopFront();
 
