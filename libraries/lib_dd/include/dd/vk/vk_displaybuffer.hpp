@@ -146,7 +146,7 @@ namespace dd::vk {
                     .vk_tiling = VK_IMAGE_TILING_OPTIMAL,
                     .array_layers = 1
                 };
-                const u64 required_memory = util::AlignUp(Texture::GetRequiredMemory(context, std::addressof(depth_image_info)), Context::TargetMemoryPoolAlignment);
+                const u64 required_memory = util::AlignUp(Texture::GetRequiredMemorySize(context, std::addressof(depth_image_info)), Context::TargetMemoryPoolAlignment);
 
                 const s32 memory_type = context->FindMemoryHeapIndex(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
                 const VkMemoryAllocateInfo depth_stencil_allocate_info =  {
@@ -311,7 +311,7 @@ namespace dd::vk {
                     .vk_tiling = VK_IMAGE_TILING_OPTIMAL,
                     .array_layers = 1
                 };
-                const u64 required_memory = util::AlignUp(Texture::GetRequiredMemory(context, std::addressof(depth_image_info)), Context::TargetMemoryPoolAlignment);
+                const u64 required_memory = util::AlignUp(Texture::GetRequiredMemorySize(context, std::addressof(depth_image_info)), Context::TargetMemoryPoolAlignment);
 
                 const s32 memory_type = context->FindMemoryHeapIndex(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
                 const VkMemoryAllocateInfo depth_stencil_allocate_info =  {

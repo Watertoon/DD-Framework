@@ -43,6 +43,9 @@
 #include <dd/util/util_heaparray.hpp>
 #include <dd/util/util_timestamp.h>
 #include <dd/util/util_timespan.hpp>
+#include <dd/util/util_constevalfail.hpp>
+#include <dd/util/util_tstring.hpp>
+#include <dd/util/util_charactercode.hpp>
 
 #include <dd/util/util_spinloopintrinsics.x64.hpp>
 #include <dd/util/math/util_constants.hpp>

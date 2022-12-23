@@ -30,9 +30,6 @@ TEST(TimeSpanToTickConversion) {
 
     /* Convert case */
     dd::TimeSpan convert_span = dd::TimeSpan::FromTick(span.GetTick());
-    ::printf("nano: %lld", convert_span.GetNanoSeconds());
-    const u32 milli = convert_span.GetMilliSeconds();
-    ::printf("milli: %d\n", milli);
     TEST_ASSERT(convert_span.GetMilliSeconds() == 2);
 
     TEST_SUCCESS;

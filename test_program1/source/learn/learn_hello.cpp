@@ -237,7 +237,7 @@ namespace dd::learn {
         index_buffer_info.offset    = util::AlignUp(sizeof(vertices), vk::Buffer::GetAlignment(context, std::addressof(index_buffer_info)));
         uniform_buffer_info.offset  = util::AlignUp(index_buffer_info.offset + sizeof(indices), vk::Buffer::GetAlignment(context, std::addressof(uniform_buffer_info)));
 
-        texture1_info.memory_offset = util::AlignUp(texture0_size, vk::Texture::GetAlignment(context, std::addressof(texture1_info)));
+        texture1_info.memory_offset = util::AlignUp(texture0_size, vk::Texture::GetRequiredMemoryAlignment(context, std::addressof(texture1_info)));
 
         /* Determine memory size */
         const u64 buffer_memory_size = util::AlignUp(uniform_buffer_info.offset + UniformBufferSize, vk::Context::TargetMemoryPoolAlignment);

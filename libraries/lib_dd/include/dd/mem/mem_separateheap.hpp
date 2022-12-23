@@ -44,7 +44,7 @@ namespace dd::mem {
     
             virtual void Finalize() override final {/*...*/}
     
-            virtual MemoryRange Adjust() override final {/*...*/}
+            virtual MemoryRange AdjustHeap() override final {/*...*/}
             virtual size_t AdjustAllocation(void *byte_offset_of_allocation, size_t new_size) override final {/*...*/}
     
             virtual void *TryAllocate(size_t size, size_t alignment) override final {/*...*/}

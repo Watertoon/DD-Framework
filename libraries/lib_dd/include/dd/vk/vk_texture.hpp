@@ -48,24 +48,24 @@ namespace dd::vk {
                 /* Create Image */
                 const u32 queue_family_index = context->GetGraphicsQueueFamilyIndex();
                 const VkImageCreateInfo image_info {
-                    .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-                    .flags = texture_info->vk_create_flags,
-                    .imageType = static_cast<VkImageType>(texture_info->vk_image_type),
-                    .format = static_cast<VkFormat>(texture_info->vk_format),
+                    .sType                 = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                    .flags                 = texture_info->vk_create_flags,
+                    .imageType             = static_cast<VkImageType>(texture_info->vk_image_type),
+                    .format                = static_cast<VkFormat>(texture_info->vk_format),
                     .extent = {
-                        .width = texture_info->width,
-                        .height = texture_info->height,
-                        .depth = texture_info->depth
+                        .width             = texture_info->width,
+                        .height            = texture_info->height,
+                        .depth             = texture_info->depth
                     },
-                    .mipLevels = texture_info->mip_levels,
-                    .arrayLayers = texture_info->array_layers,
-                    .samples = static_cast<VkSampleCountFlagBits>(texture_info->vk_sample_count_flag),
-                    .tiling = static_cast<VkImageTiling>(texture_info->vk_tiling),
-                    .usage = texture_info->vk_usage_flags,
-                    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                    .mipLevels             = texture_info->mip_levels,
+                    .arrayLayers           = texture_info->array_layers,
+                    .samples               = static_cast<VkSampleCountFlagBits>(texture_info->vk_sample_count_flag),
+                    .tiling                = static_cast<VkImageTiling>(texture_info->vk_tiling),
+                    .usage                 = texture_info->vk_usage_flags,
+                    .sharingMode           = VK_SHARING_MODE_EXCLUSIVE,
                     .queueFamilyIndexCount = 1,
-                    .pQueueFamilyIndices = std::addressof(queue_family_index),
-                    .initialLayout = static_cast<VkImageLayout>(texture_info->vk_image_layout)
+                    .pQueueFamilyIndices   = std::addressof(queue_family_index),
+                    .initialLayout         = static_cast<VkImageLayout>(texture_info->vk_image_layout)
                 };
 
                 const u32 result0 = ::pfn_vkCreateImage(context->GetDevice(), std::addressof(image_info), nullptr, std::addressof(m_vk_image));
@@ -77,6 +77,37 @@ namespace dd::vk {
 
                 m_requires_relocation = memory_pool->RequiresRelocation();
                 m_bound_memory_pool = memory_pool;
+
+                m_vk_image_layout = texture_info->vk_image_layout;
+            }
+
+            void Initialize(const Context *context, const TextureInfo *texture_info) {
+
+                /* Create Image */
+                const u32 queue_family_index = context->GetGraphicsQueueFamilyIndex();
+                const VkImageCreateInfo image_info {
+                    .sType                 = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                    .flags                 = texture_info->vk_create_flags,
+                    .imageType             = static_cast<VkImageType>(texture_info->vk_image_type),
+                    .format                = static_cast<VkFormat>(texture_info->vk_format),
+                    .extent = {
+                        .width             = texture_info->width,
+                        .height            = texture_info->height,
+                        .depth             = texture_info->depth
+                    },
+                    .mipLevels             = texture_info->mip_levels,
+                    .arrayLayers           = texture_info->array_layers,
+                    .samples               = static_cast<VkSampleCountFlagBits>(texture_info->vk_sample_count_flag),
+                    .tiling                = static_cast<VkImageTiling>(texture_info->vk_tiling),
+                    .usage                 = texture_info->vk_usage_flags,
+                    .sharingMode           = VK_SHARING_MODE_EXCLUSIVE,
+                    .queueFamilyIndexCount = 1,
+                    .pQueueFamilyIndices   = std::addressof(queue_family_index),
+                    .initialLayout         = static_cast<VkImageLayout>(texture_info->vk_image_layout)
+                };
+
+                const u32 result0 = ::pfn_vkCreateImage(context->GetDevice(), std::addressof(image_info), nullptr, std::addressof(m_vk_image));
+                DD_ASSERT(result0 == VK_SUCCESS);
 
                 m_vk_image_layout = texture_info->vk_image_layout;
             }
@@ -107,47 +138,15 @@ namespace dd::vk {
 
             void SetImageLayout(VkImageLayout new_layout) { m_vk_image_layout = static_cast<u32>(new_layout); }
 
-            static u64 GetAlignment(const Context *context, const TextureInfo *texture_info) { 
-
-                /* Create staging Image */
-                const u32 queue_family_index = context->GetGraphicsQueueFamilyIndex();
-                const VkImageCreateInfo image_info {
-                    .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-                    .flags = texture_info->vk_create_flags,
-                    .imageType = static_cast<VkImageType>(texture_info->vk_image_type),
-                    .format = static_cast<VkFormat>(texture_info->vk_format),
-                    .extent = {
-                        .width = texture_info->width,
-                        .height = texture_info->height,
-                        .depth = texture_info->depth
-                    },
-                    .mipLevels = texture_info->mip_levels,
-                    .arrayLayers = texture_info->array_layers,
-                    .samples = static_cast<VkSampleCountFlagBits>(texture_info->vk_sample_count_flag),
-                    .tiling = static_cast<VkImageTiling>(texture_info->vk_tiling),
-                    .usage = texture_info->vk_usage_flags,
-                    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-                    .queueFamilyIndexCount = 1,
-                    .pQueueFamilyIndices = std::addressof(queue_family_index),
-                    .initialLayout = static_cast<VkImageLayout>(texture_info->vk_image_layout)
-                };
-
-                const VkDeviceImageMemoryRequirements requirements_info = {
-                    .sType = VK_STRUCTURE_TYPE_DEVICE_IMAGE_MEMORY_REQUIREMENTS,
-                    .pCreateInfo = std::addressof(image_info),
-                    .planeAspect = VK_IMAGE_ASPECT_COLOR_BIT
-                };
-
-                VkMemoryRequirements2 memory_requirements = {
-                    .sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2
-                };
-
-                ::pfn_vkGetDeviceImageMemoryRequirements(context->GetDevice(), std::addressof(requirements_info), std::addressof(memory_requirements));
-                
-                return memory_requirements.memoryRequirements.alignment;
+            static u64 GetRequiredMemoryAlignment(const Context *context, const TextureInfo *texture_info) { 
+                return GetMemoryRequirements(context, texture_info).alignment;
             }
 
-            static u64 GetRequiredMemory(const Context *context, const TextureInfo *texture_info) { 
+            static u64 GetRequiredMemorySize(const Context *context, const TextureInfo *texture_info) { 
+                return GetMemoryRequirements(context, texture_info).size;
+            }
+
+            static VkMemoryRequirements GetMemoryRequirements(const Context *context, const TextureInfo *texture_info) { 
 
                 /* Create staging Image */
                 const u32 queue_family_index = context->GetGraphicsQueueFamilyIndex();
@@ -184,7 +183,7 @@ namespace dd::vk {
 
                 ::pfn_vkGetDeviceImageMemoryRequirements(context->GetDevice(), std::addressof(requirements_info), std::addressof(memory_requirements));
                 
-                return memory_requirements.memoryRequirements.size;
+                return memory_requirements.memoryRequirements;
             }
     };
 }

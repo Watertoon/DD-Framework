@@ -153,7 +153,7 @@ namespace dd::util {
             }
 
             void ALWAYS_INLINE PushFront(reference obj) {
-                m_list.m_next->LinkNext(Traits::GetListNode(std::addressof(obj)));
+                m_list.LinkPrev(Traits::GetListNode(std::addressof(obj)));
             }
             
             constexpr ALWAYS_INLINE reference PopFront() {
