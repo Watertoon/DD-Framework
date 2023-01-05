@@ -51,12 +51,12 @@ namespace dd::util {
 
             constexpr ALWAYS_INLINE T *operator[](u32 index) {
                 DD_ASSERT(m_array_count > index);
-                return m_object_array[index];
+                return std::addressof(m_object_array[index]);
             }
 
             constexpr ALWAYS_INLINE T *operator[](u32 index) const {
                 DD_ASSERT(m_array_count > index);
-                return m_object_array[index];
+                return std::addressof(m_object_array[index]);
             }
     };
 }

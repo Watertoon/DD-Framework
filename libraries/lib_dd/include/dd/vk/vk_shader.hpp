@@ -84,7 +84,7 @@ namespace dd::vk {
             VkPipeline m_vk_pipeline;
             u32        m_pipeline_type;
         public:
-            constexpr Shader() {/*...*/}
+            constexpr Shader() : m_vk_pipeline(0), m_pipeline_type(0) {/*...*/}
 
             void Initialize(const Context *context, const PrimitiveShaderInfo *shader_info) {
 
@@ -343,7 +343,8 @@ namespace dd::vk {
             }
 
             void Initialize(const Context *context, const MeshShaderInfo *shader_info) {
-                                /* Create shader modules */
+
+                /* Create shader modules */
                 VkShaderModule vk_task_module = 0;
                 VkShaderModule vk_mesh_module = 0;
                 VkShaderModule vk_fragment_module = 0;
@@ -513,11 +514,15 @@ namespace dd::vk {
                     ::pfn_vkDestroyShaderModule(context->GetDevice(), vk_fragment_module, nullptr);
                 }
             }
-            
+
             /* TODO; ray tracing pipeline */
 
             void Finalize(const Context *context) {
-                ::pfn_vkDestroyPipeline(context->GetDevice(), m_vk_pipeline, nullptr);
+                if (m_vk_pipeline != 0) {
+                    ::pfn_vkDestroyPipeline(context->GetDevice(), m_vk_pipeline, nullptr);
+                    m_vk_pipeline = 0;
+                }
+                m_pipeline_type = 0;
             }
 
             constexpr ALWAYS_INLINE VkPipeline          GetPipeline()          const { return m_vk_pipeline; } 
