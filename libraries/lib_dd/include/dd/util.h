@@ -18,6 +18,7 @@
 #include <dd/util/util_result.hpp>
 #include <dd/util/util_result_ukern.h>
 #include <dd/util/util_result_trace.h>
+#include <dd/util/util_result_res.h>
 
 #include <dd/util/util_new.h>
 #include <dd/util/util_singleton.h>
@@ -28,14 +29,10 @@
 #include <dd/util/util_member.hpp>
 #include <dd/util/util_intrusivelist.hpp>
 #include <dd/util/util_intrusivetreenode.hpp>
-#include <dd/util/util_critsec.hpp>
-#include <dd/util/util_condvar.hpp>
 #include <dd/util/util_typestorage.hpp>
 #include <dd/util/util_delegate.hpp>
 #include <dd/util/util_delegate1.hpp>
 #include <dd/util/util_delegate2.hpp>
-#include <dd/util/util_messagequeue.hpp>
-#include <dd/util/util_delegatethread.hpp>
 #include <dd/util/util_runtimetypeinfo.hpp>
 #include <dd/util/util_fixedobjectallocator.hpp>
 #include <dd/util/util_heapobjectallocator.hpp>
@@ -46,6 +43,8 @@
 #include <dd/util/util_constevalfail.hpp>
 #include <dd/util/util_tstring.hpp>
 #include <dd/util/util_charactercode.hpp>
+#include <dd/util/util_bufferstring.hpp>
+#include <dd/util/util_pathutil.hpp>
 
 #include <dd/util/util_spinloopintrinsics.x64.hpp>
 #include <dd/util/math/util_constants.hpp>

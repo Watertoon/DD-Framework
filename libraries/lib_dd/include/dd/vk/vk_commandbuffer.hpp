@@ -202,6 +202,8 @@ namespace dd::vk {
             VkDeviceAddress           m_vk_resource_buffer_address;
             ColorTargetView          *m_color_targets[8];
             DepthStencilTargetView   *m_depth_stencil_target;
+            VkClearColorValue         m_vk_clear_color;
+            VkClearDepthStencilValue  m_vk_clear_depth_stencil;
             bool                      m_is_rendering;
             bool                      m_are_new_targets;
             bool                      m_need_vertex_resource_update;
@@ -211,8 +213,8 @@ namespace dd::vk {
             bool                      m_need_fragment_resource_update;
             bool                      m_need_compute_resource_update;
             u32                       m_resource_update_count;
-            VkClearColorValue         m_vk_clear_color;
-            VkClearDepthStencilValue  m_vk_clear_depth_stencil;
+            u16                       m_render_width;
+            u16                       m_render_height;
             bool                      m_fast_clear_color;
             bool                      m_fast_clear_depth_stencil;
         private:
@@ -265,6 +267,10 @@ namespace dd::vk {
             void SetStorageBuffer(u32 location, ShaderStage shader_stage, const VkDeviceAddress gpu_address);
             void SetTextureAndSampler(u32 location, ShaderStage shader_stage, const DescriptorSlot texture_slot, const DescriptorSlot sampler_slot);
 
+            void SetRenderDimensions(u32 width, u32 height) {
+                m_render_width  = width;
+                m_render_height = height;
+            }
             constexpr VkCommandBuffer GetCommandBuffer() const { return m_vk_command_buffer; }
             static constexpr size_t GetDrawMemorySize(u32 max_shader_stages, u32 max_draws) { return max_shader_stages * max_draws * TargetResourceBufferPerStageSize; }
     };

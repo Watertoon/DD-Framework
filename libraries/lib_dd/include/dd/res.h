@@ -16,3 +16,7 @@
 #pragma once
 
 #include <dd/res/res_fileloader.hpp>
+#include <dd/res/res_filedevicebase.hpp>
+#include <dd/res/res_systemfiledevice.win32.hpp>
+#include <dd/res/res_filedevicemanager.hpp>
+#include <dd/res/res_resourcemanager.hpp>

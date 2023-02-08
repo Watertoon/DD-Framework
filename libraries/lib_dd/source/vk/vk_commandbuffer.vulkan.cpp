@@ -64,9 +64,8 @@ namespace dd::vk {
 
         /* Initialize rendering info */
         const VkRenderingAttachmentInfo *depth_stencil_ref = (m_depth_stencil_target != nullptr) ? std::addressof(depth_stencil_attachment) : nullptr;
-        u32 width = 0; 
-        u32 height = 0;
-        vk::GetGlobalContext()->GetWindowDimensionsUnsafe(std::addressof(width), std::addressof(height));
+        u32 width  = m_render_width; 
+        u32 height = m_render_height;
         const VkRenderingInfo rendering_info = {
             .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
             .renderArea = { 

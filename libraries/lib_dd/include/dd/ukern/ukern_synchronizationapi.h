@@ -18,9 +18,9 @@
 namespace dd::ukern {
 
     enum  ArbitrationType {
-        ArbitrationType_WaitIfEqual,
-        ArbitrationType_DecrementWaitIfLessThan,
         ArbitrationType_WaitIfLessThan,
+        ArbitrationType_DecrementWaitIfLessThan,
+        ArbitrationType_WaitIfEqual,
     };
     enum  SignalType {
         SignalType_Signal,

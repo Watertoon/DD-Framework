@@ -24,6 +24,13 @@ namespace dd::vk {
         ShaderStage_Geometry               = 3,
         ShaderStage_Fragment               = 4,
         ShaderStage_Compute                = 5,
+        ShaderStage_Task                   = 6,
+        ShaderStage_Mesh                   = 7,
+        ShaderStage_Ray                    = 8,
+        ShaderStage_AnyHit                 = 9,
+        ShaderStage_Closesthit             = 10,
+        ShaderStage_Miss                   = 11,
+        ShaderStage_Callable               = 12,
     };
     
     enum PipelineType {
@@ -61,22 +68,6 @@ namespace dd::vk {
         u32    *mesh_code;
         size_t  fragment_code_size;
         u32    *fragment_code;
-    };
-    
-    struct RayTracingShaderInfo {
-        u32     color_attachment_count;
-        size_t  ray_generation_code_size;
-        u32    *ray_generation_code;
-        size_t  intersection_code_size;
-        u32    *intersection_code;
-        size_t  any_hit_code_size;
-        u32    *any_hit_code;
-        size_t  closest_hit_code_size;
-        u32    *closest_hit_code;
-        size_t  miss_code_size;
-        u32    *miss_code;
-        size_t  callable_code_size;
-        u32    *callable_code;
     };
 
     class Shader {

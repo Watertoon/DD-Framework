@@ -126,32 +126,32 @@ namespace dd::vk {
         }
         #endif
         
-        static LRESULT CALLBACK WndProc(HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param) {
-            if (message == WM_DESTROY) {
-                ::PostQuitMessage(0);
-                return 0;
-            } else if (message == WM_PAINT) {
-                ::ValidateRect(window_handle, nullptr);
-                return 0;
-            } else if (message == WM_SIZING) {
-                //RECT *resize = reinterpret_cast<RECT*>(l_param);
-                //const u32 width = LOWORD(resize->top - resize->bottom);
-                //const u32 height = HIWORD(resize->top - resize->bottom);
-                //dd::vk::GetGlobalContext()->SetWindowDimensions(width, height);
-            } else if (message == WM_SIZE) {
-                dd::vk::GetGlobalContext()->BeginResize();
+        //static LRESULT CALLBACK WndProc(HWND window_handle, UINT message, WPARAM w_param, LPARAM l_param) {
+        //    if (message == WM_DESTROY) {
+        //        ::PostQuitMessage(0);
+        //        return 0;
+        //    } else if (message == WM_PAINT) {
+        //        ::ValidateRect(window_handle, nullptr);
+        //        return 0;
+        //    } else if (message == WM_SIZING) {
+        //        //RECT *resize = reinterpret_cast<RECT*>(l_param);
+        //        //const u32 width = LOWORD(resize->top - resize->bottom);
+        //        //const u32 height = HIWORD(resize->top - resize->bottom);
+        //        //dd::vk::GetGlobalContext()->SetWindowDimensions(width, height);
+        //    } else if (message == WM_SIZE) {
+        //        dd::vk::GetGlobalContext()->BeginResize();
+        //
+        //        /* Set new window size values */
+        //        const s32 width = LOWORD(l_param);
+        //        const s32 height = HIWORD(l_param);
+        //        dd::vk::GetGlobalContext()->SetWindowDimensionsUnsafe(width, height);
+        //        dd::vk::GetGlobalContext()->SetSkipDrawUnsafe();
+        //    }
+        //
+        //    return ::DefWindowProc(window_handle, message, w_param, l_param);
+        //}
 
-                /* Set new window size values */
-                const s32 width = LOWORD(l_param);
-                const s32 height = HIWORD(l_param);
-                dd::vk::GetGlobalContext()->SetWindowDimensionsUnsafe(width, height);
-                dd::vk::GetGlobalContext()->SetSkipDrawUnsafe();
-            }
-
-            return ::DefWindowProc(window_handle, message, w_param, l_param);
-        }
-
-            Context *global_context = nullptr;
+        Context *global_context = nullptr;
     }
     
     void SetGlobalContext(Context *context) {
@@ -216,50 +216,50 @@ namespace dd::vk {
 
             /* Ensure support for targeted surface format */
             {
-                u32 surface_format_count = 0;
-                const u32 result0 = ::pfn_vkGetPhysicalDeviceSurfaceFormatsKHR(m_vk_physical_device_array[i], m_vk_surface, std::addressof(surface_format_count), nullptr);
-                DD_ASSERT(result0 == VK_SUCCESS);
+                //u32 surface_format_count = 0;
+                //const u32 result0 = ::pfn_vkGetPhysicalDeviceSurfaceFormatsKHR(m_vk_physical_device_array[i], m_vk_surface, std::addressof(surface_format_count), nullptr);
+                //DD_ASSERT(result0 == VK_SUCCESS);
+                //
+                //VkSurfaceFormatKHR *surface_formats = reinterpret_cast<VkSurfaceFormatKHR*>(::malloc(sizeof(VkSurfaceFormatKHR) * surface_format_count));
+                //const u32 result1 = ::pfn_vkGetPhysicalDeviceSurfaceFormatsKHR(m_vk_physical_device_array[i], m_vk_surface, std::addressof(surface_format_count), surface_formats);
+                //DD_ASSERT(result1 == VK_SUCCESS);
 
-                VkSurfaceFormatKHR *surface_formats = reinterpret_cast<VkSurfaceFormatKHR*>(::malloc(sizeof(VkSurfaceFormatKHR) * surface_format_count));
-                const u32 result1 = ::pfn_vkGetPhysicalDeviceSurfaceFormatsKHR(m_vk_physical_device_array[i], m_vk_surface, std::addressof(surface_format_count), surface_formats);
-                DD_ASSERT(result1 == VK_SUCCESS);
-
-                for (u32 i = 0; i < surface_format_count; ++i) {
-                    if (surface_formats[i].format == TargetSurfaceFormat.format && surface_formats[i].colorSpace == TargetSurfaceFormat.colorSpace) {
-                        ::free(surface_formats);
-                        surface_formats = nullptr;
-                        break;
-                    }
-                }
-                if (surface_formats != nullptr) {
-                    ::free(surface_formats);
-                    DD_ASSERT(false); continue;
-                }
+                //for (u32 i = 0; i < surface_format_count; ++i) {
+                //    if (surface_formats[i].format == TargetSurfaceFormat.format && surface_formats[i].colorSpace == TargetSurfaceFormat.colorSpace) {
+                //        ::free(surface_formats);
+                //        surface_formats = nullptr;
+                //        break;
+                //    }
+                //}
+                //if (surface_formats != nullptr) {
+                //    ::free(surface_formats);
+                //    DD_ASSERT(false); continue;
+                //}
             }
 
             /* Ensure support for targeted present mode */
             {
-                u32 present_mode_count = 0;
-                const u32 result0 = ::pfn_vkGetPhysicalDeviceSurfacePresentModesKHR(m_vk_physical_device_array[i], m_vk_surface, std::addressof(present_mode_count), nullptr);
-                DD_ASSERT(result0 == VK_SUCCESS);
+                //u32 present_mode_count = 0;
+                //const u32 result0 = ::pfn_vkGetPhysicalDeviceSurfacePresentModesKHR(m_vk_physical_device_array[i], m_vk_surface, std::addressof(present_mode_count), nullptr);
+                //DD_ASSERT(result0 == VK_SUCCESS);
+                //
+                //VkPresentModeKHR *present_modes = reinterpret_cast<VkPresentModeKHR*>(::malloc(sizeof(VkPresentModeKHR) * present_mode_count));
+                //DD_ASSERT(present_modes != nullptr);
+                //
+                //const u32 result1 = ::pfn_vkGetPhysicalDeviceSurfacePresentModesKHR(m_vk_physical_device_array[i], m_vk_surface, std::addressof(present_mode_count), present_modes);
+                //DD_ASSERT(result1 == VK_SUCCESS);
 
-                VkPresentModeKHR *present_modes = reinterpret_cast<VkPresentModeKHR*>(::malloc(sizeof(VkPresentModeKHR) * present_mode_count));
-                DD_ASSERT(present_modes != nullptr);
-
-                const u32 result1 = ::pfn_vkGetPhysicalDeviceSurfacePresentModesKHR(m_vk_physical_device_array[i], m_vk_surface, std::addressof(present_mode_count), present_modes);
-                DD_ASSERT(result1 == VK_SUCCESS);
-
-                for (u32 i = 0; i < present_mode_count; ++i) {
-                    if (present_modes[i] == TargetPresentMode) {
-                        ::free(present_modes);
-                        present_modes = nullptr;
-                        break;
-                    }
-                }
-                if (present_modes != nullptr) {
-                    ::free(present_modes);
-                    DD_ASSERT(false); continue;
-                }
+                //for (u32 i = 0; i < present_mode_count; ++i) {
+                //    if (present_modes[i] == TargetPresentMode) {
+                //        ::free(present_modes);
+                //        present_modes = nullptr;
+                //        break;
+                //    }
+                //}
+                //if (present_modes != nullptr) {
+                //    ::free(present_modes);
+                //    DD_ASSERT(false); continue;
+                //}
             }
 
             /* Ensure our memory alignment is compatible with out TargetMemoryAlignment */
@@ -364,9 +364,9 @@ namespace dd::vk {
             if ((queue_properties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != VK_QUEUE_GRAPHICS_BIT) { continue; }
 
             {
-                u32 supports_present = false;
-                const u32 result0 = ::pfn_vkGetPhysicalDeviceSurfaceSupportKHR(m_vk_physical_device, i, m_vk_surface, std::addressof(supports_present));
-                DD_ASSERT(result0 == VK_SUCCESS);
+                u32 supports_present = true;
+                //const u32 result0 = ::pfn_vkGetPhysicalDeviceSurfaceSupportKHR(m_vk_physical_device, i, m_vk_surface, std::addressof(supports_present));
+                //DD_ASSERT(result0 == VK_SUCCESS);
 
                 if (supports_present == VK_FALSE) { continue; }
             }
@@ -380,7 +380,7 @@ namespace dd::vk {
         return false;
     }
 
-    Context::Context() : m_window_cs(), m_present_cs() {
+    Context::Context() {
 
         dd::vk::SetGlobalContext(this);
         ::LoadInitialVkCProcs();
@@ -452,36 +452,36 @@ namespace dd::vk {
             }
         #endif
 
-        /* Create Window */
-        const HINSTANCE process_handle = ::GetModuleHandle(nullptr);
-        {
-            const WNDCLASS wc = {
-                .style = CS_OWNDC,
-                .lpfnWndProc = WndProc,
-                .hInstance = process_handle,
-                .hbrBackground = (HBRUSH)(COLOR_BACKGROUND),
-                .lpszClassName = "VkDDWindow"
-            };
-            const u32 result0 = ::RegisterClass(std::addressof(wc));
-            DD_ASSERT(result0 != 0);
-
-            m_hwnd = ::CreateWindow("VkDDWindow", "Window", WS_OVERLAPPEDWINDOW, 0, 0, 1280, 720, 0, 0, ::GetModuleHandle(nullptr), 0);
-            DD_ASSERT(m_hwnd != nullptr);
-
-            ::ShowWindow(m_hwnd, SW_SHOW);
-        }
-
-        /* Create Surface */
-        {
-            const VkWin32SurfaceCreateInfoKHR win32_info = {
-                .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
-                .hinstance = process_handle,
-                .hwnd = m_hwnd
-            };
-
-            const u32 result1 = ::pfn_vkCreateWin32SurfaceKHR(m_vk_instance, std::addressof(win32_info), nullptr, std::addressof(m_vk_surface));
-            DD_ASSERT(result1 == VK_SUCCESS);
-        }
+        ///* Create Window */
+        //const HINSTANCE process_handle = ::GetModuleHandle(nullptr);
+        //{
+        //    const WNDCLASS wc = {
+        //        .style = CS_OWNDC,
+        //        .lpfnWndProc = WndProc,
+        //        .hInstance = process_handle,
+        //        .hbrBackground = (HBRUSH)(COLOR_BACKGROUND),
+        //        .lpszClassName = "VkDDWindow"
+        //    };
+        //    const u32 result0 = ::RegisterClass(std::addressof(wc));
+        //    DD_ASSERT(result0 != 0);
+        //
+        //    m_hwnd = ::CreateWindow("VkDDWindow", "Window", WS_OVERLAPPEDWINDOW, 0, 0, 1280, 720, 0, 0, ::GetModuleHandle(nullptr), 0);
+        //    DD_ASSERT(m_hwnd != nullptr);
+        //
+        //    ::ShowWindow(m_hwnd, SW_SHOW);
+        //}
+        //
+        ///* Create Surface */
+        //{
+        //    const VkWin32SurfaceCreateInfoKHR win32_info = {
+        //        .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
+        //        .hinstance = process_handle,
+        //        .hwnd = m_hwnd
+        //    };
+        //
+        //    const u32 result1 = ::pfn_vkCreateWin32SurfaceKHR(m_vk_instance, std::addressof(win32_info), nullptr, std::addressof(m_vk_surface));
+        //    DD_ASSERT(result1 == VK_SUCCESS);
+        //}
 
         /* Get count of physical devices */
         const u32 result2 = ::pfn_vkEnumeratePhysicalDevices(m_vk_instance, std::addressof(m_vk_physical_device_count), nullptr);
@@ -683,7 +683,7 @@ namespace dd::vk {
         #if defined(DD_DEBUG)
             ::pfn_vkDestroyDebugUtilsMessengerEXT(m_vk_instance, m_debug_messenger, nullptr);
         #endif
-        ::pfn_vkDestroySurfaceKHR(m_vk_instance, m_vk_surface, nullptr);
+        //::pfn_vkDestroySurfaceKHR(m_vk_instance, m_vk_surface, nullptr);
         ::pfn_vkDestroyInstance(m_vk_instance, nullptr);
 
         /* Free dynamic lists */
@@ -693,131 +693,131 @@ namespace dd::vk {
     }
 
     /* Presentation */
-    void Context::PresentAsync(util::DelegateThread *thread, size_t message) {
-        DD_ASSERT(thread->GetExitCode() != message);
-
-        this->Present(reinterpret_cast<CommandBuffer*>(message));
-    }
-
-    void Context::Present(CommandBuffer *submit_command_buffer) {
-        DD_ASSERT(submit_command_buffer != nullptr && m_bound_display_buffer != nullptr);
-
-        m_present_cs.Enter();
-        this->LockWindowResize();
-        m_entered_present = true;
-
-        if (this->HasWindowResizedUnsafe() == true || this->IsSkipDrawUnsafe() == true || this->HasValidWindowDimensionsUnsafe() == false) {
-            this->UnlockWindowResize();
-            m_present_cs.Leave();
-            return;
-        }
-
-        /* Submit command buffer */
-        {
-            VkCommandBuffer vk_command_buffer = submit_command_buffer->GetCommandBuffer();
-
-            const VkCommandBufferSubmitInfo command_submit_infos = {
-                .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
-                .commandBuffer = vk_command_buffer
-            };
-
-            const VkSemaphoreSubmitInfo semaphore_info = {
-                .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-                .semaphore = m_bound_display_buffer->GetCurrentQueuePresentSemaphore(),
-                .stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT
-            };
-
-            const VkSubmitInfo2 submit_info = {
-                .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
-                .commandBufferInfoCount = 1,
-                .pCommandBufferInfos = std::addressof(command_submit_infos),
-                .signalSemaphoreInfoCount = 1,
-                .pSignalSemaphoreInfos = std::addressof(semaphore_info)
-            };
-
-            m_bound_display_buffer->ResetCurrentQueueSubmitFence();
-            VkFence submit_fence = m_bound_display_buffer->GetCurrentQueueSubmitFence();
-
-            const u32 result1 = ::pfn_vkQueueSubmit2(m_vk_graphics_queue, 1, std::addressof(submit_info), submit_fence);
-            DD_ASSERT(result1 == VK_SUCCESS);
-        }
-
-        /* Present */
-        m_bound_display_buffer->PresentTextureAndAcquireNext(global_context);
-        this->UnlockWindowResize();
-
-        m_present_cs.Leave();
-    }
-
-    void Context::WaitForGpu() {
-
-        /* Bail if draw is skipped */
-        if (this->IsSkipDraw() == true) {
-            bool result = this->TryRecreateFramebuffer();
-            if (result == true) {
-                this->LockWindowResize();
-
-                this->ClearSkipDrawUnsafe();
-                this->ClearResizeUnsafe();
-
-                this->UnlockWindowResize();
-
-                VkFence submit_fence = m_bound_display_buffer->GetCurrentQueueSubmitFence();
-                const u32 result0 = ::pfn_vkWaitForFences(m_vk_device, 1, std::addressof(submit_fence), VK_TRUE, UINT64_MAX);
-                DD_ASSERT(result0 == VK_SUCCESS);
-
-                VkFence acquire_fence = m_bound_display_buffer->GetImageAcquireFence();
-                const u32 result1 = ::pfn_vkWaitForFences(m_vk_device, 1, std::addressof(acquire_fence), VK_TRUE, 16000000);
-                DD_ASSERT(result1 == VK_SUCCESS);
-            }
-
-            return;
-        }
-
-        /* Wait until we have presented */
-        while (m_entered_present == false) {
-            ::Sleep(0);
-        }
-
-        m_present_cs.Enter();
-
-        m_entered_present = false;
-
-        /* Wait for Queue submission to finish */
-        VkFence submit_fence = m_bound_display_buffer->GetCurrentQueueSubmitFence();
-
-        const u32 result2 = ::pfn_vkWaitForFences(m_vk_device, 1, std::addressof(submit_fence), VK_TRUE, UINT64_MAX);
-        DD_ASSERT(result2 == VK_SUCCESS);
-
-        /* Wait for image acquire */
-        VkFence acquire_fence = m_bound_display_buffer->GetImageAcquireFence();
-
-        const u32 result0 = ::pfn_vkWaitForFences(m_vk_device, 1, std::addressof(acquire_fence), VK_TRUE, 16000000);
-        DD_ASSERT(result0 == VK_SUCCESS);
-
-        m_present_cs.Leave();
-    }
-
-    bool Context::TryRecreateFramebuffer() {
-
-        m_present_cs.Enter();
-
-        this->SetResize();
-
-        /* Apply our window resize */
-        bool result = m_bound_display_buffer->ApplyResize(this);
-
-        m_present_cs.Leave();
-        return result;
-    }
-
-    util::DelegateThread *Context::InitializePresentationThread(DisplayBuffer *display_buffer) {
-
-        m_bound_display_buffer = display_buffer;
-
-        util::ConstructAt(m_present_delegate, this, PresentAsync);
-        size_t exit_code = 0;
-        util::ConstructAt(m_delegate_thread, util::GetPointer(m_present_delegate), 0x1000, exit_code, 32);
-        return util::GetPointer(m_delegate_thread);
-    }
+    //void Context::PresentAsync(util::DelegateThread *thread, size_t message) {
+    //    DD_ASSERT(thread->GetExitCode() != message);
+    //
+    //    this->Present(reinterpret_cast<CommandBuffer*>(message));
+    //}
+    //
+    //void Context::Present(CommandBuffer *submit_command_buffer) {
+    //    DD_ASSERT(submit_command_buffer != nullptr && m_bound_display_buffer != nullptr);
+    //
+    //    m_present_cs.Enter();
+    //    this->LockWindowResize();
+    //    m_entered_present = true;
+    //
+    //    if (this->HasWindowResizedUnsafe() == true || this->IsSkipDrawUnsafe() == true || this->HasValidWindowDimensionsUnsafe() == false) {
+    //        this->UnlockWindowResize();
+    //        m_present_cs.Leave();
+    //        return;
+    //    }
+    //
+    //    /* Submit command buffer */
+    //    {
+    //        VkCommandBuffer vk_command_buffer = submit_command_buffer->GetCommandBuffer();
+    //
+    //        const VkCommandBufferSubmitInfo command_submit_infos = {
+    //            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+    //            .commandBuffer = vk_command_buffer
+    //        };
+    //
+    //        const VkSemaphoreSubmitInfo semaphore_info = {
+    //            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+    //            .semaphore = m_bound_display_buffer->GetCurrentQueuePresentSemaphore(),
+    //            .stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT
+    //        };
+    //
+    //        const VkSubmitInfo2 submit_info = {
+    //            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+    //            .commandBufferInfoCount = 1,
+    //            .pCommandBufferInfos = std::addressof(command_submit_infos),
+    //            .signalSemaphoreInfoCount = 1,
+    //            .pSignalSemaphoreInfos = std::addressof(semaphore_info)
+    //        };
+    //
+    //        m_bound_display_buffer->ResetCurrentQueueSubmitFence();
+    //        VkFence submit_fence = m_bound_display_buffer->GetCurrentQueueSubmitFence();
+    //
+    //        const u32 result1 = ::pfn_vkQueueSubmit2(m_vk_graphics_queue, 1, std::addressof(submit_info), submit_fence);
+    //        DD_ASSERT(result1 == VK_SUCCESS);
+    //    }
+    //
+    //    /* Present */
+    //    m_bound_display_buffer->PresentTextureAndAcquireNext(global_context);
+    //    this->UnlockWindowResize();
+    //
+    //    m_present_cs.Leave();
+    //}
+    //
+    //void Context::WaitForGpu() {
+    //
+    //    /* Bail if draw is skipped */
+    //    if (this->IsSkipDraw() == true) {
+    //        bool result = this->TryRecreateFramebuffer();
+    //        if (result == true) {
+    //            this->LockWindowResize();
+    //
+    //            this->ClearSkipDrawUnsafe();
+    //            this->ClearResizeUnsafe();
+    //
+    //            this->UnlockWindowResize();
+    //
+    //            VkFence submit_fence = m_bound_display_buffer->GetCurrentQueueSubmitFence();
+    //            const u32 result0 = ::pfn_vkWaitForFences(m_vk_device, 1, std::addressof(submit_fence), VK_TRUE, UINT64_MAX);
+    //            DD_ASSERT(result0 == VK_SUCCESS);
+    //
+    //            VkFence acquire_fence = m_bound_display_buffer->GetImageAcquireFence();
+    //            const u32 result1 = ::pfn_vkWaitForFences(m_vk_device, 1, std::addressof(acquire_fence), VK_TRUE, 16000000);
+    //            DD_ASSERT(result1 == VK_SUCCESS);
+    //        }
+    //
+    //        return;
+    //    }
+    //
+    //    /* Wait until we have presented */
+    //    while (m_entered_present == false) {
+    //        ::Sleep(0);
+    //    }
+    //
+    //    m_present_cs.Enter();
+    //
+    //    m_entered_present = false;
+    //
+    //    /* Wait for Queue submission to finish */
+    //    VkFence submit_fence = m_bound_display_buffer->GetCurrentQueueSubmitFence();
+    //
+    //    const u32 result2 = ::pfn_vkWaitForFences(m_vk_device, 1, std::addressof(submit_fence), VK_TRUE, UINT64_MAX);
+    //    DD_ASSERT(result2 == VK_SUCCESS);
+    //
+    //    /* Wait for image acquire */
+    //    VkFence acquire_fence = m_bound_display_buffer->GetImageAcquireFence();
+    //
+    //    const u32 result0 = ::pfn_vkWaitForFences(m_vk_device, 1, std::addressof(acquire_fence), VK_TRUE, 16000000);
+    //    DD_ASSERT(result0 == VK_SUCCESS);
+    //
+    //    m_present_cs.Leave();
+    //}
+    //
+    //bool Context::TryRecreateFramebuffer() {
+    //
+    //    m_present_cs.Enter();
+    //
+    //    this->SetResize();
+    //
+    //    /* Apply our window resize */
+    //    bool result = m_bound_display_buffer->ApplyResize(this);
+    //
+    //    m_present_cs.Leave();
+    //    return result;
+    //}
+    //
+    //util::DelegateThread *Context::InitializePresentationThread(DisplayBuffer *display_buffer) {
+    //
+    //    m_bound_display_buffer = display_buffer;
+    //
+    //    util::ConstructAt(m_present_delegate, this, PresentAsync);
+    //    size_t exit_code = 0;
+    //    util::ConstructAt(m_delegate_thread, util::GetPointer(m_present_delegate), 0x1000, exit_code, 32);
+    //    return util::GetPointer(m_delegate_thread);
+    //}
 }

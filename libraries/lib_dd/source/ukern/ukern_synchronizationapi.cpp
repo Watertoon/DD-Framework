@@ -41,7 +41,7 @@ namespace dd::ukern {
         return scheduler->SignalKeyImpl(reinterpret_cast<u32*>(cv_key), count);
     }
 
-    Result WaitForAddress(uintptr_t address, u32 arbitration_type, u32 value, s64 timeout_ns) {
+    Result WaitOnAddress(uintptr_t address, u32 arbitration_type, u32 value, s64 timeout_ns) {
         impl::UserScheduler *scheduler = impl::GetScheduler();
 
         const u64 absolute_timeout = impl::GetAbsoluteTimeToWakeup(timeout_ns);

@@ -728,6 +728,9 @@ namespace dd::ukern::impl {
             }
         }
 
+        /* Integrity checks */
+        RESULT_RETURN_IF(address_fiber == nullptr, ResultNoWaiters);
+
         /* Release parent waiter */
         address_fiber->waitable_object->EndWait(address_fiber, ResultSuccess);
 

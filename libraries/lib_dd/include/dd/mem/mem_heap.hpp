@@ -55,7 +55,7 @@ namespace dd::mem {
             ChildList                       m_child_list;
             DisposerList                    m_disposer_list;
             const char                     *m_name;
-            ukern::InternalCriticalSection  m_heap_cs;
+            sys::ServiceCriticalSection     m_heap_cs;
             bool                            m_is_thread_safe;
         private:
             void AppendDisposer(IDisposer &disposer) {

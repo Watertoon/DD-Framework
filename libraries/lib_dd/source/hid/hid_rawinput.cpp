@@ -32,21 +32,21 @@ namespace dd::hid {
             };
             char _buf[0x100];
         };
-        MouseData             raw_mouse = {};
-        MouseData             last_raw_mouse = {};
-        MouseState            interim_mouse_state = {};
-        MouseState            frame_mouse_state = {};
+        MouseData                   raw_mouse = {};
+        MouseData                   last_raw_mouse = {};
+        MouseState                  interim_mouse_state = {};
+        MouseState                  frame_mouse_state = {};
 
-        util::CriticalSection mouse_state_cs = {};
-        util::CriticalSection keyboard_state_cs = {};
+        sys::ServiceCriticalSection mouse_state_cs = {};
+        sys::ServiceCriticalSection keyboard_state_cs = {};
 
-        KeyboardData          raw_keyboard = {};
-        KeyboardState         frame_keyboard_state;
-        KeyState              pressed_state;
-        KeyState              pressed_state_last;
-        KeyState              released_state;
-        KeyState              released_state_last;
-        KeyState              aheld_state;
+        KeyboardData                raw_keyboard = {};
+        KeyboardState               frame_keyboard_state;
+        KeyState                    pressed_state;
+        KeyState                    pressed_state_last;
+        KeyState                    released_state;
+        KeyState                    released_state_last;
+        KeyState                    aheld_state;
 
         void SetMouseState() {
             const RAWMOUSE *last_mouse = std::addressof(last_raw_mouse.raw_input.data.mouse);

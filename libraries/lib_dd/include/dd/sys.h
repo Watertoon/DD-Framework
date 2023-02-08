@@ -9,3 +9,5 @@
 #include <dd/sys/sys_threadmanager.hpp>
 #include <dd/sys/sys_thread.hpp>
 #include <dd/sys/sys_servicethread.hpp>
+#include <dd/sys/sys_serviceevent.hpp>
+#include <dd/sys/sys_delegatethread.hpp>

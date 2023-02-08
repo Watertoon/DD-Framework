@@ -22,7 +22,6 @@ namespace dd::hid {
         RAWINPUTDEVICELIST *keyboard_handle;
         RAWINPUTDEVICELIST *mouse_handle;
         HWND                hid_hwnd;
-        HANDLE              hid_thread;
 
         bool CheckRealKeyboard(HANDLE keyboard) {
             RID_DEVICE_INFO info = {};
@@ -52,94 +51,98 @@ namespace dd::hid {
             return ::DefWindowProc(window_handle, message, w_param, l_param);
         }
 
-        long unsigned int HidThreadMain(void *arg) {
-            DD_ASSERT(arg == nullptr);
+        class HidThread : public sys::ServiceThread {
+            public:
+                ALWAYS_INLINE HidThread() : ServiceThread("dd::hid::HidThread", nullptr, sys::ThreadRunMode_Looping, 0, 1, 0x1000, THREAD_PRIORITY_ABOVE_NORMAL) {/*...*/}
 
-            /* Create input window */
-            const HINSTANCE process_handle = ::GetModuleHandle(nullptr);
-            const WNDCLASS wc = {
-                .style = 0,
-                .lpfnWndProc = HidWndProc,
-                .hInstance = process_handle,
-                .hbrBackground = (HBRUSH)(COLOR_BACKGROUND),
-                .lpszClassName = "HidDDWindow"
-            };
-            const u32 result0 = ::RegisterClass(std::addressof(wc));
-            DD_ASSERT(result0 != 0);
+                virtual void ThreadCalc([[maybe_unused]] size_t message) override {
 
-            hid_hwnd = ::CreateWindowEx(0 ,"HidDDWindow", "InputWindow", 0, 0, 0, 1280, 720, HWND_MESSAGE, 0, ::GetModuleHandle(nullptr), 0);
-            DD_ASSERT(hid_hwnd != nullptr);
-            
-            //::EnableWindow(parent_hwnd, true);
-            
-            /* Query input devices */
-            u32 device_count = 0;
-            s32 result = ::GetRawInputDeviceList(nullptr, std::addressof(device_count), sizeof(RAWINPUTDEVICELIST));
-            DD_ASSERT(result != -1);
+                    /* Create input window */
+                    const HINSTANCE process_handle = ::GetModuleHandle(nullptr);
+                    const WNDCLASS wc = {
+                        .style = 0,
+                        .lpfnWndProc = HidWndProc,
+                        .hInstance = process_handle,
+                        .hbrBackground = (HBRUSH)(COLOR_BACKGROUND),
+                        .lpszClassName = "HidDDWindow"
+                    };
+                    const u32 result0 = ::RegisterClass(std::addressof(wc));
+                    DD_ASSERT(result0 != 0);
 
-            /* Get raw input device list */
-            RAWINPUTDEVICELIST *device_list = new RAWINPUTDEVICELIST[device_count];
-            DD_ASSERT(device_list != nullptr);
-            u32 second_count = 0;
-            while (device_count != second_count) {
+                    hid_hwnd = ::CreateWindowEx(0 ,"HidDDWindow", "InputWindow", 0, 0, 0, 1280, 720, HWND_MESSAGE, 0, ::GetModuleHandle(nullptr), 0);
+                    DD_ASSERT(hid_hwnd != nullptr);
+                    
+                    //::EnableWindow(parent_hwnd, true);
+                    
+                    /* Query input devices */
+                    u32 device_count = 0;
+                    s32 result = ::GetRawInputDeviceList(nullptr, std::addressof(device_count), sizeof(RAWINPUTDEVICELIST));
+                    DD_ASSERT(result != -1);
 
-                result = ::GetRawInputDeviceList(device_list, std::addressof(second_count), sizeof(RAWINPUTDEVICELIST));
-                if (result == -1) {
-                    delete[] device_list;
-                    device_list = new RAWINPUTDEVICELIST[second_count];
+                    /* Get raw input device list */
+                    RAWINPUTDEVICELIST *device_list = reinterpret_cast<RAWINPUTDEVICELIST*>(::malloc(sizeof(RAWINPUTDEVICELIST) * device_count));
                     DD_ASSERT(device_list != nullptr);
-                } else {
-                    device_count = result;
-                }
-            }
+                    u32 second_count = 0;
+                    while (device_count != second_count) {
 
-            /* Find and register mouse and keyboard */
-            for (u32 i = 0; i < device_count; ++i) {
-                if (device_list[i].dwType == RIM_TYPEKEYBOARD) {
-                    if (CheckRealKeyboard(device_list[i].hDevice) == true) {
-                        keyboard_handle = std::addressof(device_list[i]);
+                        result = ::GetRawInputDeviceList(device_list, std::addressof(second_count), sizeof(RAWINPUTDEVICELIST));
+                        if (result == -1) {
+                            ::free(device_list);
+                            device_list = reinterpret_cast<RAWINPUTDEVICELIST*>(::malloc(sizeof(RAWINPUTDEVICELIST) * second_count));
+                            DD_ASSERT(device_list != nullptr);
+                        } else {
+                            device_count = result;
+                        }
                     }
-                }
-                if (device_list[i].dwType == RIM_TYPEMOUSE) {
-                    mouse_handle = std::addressof(device_list[i]);
-                }
-            }
-            const RAWINPUTDEVICE raw_input[2] = {
-                {
-                    .usUsagePage = 1,
-                    .usUsage = 2,
-                    .dwFlags = RIDEV_INPUTSINK | RIDEV_DEVNOTIFY,
-                    .hwndTarget = hid_hwnd
-                }, 
-                {
-                    .usUsagePage = 1,
-                    .usUsage = 6,
-                    .dwFlags = RIDEV_INPUTSINK | RIDEV_DEVNOTIFY,
-                    .hwndTarget = hid_hwnd
-                }
-            };
-            ::RegisterRawInputDevices(raw_input, sizeof(raw_input) / sizeof(RAWINPUTDEVICE), sizeof(RAWINPUTDEVICE));
 
-            /* Process input messages */
-            MSG msg = {};
-            while (::GetMessage(std::addressof(msg), nullptr, 0, 0) != 0) {
-                ::TranslateMessage(std::addressof(msg));
-                ::DispatchMessage(std::addressof(msg));
-            }
+                    /* Find and register mouse and keyboard */
+                    for (u32 i = 0; i < device_count; ++i) {
+                        if (device_list[i].dwType == RIM_TYPEKEYBOARD) {
+                            if (CheckRealKeyboard(device_list[i].hDevice) == true) {
+                                keyboard_handle = std::addressof(device_list[i]);
+                            }
+                        }
+                        if (device_list[i].dwType == RIM_TYPEMOUSE) {
+                            mouse_handle = std::addressof(device_list[i]);
+                        }
+                    }
+                    const RAWINPUTDEVICE raw_input[2] = {
+                        {
+                            .usUsagePage = 1,
+                            .usUsage = 2,
+                            .dwFlags = RIDEV_INPUTSINK | RIDEV_DEVNOTIFY,
+                            .hwndTarget = hid_hwnd
+                        }, 
+                        {
+                            .usUsagePage = 1,
+                            .usUsage = 6,
+                            .dwFlags = RIDEV_INPUTSINK | RIDEV_DEVNOTIFY,
+                            .hwndTarget = hid_hwnd
+                        }
+                    };
+                    ::RegisterRawInputDevices(raw_input, sizeof(raw_input) / sizeof(RAWINPUTDEVICE), sizeof(RAWINPUTDEVICE));
 
-            /* Cleanup */
-            delete[] device_list;
-            return 0;
-        }
+                    /* Process input messages */
+                    MSG msg = {};
+                    while (::GetMessage(std::addressof(msg), nullptr, 0, 0) != 0) {
+                        ::TranslateMessage(std::addressof(msg));
+                        ::DispatchMessage(std::addressof(msg));
+                    }
+
+                    /* Cleanup */
+                    ::free(device_list);
+                    return;
+                }
+        };
+
+        util::TypeStorage<HidThread> HidThreadInstance = {};
     }
 
     void InitializeRawInputThread() {
-        hid_thread = ::CreateThread(nullptr, 0x1000, HidThreadMain, nullptr, 0, nullptr);
-        DD_ASSERT(hid_thread != nullptr);
+        util::ConstructAt(HidThreadInstance);
     }
 
     void FinalizeRawInputThread() {
-        ::SendMessage(hid_hwnd, WM_DESTROY, 0, 0);
-        ::WaitForSingleObject(hid_thread, INFINITE);
+        util::DestructAt(HidThreadInstance);
     }
 }

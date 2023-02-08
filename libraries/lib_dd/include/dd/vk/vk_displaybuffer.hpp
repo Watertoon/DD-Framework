@@ -25,6 +25,7 @@ namespace dd::vk {
             static constexpr u32 DepthStencilTargetPerFrame = 1;
         private:
             VkSwapchainKHR         m_vk_swapchain;
+            VkSurfaceKHR           m_vk_surface;
             VkSemaphore            m_vk_queue_present_semaphore[FramesInFlight];
             VkFence                m_vk_queue_submit_fence[FramesInFlight];
             VkFence                m_vk_image_acquire_fence;
@@ -39,19 +40,18 @@ namespace dd::vk {
         public:
             constexpr DisplayBuffer() {/*...*/}
 
-            void Initialize(Context *context) {
+            void Initialize(Context *context, VkSurfaceKHR surface, u32 window_width, u32 window_height) {
 
                 /* Create Swapchain */
-                u32 window_width = 0, window_height = 0;
-                context->GetWindowDimensionsUnsafe(std::addressof(window_width), std::addressof(window_height));
-
                 this->SetVirtualCanvasSize(static_cast<float>(window_width), static_cast<float>(window_height));
                 this->SetDimensions(static_cast<float>(window_width), static_cast<float>(window_height));
-            
+
+                m_vk_surface = surface;
+
                 const u32 family_index = context->GetGraphicsQueueFamilyIndex();
                 const VkSwapchainCreateInfoKHR swapchain_info = {
                     .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-                    .surface = context->GetSurface(),
+                    .surface = surface,
                     .minImageCount = BufferedFrames,
                     .imageFormat = Context::TargetSurfaceFormat.format,
                     .imageColorSpace = Context::TargetSurfaceFormat.colorSpace,
@@ -196,19 +196,18 @@ namespace dd::vk {
                 ::pfn_vkFreeMemory(context->GetDevice(), m_vk_depth_stencil_image_memory, nullptr);
 
                 m_current_frame = 0;
+                m_vk_surface = 0;
             }
 
-            void Recreate(const Context *context) {
+            void Recreate(const Context *context, u32 window_width, u32 window_height) {
 
                 /* Create new Swapchain */
                 VkSwapchainKHR old_swapchain = m_vk_swapchain;
-                u32 window_width = 0, window_height = 0;
-                context->GetWindowDimensionsUnsafe(std::addressof(window_width), std::addressof(window_height));
 
                 const u32 family_index = context->GetGraphicsQueueFamilyIndex();
                 const VkSwapchainCreateInfoKHR swapchain_info = {
                     .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-                    .surface = context->GetSurface(),
+                    .surface = m_vk_surface,
                     .minImageCount = BufferedFrames,
                     .imageFormat = Context::TargetSurfaceFormat.format,
                     .imageColorSpace = Context::TargetSurfaceFormat.colorSpace,
@@ -368,30 +367,29 @@ namespace dd::vk {
                 m_current_frame = (m_current_frame + 1) % FramesInFlight;
             }
 
-            bool ApplyResize(Context *context) {
-
-                context->LockWindowResize();
-
-                if (context->HasWindowResizedUnsafe() == false || context->HasValidWindowDimensionsUnsafe() == false) {
-                    context->UnlockWindowResize();
-                    return false;
-                }
-
-                const VkDevice vk_device = context->GetDevice();
-
-                /* Wait for previous frames to run their course */
-                ::pfn_vkQueueWaitIdle(context->GetGraphicsQueue());
-                ::pfn_vkDeviceWaitIdle(vk_device);
-
-                /* Recreate swapchain */
-                this->Recreate(context);
-
-                context->ClearResizeUnsafe();
-
-                context->UnlockWindowResize();
-
-                return true;
-            }
+            //bool ApplyResize(Context *context) {
+            //
+            //    context->LockWindowResize();
+            //
+            //    if (context->HasWindowResizedUnsafe() == false || context->HasValidWindowDimensionsUnsafe() == false) {
+            //        context->UnlockWindowResize();
+            //        return false;
+            //    }
+            //
+            //    const VkDevice vk_device = context->GetDevice();
+            //
+            //    /* Wait for queue to run it's course */
+            //    ::pfn_vkQueueWaitIdle(context->GetGraphicsQueue());
+            //
+            //    /* Recreate swapchain */
+            //    this->Recreate(context);
+            //
+            //    context->ClearResizeUnsafe();
+            //
+            //    context->UnlockWindowResize();
+            //
+            //    return true;
+            //}
 
             constexpr ColorTargetView *GetCurrentColorTarget()         { return std::addressof(m_vk_swapchain_targets[m_current_target_index]); }
 

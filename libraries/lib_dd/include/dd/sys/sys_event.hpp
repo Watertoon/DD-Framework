@@ -51,7 +51,7 @@ namespace dd::sys {
                 return;
             }
 
-            void TimedWait(TimeSpan timeout_ns) {
+            void TimedWait(TimeSpan timeout) {
                 
             }
     };

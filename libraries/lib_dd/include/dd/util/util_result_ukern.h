@@ -37,4 +37,5 @@ namespace dd::ukern {
     DECLARE_RESULT(InvalidCoreId,                17);
     DECLARE_RESULT(InvalidArbitrationType,       18);
     DECLARE_RESULT(InvalidSignalType,            19);
+    DECLARE_RESULT(NoWaiters,                    20);
 }

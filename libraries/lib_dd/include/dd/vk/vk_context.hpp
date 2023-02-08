@@ -82,7 +82,7 @@ namespace dd::vk {
             VkQueue                                             m_vk_graphics_queue;
             u32                                                 m_graphics_queue_family_index;
             VkCommandPool                                       m_vk_graphics_command_pool;
-            VkSurfaceKHR                                        m_vk_surface;
+            //VkSurfaceKHR                                        m_vk_surface;
             VkDescriptorSetLayout                               m_vk_texture_descriptor_set_layout;
             VkDescriptorSetLayout                               m_vk_sampler_descriptor_set_layout;
             VkPipelineLayout                                    m_vk_pipeline_layout;
@@ -112,19 +112,19 @@ namespace dd::vk {
             #endif                                                                      
 
             /* Window objects */                                                        
-            HWND                    m_hwnd;
+            /*HWND                    m_hwnd;
             s32                     m_window_width;
             s32                     m_window_height;
             util::CriticalSection   m_window_cs;
             bool                    m_has_resized;
-            bool                    m_skip_draw;
+            bool                    m_skip_draw;*/
 
             /* Presentation objects */
-            DisplayBuffer                                                              *m_bound_display_buffer;
+            /*DisplayBuffer                                                              *m_bound_display_buffer;
             util::CriticalSection                                                       m_present_cs;
             util::TypeStorage<util::DelegateThread>                                     m_delegate_thread;
             util::TypeStorage<util::Delegate2<Context, util::DelegateThread*, size_t>>  m_present_delegate;
-            bool                                                                        m_entered_present;
+            bool                                                                        m_entered_present;*/
         private:
 
             bool PickValidPhysicalDevice();
@@ -145,33 +145,33 @@ namespace dd::vk {
                 return -1;
             }
 
-            constexpr ALWAYS_INLINE VkInstance GetInstance() const                                     { return m_vk_instance; }
+            constexpr ALWAYS_INLINE VkInstance GetInstance() const                                         { return m_vk_instance; }
 
-            constexpr ALWAYS_INLINE VkSurfaceKHR GetSurface() const                                    { return m_vk_surface; }
+            //constexpr ALWAYS_INLINE VkSurfaceKHR GetSurface() const                                        { return m_vk_surface; }
 
-            constexpr ALWAYS_INLINE VkPhysicalDevice GetPhysicalDevice() const                         { return m_vk_physical_device; }
+            constexpr ALWAYS_INLINE VkPhysicalDevice GetPhysicalDevice() const                             { return m_vk_physical_device; }
 
-            constexpr ALWAYS_INLINE VkDevice GetDevice() const                                         { return m_vk_device; }
+            constexpr ALWAYS_INLINE VkDevice GetDevice() const                                             { return m_vk_device; }
 
-            constexpr ALWAYS_INLINE VkQueue GetGraphicsQueue() const                                   { return m_vk_graphics_queue; }
+            constexpr ALWAYS_INLINE VkQueue GetGraphicsQueue() const                                       { return m_vk_graphics_queue; }
 
-            constexpr ALWAYS_INLINE u32 GetGraphicsQueueFamilyIndex() const                            { return m_graphics_queue_family_index; }
+            constexpr ALWAYS_INLINE u32 GetGraphicsQueueFamilyIndex() const                                { return m_graphics_queue_family_index; }
 
-            constexpr ALWAYS_INLINE VkCommandPool GetGraphicsCommandPool() const                       { return m_vk_graphics_command_pool; }
+            constexpr ALWAYS_INLINE VkCommandPool GetGraphicsCommandPool() const                           { return m_vk_graphics_command_pool; }
 
-            constexpr ALWAYS_INLINE VkDescriptorSetLayout GetTextureDescriptorSetLayout() const        { return m_vk_texture_descriptor_set_layout; }
+            constexpr ALWAYS_INLINE VkDescriptorSetLayout GetTextureDescriptorSetLayout() const            { return m_vk_texture_descriptor_set_layout; }
 
-            constexpr ALWAYS_INLINE VkDescriptorSetLayout GetSamplerDescriptorSetLayout() const        { return m_vk_sampler_descriptor_set_layout; }
+            constexpr ALWAYS_INLINE VkDescriptorSetLayout GetSamplerDescriptorSetLayout() const            { return m_vk_sampler_descriptor_set_layout; }
 
-            constexpr ALWAYS_INLINE VkPipelineLayout GetPipelineLayout() const                         { return m_vk_pipeline_layout; }
+            constexpr ALWAYS_INLINE VkPipelineLayout GetPipelineLayout() const                             { return m_vk_pipeline_layout; }
 
-            constexpr ALWAYS_INLINE HWND GetWindowHandle() const                                       { return m_hwnd; }
+            //constexpr ALWAYS_INLINE HWND GetWindowHandle() const                                           { return m_hwnd; }
 
             constexpr ALWAYS_INLINE const VkPhysicalDeviceProperties2 *GetPhysicalDeviceProperties() const { return std::addressof(m_vk_physical_device_properties); }
 
         public:
 
-            void GetWindowDimensions(u32 *out_width, u32 *out_height) {
+            /*void GetWindowDimensions(u32 *out_width, u32 *out_height) {
                 std::scoped_lock l(m_window_cs);
 
                 *out_width = m_window_width; 
@@ -288,7 +288,7 @@ namespace dd::vk {
 
             void WaitForGpu();
 
-            util::DelegateThread *InitializePresentationThread(DisplayBuffer *display_buffer);
+            util::DelegateThread *InitializePresentationThread(DisplayBuffer *display_buffer);*/
     };
 
     void SetGlobalContext(Context *context);
