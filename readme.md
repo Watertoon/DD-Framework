@@ -8,20 +8,20 @@ My public repository for the DD application framework.
 * A simd math library (Vectors, Matrices, Camera's, Projections)
 * Many utility data structures (trees, intrusive lists, time, result codes)
 * A custom error handling system
+* A file device and resource manager
 * Basic keyboard and mouse support
 * Basic window support
-* Basic file support
-* A 3D test application based on learnopengl.com
+* A 3D test application based on learnopengl.com (test_program1 currently not building)
 
-# Pending integration (finished/draft but held back)
+# Pending integration (finished/draft held back)
 * Non-cryptographically secure hash algorithms (crc32, murmur32, murmur64)
 * A more cryptograhically secure hash algorithm (SHA256)
 * A left leaning red-black tree
 * A dependency based multithreaded job queue system
-* A file device manager, file decompressor, and resource manager with extendable support for handling custom file formats
+* A file decompressor
 * Support for multiple reverse engineered Nintendo file formats (See https://github.com/Watertoon/sarc-differ for early headers)
 
-# Future Features (in early development/planning)
+# Future Features (in early development)
 * A parameter system based on Nintendo's BYAML file format
 * An asynchornous file loader
 * An environment built on the Vulkan wrapper library for managing 3d models and graphics techniques

@@ -41,7 +41,9 @@ namespace dd::trace::impl {
         ::puts(output);
 
         /* Try to create an output file for crash data */
-        HANDLE crash_file = ::CreateFile("save/crash_report.txt", GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+        char file_path[256] = {};
+        ::snprintf(file_path, 256, "crash_report_module_%d_desc_%d.txt", result::GetModule(result), result::GetDescription(result));
+        HANDLE crash_file = ::CreateFile(file_path, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
         /* Try write output to file */
         if (crash_file == INVALID_HANDLE_VALUE) {
